@@ -1,93 +1,55 @@
 #include <iostream>
-#include <string>
-#include <utility>
 #include <vector>
 #include <glad/glad.h>
-#include <glm/glm.hpp>
 #include "utils.h"
 #include <GLFW/glfw3.h>
 
-#include "ext/matrix_clip_space.hpp"
-#include "ext/matrix_transform.hpp"
+#include "things.hpp"
+
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 
-class Mesh {
-    public:
-        unsigned int vertex_buffer_object = 0;
-        unsigned int vertex_array_object = 0;
-        unsigned int element_buffer_object = 0;
-        size_t vertex_count = 0;
-
-        Mesh(std::vector<float> vertices, std::vector<unsigned int> indices) {
-            glGenBuffers(1, &vertex_buffer_object);
-            glGenBuffers(1, &element_buffer_object);
-
-            glGenVertexArrays(1, &vertex_array_object);
-            glBindVertexArray(vertex_array_object);
-
-            glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_object);
-            std::cout << indices.size() * sizeof(unsigned int) << std::endl;
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-            vertex_count = indices.size();
-
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
-            glEnableVertexAttribArray(0);
-
-            // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindVertexArray(0);
-
-            std::cout << vertex_buffer_object << std::endl;
-            std::cout << element_buffer_object << std::endl;
-        }
-
-        ~Mesh() {
-            glDeleteVertexArrays(1,  &vertex_array_object);
-            glDeleteBuffers(1, &vertex_buffer_object);
-            glDeleteBuffers(1, &element_buffer_object);
-        }
-};
-
-class Thing {
-    public:
-        std::string name;
-        bool renderable;
-        bool updatable;
-
-        Thing (const bool is_renderable, const bool is_updatable, std::string object_name) {
-            renderable = is_renderable;
-            updatable = is_updatable;
-            name = std::move(object_name);
-        };
-};
 
 
-class SpatialThing : public Thing {
-public:
-    glm::mat4 transform = glm::mat4(1.0f);
-    SpatialThing(const bool is_renderable, const bool is_updatable, std::string object_name) : Thing(is_renderable, is_updatable, std::move(object_name)) {}
-};
 
-class Camera : public SpatialThing {
-public:
-    glm::mat4 projection;
-    Camera(std::string object_name, const glm::mat4 &projection_matrix) : SpatialThing(false, false, std::move(object_name)) {
-        projection = projection_matrix;
-    }
-};
 
 class Engine {
-    public:
-    unsigned int base_vertex_shader;
-    Camera *main_camera = nullptr; // temporary
+public:
+    unsigned int base_vertex_shader = 0;
+    std::vector<Camera *> cameras;
+    std::vector<Thing *> things;
+    Window window;
 
     void load_base_vertex_shader() {
         base_vertex_shader = compile_shader_from_file("engine/base_shaders/vertex.glsl", GL_VERTEX_SHADER);
+    }
+
+    void init_render_pipeline() {
+        load_base_vertex_shader();
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+
+    void render(const int camera_index) const{
+        glClear(GL_COLOR_BUFFER_BIT);
+        for (Thing * thing : things) {
+            if (thing->renderable) {
+                thing->render(cameras[camera_index]);
+            }
+        }
+    }
+
+    void send_it_to_window() const {
+        /* Swap front and back buffers */
+        glfwSwapBuffers(window.glfwwindow);
+
+        /* Poll for and process events */
+        glfwPollEvents();
+    }
+
+    bool is_running() const {
+        return !glfwWindowShouldClose(window.glfwwindow);
     }
 
     ~Engine() {
@@ -97,66 +59,8 @@ class Engine {
 
 Engine ge;
 
-
-class GeometryThing : public SpatialThing {
-public:
-    unsigned int shader_program = 0;
-    unsigned int vs_uniform_transform_loc = 0;
-    unsigned int vs_uniform_view_loc = 0;
-    Mesh* mesh;
-
-    GeometryThing (GeometryThing &&) = delete;
-    GeometryThing (const GeometryThing &) = delete;
-
-    GeometryThing (std::string object_name, Mesh* _mesh, const char* fragment_shader_path) : SpatialThing(true, true, std::move(object_name)) {
-        // mesh setup
-        mesh = _mesh;
-
-        // setup shaders
-        shader_program = glCreateProgram();
-        unsigned int fragment_shader_id = compile_shader_from_file(fragment_shader_path, GL_FRAGMENT_SHADER);
-        if (!fragment_shader_id) std::cout << "Error creating fragment shader" << std::endl;
-
-
-        glAttachShader(shader_program, ge.base_vertex_shader);
-        glAttachShader(shader_program, fragment_shader_id);
-        glLinkProgram(shader_program);
-
-        vs_uniform_transform_loc = glGetUniformLocation(shader_program, "transform");
-        vs_uniform_view_loc = glGetUniformLocation(shader_program, "view");
-
-        glUseProgram(shader_program);
-        glUniformMatrix4fv(glGetUniformLocation(shader_program, "projection"), 1, GL_FALSE, &ge.main_camera->projection[0][0]);
-
-        glDeleteShader(fragment_shader_id);
-
-
-    }
-
-    ~GeometryThing () {
-        glDeleteProgram(shader_program);
-    }
-
-    void update() {
-        transform[3][0] = 0.2f * static_cast<float>(glfwGetTime());
-        ge.main_camera->transform[3][1] = -0.01f * static_cast<float>(glfwGetTime());
-        ge.main_camera->transform[3][2] = -3 - 0.005f * static_cast<float>(glfwGetTime());
-    }
-
-    void render() const {
-        glUseProgram(shader_program);
-        std::cout << vs_uniform_transform_loc << " " << vs_uniform_view_loc << std::endl;
-        glUniformMatrix4fv(vs_uniform_transform_loc, 1, GL_FALSE, &transform[0][0]);
-        glUniformMatrix4fv(vs_uniform_view_loc, 1, GL_FALSE, &ge.main_camera->transform[0][0]);
-        glBindVertexArray(mesh->vertex_array_object);
-        glDrawElements(GL_TRIANGLES, mesh->vertex_count, GL_UNSIGNED_INT, 0);
-    }
-};
-
-
-
-
-Engine* gameengine() {
+// run to start engine
+Engine* gameengine(const char* game_name) {
     /* Initialize the library */
     if (!glfwInit())
         return nullptr;
