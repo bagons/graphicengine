@@ -11,7 +11,26 @@ const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 
 
+class Window {
+public:
+    GLFWwindow* glfwwindow;
+    int width{}, height{};
 
+    Window() {
+        glfwwindow = nullptr;
+    }
+
+    /* Create a windowed mode window and its OpenGL context */
+    Window(const int width, const int height, const char* title) {
+        glfwwindow = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    }
+
+
+    /* Make the window's context current */
+    void select() const {
+        glfwMakeContextCurrent(glfwwindow);
+    }
+};
 
 
 class Engine {
@@ -65,16 +84,12 @@ Engine* gameengine(const char* game_name) {
     if (!glfwInit())
         return nullptr;
 
-    /* Create a windowed mode window and its OpenGL context */
-    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello World", nullptr, nullptr);
-    if (!window)
-    {
-        glfwTerminate();
+    Window window = Window(SCREEN_WIDTH, SCREEN_HEIGHT, game_name);
+    // error when creating a window
+    if (!window.glfwwindow)
         return nullptr;
-    }
 
-    /* Make the window's context current */
-    glfwMakeContextCurrent(window);
+    ge.window = window;
 
     // load glad
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -82,12 +97,9 @@ Engine* gameengine(const char* game_name) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return nullptr;
     }
-    ge.load_base_vertex_shader();
 
-    Camera cam("camera", glm::perspective(glm::radians(45.0f),
-    (float) SCREEN_WIDTH / (float) SCREEN_HEIGHT, 0.1f, 100.0f));
-
-    ge.main_camera = &cam;
+    // engine setup
+    ge.init_render_pipeline();
 
      const std::vector<float> vertices = {
         -0.5f, -0.5f, 0.0f,
