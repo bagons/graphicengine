@@ -101,40 +101,12 @@ Engine* gameengine(const char* game_name) {
     // engine setup
     ge.init_render_pipeline();
 
-     const std::vector<float> vertices = {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         -0.5f,  0.5f, 0.0f,
-         0.5f, 0.5f, 0.0f
-    };
-
-    const std::vector<unsigned int> indices = {
-        0, 1, 2,
-        1, 3, 2
-    };
-
-    Mesh square(vertices, indices);
-
-    GeometryThing triangle("triangle", &square, "engine/base_shaders/fragment.glsl");
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
-    {
-        /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        triangle.update();
-        triangle.render();
-
-        /* Swap front and back buffers */
-        glfwSwapBuffers(window);
-
-        /* Poll for and process events */
-        glfwPollEvents();
-    }
-
-    glfwTerminate();
     return &ge;
+}
+
+// run after stopping engine
+int noengine() {
+    glfwTerminate();
+    return 0;
 }
 
