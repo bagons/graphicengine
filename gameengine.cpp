@@ -60,6 +60,9 @@ void Engine::send_it_to_window() {
     glfwSwapBuffers(window.glfwwindow);
     /* Poll for and process events */
     glfwPollEvents();
+
+    frame_delta = static_cast<float>(glfwGetTime() - last_game_time);
+    last_game_time = glfwGetTime();
 }
 
 bool Engine::is_running() const {
