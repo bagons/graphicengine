@@ -104,9 +104,7 @@ GeometryThing::~GeometryThing () {
 }
 
 void GeometryThing::update() {
-    transform[3][0] = 0.2f * static_cast<float>(glfwGetTime());
-    ge.cameras[0]->view[3][1] = -0.01f * static_cast<float>(glfwGetTime());
-    ge.cameras[0]->view[3][2] = -3 - 0.005f * static_cast<float>(glfwGetTime());
+
 }
 
 
