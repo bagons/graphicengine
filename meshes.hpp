@@ -3,7 +3,18 @@
 
 #include <vector>
 
-#include "things.hpp"
+class Mesh {
+public:
+    unsigned int vertex_buffer_object;
+    unsigned int vertex_array_object;
+    unsigned int element_buffer_object;
+    size_t vertex_count = 0;
+
+    Mesh(std::vector<float> vertices, std::vector<unsigned int> indices);
+    Mesh();
+
+    ~Mesh();
+};
 
 class Meshes {
 public:
