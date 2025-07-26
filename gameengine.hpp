@@ -2,6 +2,7 @@
 #define MAIN_H
 
 #include "input.hpp"
+#include "meshes.hpp"
 
 
 class Window {
@@ -25,6 +26,7 @@ public:
     std::vector<Thing *> things{};
     Window window{};
     Input input{};
+    Meshes meshes{};
 
     void render(int camera_index);
 

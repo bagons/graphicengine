@@ -1,5 +1,6 @@
 #ifndef THINGS_H
 #define THINGS_H
+#include <string>
 #include <glm/glm.hpp>
 
 class Mesh {
