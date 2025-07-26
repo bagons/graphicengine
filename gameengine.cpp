@@ -51,6 +51,8 @@ void Engine::update() const {
             thing->update();
         }
     }
+    // input update to correctly adjust just pressed keys
+    ge.input.update();
 }
 
 void Engine::send_it_to_window() {
@@ -72,17 +74,24 @@ Engine ge;
 
 // run to start engine
 Engine* gameengine(const char* game_name) {
-    /* Initialize the library */
+    // init window library
     if (!glfwInit())
         return nullptr;
 
+    // handles window initialization
     Window window(SCREEN_WIDTH, SCREEN_HEIGHT, game_name);
     // error when creating a window
     if (!window.glfwwindow)
         return nullptr;
 
+    // connect window to engine class
     ge.window = window;
+
+    // select windows context for rendering (possibile to select another window if rendering onto more windows, not supported yet, but why tho)
     window.select();
+
+    // setup engine input handling
+    ge.input.connect_callbacks(window.glfwwindow);
 
     // load glad
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -93,6 +102,8 @@ Engine* gameengine(const char* game_name) {
 
     // engine setup
     ge.init_render_pipeline();
+
+
     std::cout << "finishing game engine setup" << std::endl;
     return &ge;
 }

@@ -1,6 +1,9 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include "input.hpp"
+
+
 class Window {
 public:
     GLFWwindow *glfwwindow;
