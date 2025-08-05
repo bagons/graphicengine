@@ -12,6 +12,7 @@ public:
     size_t vertex_count = 0;
 
     Mesh(const std::vector<float>* vertices, const std::vector<unsigned int>* indices, bool has_vertex_colors = false, bool has_texture_cords = false);
+    Mesh(const char* file_path);
     Mesh();
 
     ~Mesh();
