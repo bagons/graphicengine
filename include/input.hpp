@@ -1,8 +1,9 @@
 #ifndef INPUT_HPP
 #define INPUT_HPP
+#pragma once
 #include <vector>
+#include <GLFW/glfw3.h>
 
-#include "GLFW/glfw3.h"
 
 struct action {
     int key;

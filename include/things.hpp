@@ -1,8 +1,10 @@
 #ifndef THINGS_H
 #define THINGS_H
+#pragma once
 #include <string>
 #include <glm/glm.hpp>
 
+#include "shaders.hpp"
 
 
 class Camera {
@@ -37,15 +39,13 @@ public:
 
 class GeometryThing : public SpatialThing {
 public:
-    unsigned int shader_program;
     unsigned int vs_uniform_transform_loc;
     unsigned int vs_uniform_view_loc;
     unsigned int vs_uniform_projection_loc;
     Mesh* mesh;
+    ShaderProgram* shader_program;
 
-    GeometryThing (std::string object_name, Mesh* _mesh, const char* fragment_shader_path);
-
-    ~GeometryThing() override;
+    GeometryThing (std::string object_name, Mesh* _mesh, ShaderProgram* _shader_program);
 
     void update() override;
 

@@ -1,8 +1,17 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#pragma once
+#include "glad/glad.h"
+#include <vector>
+
 #include "input.hpp"
 #include "meshes.hpp"
+#include "things.hpp"
+#include "shaders.hpp"
+#include "textures.hpp"
+
+#include <GLFW/glfw3.h>
 
 
 class Window {
@@ -14,8 +23,6 @@ public:
     void select() const;
 };
 
-class Thing;
-class Camera;
 
 class Engine {
 double last_game_time = 0.0;
@@ -27,6 +34,8 @@ public:
     Window window{};
     Input input{};
     Meshes meshes{};
+    Shaders shaders{};
+    Textures textures{};
 
     void render(int camera_index);
 
