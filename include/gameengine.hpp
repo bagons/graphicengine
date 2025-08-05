@@ -19,7 +19,7 @@ public:
     GLFWwindow *glfwwindow;
     int width{}, height{};
     Window();
-    Window(int width, int height, const char* title);
+    Window(int _width, int _height, const char* title);
     void select() const;
 };
 

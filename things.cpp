@@ -6,6 +6,7 @@
 // open gl
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 // engine
 #include "gameengine.hpp"
@@ -16,6 +17,29 @@
 Camera::Camera(const glm::mat4 &projection_matrix) {
     projection = projection_matrix;
     view = glm::mat4(1.0);
+}
+
+Camera::Camera(float _fov, float _near_plane, float _far_plane) {
+    fov = _fov;
+    near_plane = _near_plane;
+    far_plane = _far_plane;
+    projection = glm::perspective(glm::radians(fov), static_cast<float>(ge.window.width) / ge.window.height, near_plane, far_plane);
+    view = glm::mat4(1.0);
+}
+
+Camera::Camera(float _near_plane, float _far_plane) {
+    near_plane = _near_plane;
+    far_plane = _far_plane;
+    projection = glm::ortho(0.0f, static_cast<float>(ge.window.width), 0.0f, static_cast<float>(ge.window.height), near_plane, far_plane);
+    view = glm::mat4(1.0);
+}
+
+void Camera::change_resolution(const int width, const int height) {
+    if (fov == 0) {
+        projection = glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height), near_plane, far_plane);
+    } else {
+        projection = glm::perspective(glm::radians(fov), static_cast<float>(width) / height, near_plane, far_plane);
+    }
 }
 
 

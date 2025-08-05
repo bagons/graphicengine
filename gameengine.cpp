@@ -8,13 +8,27 @@ const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    // we work with the premiss that we have only one window
+    glViewport(0, 0, width, height);
+    std::cout << width << "x" << height << std::endl;
+    ge.window.width = width;
+    ge.window.height = height;
+    // WARNING taking into account we have only one camera
+    ge.cameras[0]->change_resolution(width, height);
+}
+
 Window::Window() {
     glfwwindow = nullptr;
 }
 
     /* Create a windowed mode window and its OpenGL context */
-Window::Window(const int width, const int height, const char* title) {
+Window::Window(const int _width, const int _height, const char* title) {
+    width = _width;
+    height = _height;
     glfwwindow = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    glfwSetFramebufferSizeCallback(glfwwindow, framebuffer_size_callback);
 }
 
 void Window::select() const {

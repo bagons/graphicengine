@@ -11,8 +11,14 @@ class Camera {
 public:
     glm::mat4 projection{};
     glm::mat4 view{};
+    float near_plane = 0;
+    float far_plane = 0;
+    float fov = 0;
 
     explicit Camera(const glm::mat4 &projection_matrix);
+    explicit Camera(float _fov, float _far_plane, float _near_plane);
+    explicit Camera(float _far_plane, float _near_plane);
+    void change_resolution(int width, int height);
 };
 
 
