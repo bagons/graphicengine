@@ -1,9 +1,7 @@
+#include <glad/glad.h>
+#include "gameengine.hpp"
 #include "input.hpp"
 
-#include <iostream>
-#include <__msvc_ostream.hpp>
-
-#include "gameengine.hpp"
 
 void Input::set_action_list(const std::vector<int> &action_keys) {
     for (const auto key : action_keys) {

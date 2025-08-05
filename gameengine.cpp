@@ -1,12 +1,7 @@
 #include <iostream>
-#include <vector>
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include "utils.h"
 #include "gameengine.hpp"
-#include "things.hpp"
+#include "utils.h"
 
 
 const int SCREEN_WIDTH = 800;

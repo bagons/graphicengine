@@ -4,14 +4,11 @@
 #include <vector>
 
 // open gl
-#include <glm/glm.hpp>
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 // engine
-#include "utils.h"
 #include "gameengine.hpp"
-#include "things.hpp"
 
 
 
