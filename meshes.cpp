@@ -5,7 +5,7 @@
 #include <string>
 
 
-void Mesh::load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, const bool has_vertex_colors, const bool has_texture_cords) {
+void Mesh::load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, const bool has_texture_cords, const bool has_normals, const bool has_vertex_colors) {
     glGenBuffers(1, &vertex_buffer_object);
     glGenBuffers(1, &element_buffer_object);
 
@@ -19,17 +19,26 @@ void Mesh::load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::ve
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->size() * sizeof(unsigned int), indices->data(), GL_STATIC_DRAW);
     vertex_count = indices->size();
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (3 + 3 * has_vertex_colors + 2 * has_texture_cords) * sizeof(float), nullptr);
+    int stride = (3 + 3 * has_normals + 2 * has_texture_cords + 3 * has_vertex_colors) * sizeof(float);
+
+    std::cout << "attrib stride: " << stride << " " << has_texture_cords << " " << has_normals << " " << has_vertex_colors << std::endl;
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, nullptr);
     glEnableVertexAttribArray(0);
 
-    if (has_vertex_colors) {
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (6 + 2 * has_texture_cords) * sizeof(float), (void*)(3*sizeof(float)));
+    if (has_texture_cords) {
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3*sizeof(float)));
         glEnableVertexAttribArray(1);
     }
 
-    if (has_texture_cords) {
-        glVertexAttribPointer(1 + has_vertex_colors, 2, GL_FLOAT, GL_FALSE, (5 + 3 * has_vertex_colors) * sizeof(float), (void*)((3 + 3 * has_vertex_colors)*sizeof(float)));
-        glEnableVertexAttribArray(1 + has_vertex_colors);
+    if (has_normals) {
+        glVertexAttribPointer(1 + has_texture_cords, 3, GL_FLOAT, GL_FALSE, stride, (void*)((3 + 2* has_texture_cords)*sizeof(float)));
+        glEnableVertexAttribArray(1 + has_texture_cords);
+    }
+
+    if (has_vertex_colors) {
+        glVertexAttribPointer(1 + has_normals + has_texture_cords, 3, GL_FLOAT, GL_FALSE, stride, (void*)((3 + 3 * has_normals + 2 * has_texture_cords)*sizeof(float)));
+        glEnableVertexAttribArray(1 + has_normals + has_texture_cords);
     }
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
@@ -38,8 +47,8 @@ void Mesh::load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::ve
 };
 
 
-Mesh::Mesh(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, const bool has_vertex_colors, const bool has_texture_cords) {
-    load_mesh_to_gpu(vertex_data, indices, has_vertex_colors, has_texture_cords);
+Mesh::Mesh(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, const bool has_texture_cords, const bool has_normals, const bool has_vertex_colors) {
+    load_mesh_to_gpu(vertex_data, indices, has_texture_cords, has_normals, has_vertex_colors);
 }
 
 Mesh::Mesh(){
@@ -106,13 +115,13 @@ Mesh::Mesh(const char* file_path) {
                     // once the number was read, offset it by one (.obj index from 1), then add to indecies list
                     vertex_triplets.push_back(vertex_triplet);
                 } else {
+                    if (data_type == 0 && !got_vertex_data_stride) v_line_data_stride++;
                     // add the last character if the end to the line
                     if (i == line.size() - 1) {
                         buf += line[i];
                         // add 100 to specify that there is no need to update vertex_data_stride any more
                         got_vertex_data_stride = true;
                     }
-                    if (data_type == 0 && !got_vertex_data_stride) v_line_data_stride++;
                     vertex_data_vec[data_type].push_back(std::stof(buf));
                 }
                 // reset buffer after each space or line end
@@ -142,13 +151,16 @@ Mesh::Mesh(const char* file_path) {
 
     size_t vertex_data_stride = 0;
 
+    size_t indecy_data_idx = 1 + (vertex_triplets[0][2] != 0) * 1;
+    // wtf how did i get here (if idecy_data == 0 -> + 1, if == 1 -> 2, if == 2 -> 5)
+    vertex_data_stride = v_line_data_stride + round(indecy_data_idx * 2.3f);
+
     if (vertex_hashmap == nullptr) {
         std::cout << "loading mesh file - null pointer has been returned";
     } else {
         std::cout << vertex_triplets.size() << " <- indices size" << std::endl;
-        size_t indecy_data_idx = 1 + (vertex_triplets[0][2] != 0) * 1;
-        // wtf how did i get here (if idecy_data == 0 -> + 1, if == 1 -> 2, if == 2 -> 5)
-        vertex_data_stride = v_line_data_stride + round(indecy_data_idx * 2.3f);
+
+        std::cout << "v line data stride + other shit -> " << v_line_data_stride << " " << round(indecy_data_idx * 2.3f) << std::endl;
         //std::cout << indecy_data_idx << " <- idi " << vertex_triplets[0][0] << " " << vertex_triplets[0][1] << " " << vertex_triplets[0][2] << std::endl;
         for (auto vertex_triplet : vertex_triplets) {
             // calculate hash for vertex with vertex position
@@ -205,15 +217,11 @@ Mesh::Mesh(const char* file_path) {
 
             size_t hashmap_idx = thehash % hashmap_size;
 
-            std::cout << hashmap_idx << " " << hashmap_size << std::endl;
-
             bool found_match = false;
 
             // if hash conflict
             while (vertex_hashmap[hashmap_idx] > 0) {
                 size_t conflict_idx = vertex_hashmap[hashmap_idx] - 1;
-
-                std::cout << vertex_hashmap[hashmap_idx] << " " << conflict_idx << std::endl;
 
                 // if duplicate match, just add hashmap idx
                 if (vertex_triplet[0] == vertex_triplets[conflict_idx][0] && vertex_triplet[1] == vertex_triplets[conflict_idx][1] && vertex_triplet[2] == vertex_triplets[conflict_idx][2]) {
@@ -262,7 +270,26 @@ Mesh::Mesh(const char* file_path) {
 
     free(vertex_hashmap);
 
-    load_mesh_to_gpu(&vertex_data, &indices, false, true);
+    std::cout << "indecies:" << std::endl;
+    for (auto i : indices)
+        std::cout << i << std::endl;
+
+
+    std::cout << "vd stride:" << vertex_data_stride << std::endl;
+
+    for (int i = 0; i < vertex_data.size() / vertex_data_stride; i++) {
+        std::cout << vertex_data[i * vertex_data_stride] << " ";
+        std::cout << vertex_data[i * vertex_data_stride + 1] << " ";
+        std::cout << vertex_data[i * vertex_data_stride + 2] << " ";
+        std::cout << vertex_data[i * vertex_data_stride + 3] << " ";
+        std::cout << vertex_data[i * vertex_data_stride + 4] << " ";
+        std::cout << vertex_data[i * vertex_data_stride + 5] << " ";
+        std::cout << vertex_data[i * vertex_data_stride + 6] << " ";
+        std::cout << vertex_data[i * vertex_data_stride + 7] << " " << std::endl;
+    }
+
+    // set correct flags based on .obj properties. 1/1/1 triplets v/vt/vn
+    load_mesh_to_gpu(&vertex_data, &indices, indecy_data_idx > 0, indecy_data_idx > 1, v_line_data_stride > 3);
 }
 
 Mesh::~Mesh() {
@@ -283,7 +310,7 @@ Meshes::~Meshes() {
 
 Mesh* Meshes::get_cube() {
     if (cube == nullptr) {
-        cube = new Mesh{&CUBE_VERTEX_DATA, &CUBE_INDICES, true, true};
+        cube = new Mesh{&CUBE_VERTEX_DATA, &CUBE_INDICES, true, false, true};
     }
     return cube;
 }
