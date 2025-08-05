@@ -41,31 +41,14 @@ SpatialThing::SpatialThing(const bool is_renderable, const bool is_updatable, st
 
 
 
-GeometryThing::GeometryThing (std::string object_name, Mesh* _mesh, const char* fragment_shader_path) : SpatialThing(true, true, std::move(object_name)) {
+GeometryThing::GeometryThing (std::string object_name, Mesh* _mesh, ShaderProgram* _shader_program) : SpatialThing(true, true, std::move(object_name)) {
     // mesh setup
     mesh = _mesh;
+    shader_program = _shader_program;
 
-    // setup shaders
-    shader_program = glCreateProgram();
-    unsigned int fragment_shader_id = compile_shader_from_file(fragment_shader_path, GL_FRAGMENT_SHADER);
-    if (!fragment_shader_id) std::cout << "Error creating fragment shader" << std::endl;
-
-
-    glAttachShader(shader_program, ge.base_vertex_shader);
-    glAttachShader(shader_program, fragment_shader_id);
-    glLinkProgram(shader_program);
-
-    vs_uniform_projection_loc = glGetUniformLocation(shader_program, "projection");
-    vs_uniform_transform_loc = glGetUniformLocation(shader_program, "transform");
-    vs_uniform_view_loc = glGetUniformLocation(shader_program, "view");
-
-
-
-    glDeleteShader(fragment_shader_id);
-}
-
-GeometryThing::~GeometryThing () {
-    glDeleteProgram(shader_program);
+    vs_uniform_projection_loc = glGetUniformLocation(shader_program->id, "projection");
+    vs_uniform_transform_loc = glGetUniformLocation(shader_program->id, "transform");
+    vs_uniform_view_loc = glGetUniformLocation(shader_program->id, "view");
 }
 
 void GeometryThing::update() {
@@ -74,11 +57,12 @@ void GeometryThing::update() {
 
 
 void GeometryThing::render(Camera * from_camera) {
-    glUseProgram(shader_program);
+    shader_program->use();
 
     glUniformMatrix4fv(vs_uniform_transform_loc, 1, GL_FALSE, &transform[0][0]);
     glUniformMatrix4fv(vs_uniform_view_loc, 1, GL_FALSE, &from_camera->view[0][0]);
     glUniformMatrix4fv(vs_uniform_projection_loc, 1, GL_FALSE, &from_camera->projection[0][0]);
+
 
     glBindVertexArray(mesh->vertex_array_object);
     glDrawElements(GL_TRIANGLES, mesh->vertex_count, GL_UNSIGNED_INT, 0);
