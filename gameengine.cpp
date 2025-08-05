@@ -28,11 +28,12 @@ void Engine::load_base_vertex_shader() {
 void Engine::init_render_pipeline() {
     load_base_vertex_shader();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void Engine::render(const int camera_index) {
     glClearColor(0.4f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (Thing * thing : things) {
         if (thing->renderable) {
             thing->render(cameras[camera_index]);
