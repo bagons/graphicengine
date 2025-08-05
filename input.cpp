@@ -35,7 +35,7 @@ void Input::update() {
 }
 
 
-// i can't give a non static class to a pointer
+// i can't give a non static function to a pointer
 void INPUT_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     ge.input.key_callback(window, key, scancode, action, mods);
 }
