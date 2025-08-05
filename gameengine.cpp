@@ -98,6 +98,12 @@ Engine* gameengine(const char* game_name) {
         return nullptr;
     }
 
+    if (GLAD_GL_ARB_bindless_texture) {
+        std::cout << "Bindless texture supported!" << std::endl;
+    } else {
+        std::cerr << "Bindless texture NOT supported!" << std::endl;
+    }
+
     // engine setup
     ge.init_render_pipeline();
 
