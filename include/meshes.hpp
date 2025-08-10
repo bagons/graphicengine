@@ -9,7 +9,7 @@ public:
     unsigned int vertex_buffer_object = 0;
     unsigned int vertex_array_object = 0;
     unsigned int element_buffer_object = 0;
-    size_t vertex_count = 0;
+    int vertex_count = 0;
 
     Mesh(const std::vector<float>* vertices, const std::vector<unsigned int>* indices, bool has_texture_cords = false, bool has_normals = false, bool has_vertex_colors = false);
     Mesh(const char* file_path);
