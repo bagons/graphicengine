@@ -32,6 +32,18 @@ void Input::update() {
         all_key_states[just_updated_key_states[i]] -= 2;
     }
     just_updated_key_states_count = 0;
+
+    // update mouse position
+    glfwGetCursorPos(ge.window.glfwwindow, &mouse_position.x, &mouse_position.y);
+
+    // calculate mouse relative position
+    mouse_move_delta = last_mouse_position - mouse_position;
+
+    last_mouse_position = mouse_position;
+
+    //last_mouse_position = glm::vec2(mouse_position.x, mouse_position.y);
+
+    //std::cout << "mp: " << mouse_position.x << " " << mouse_position.y << " delta: " << mouse_move_delta.x << "x" << mouse_move_delta.y << std::endl;
 }
 
 
@@ -55,4 +67,9 @@ void Input::key_callback(GLFWwindow *window, int key, int scancode, int action, 
 
 void Input::connect_callbacks(GLFWwindow *window) {
     glfwSetKeyCallback(window, INPUT_key_callback);
+}
+
+
+void Input::set_mouse_mode(int mode) {
+    glfwSetInputMode(ge.window.glfwwindow, GLFW_CURSOR, mode);
 }
