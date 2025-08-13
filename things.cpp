@@ -42,6 +42,10 @@ void Camera::change_resolution(const int width, const int height) {
     }
 }
 
+void Camera::transform_to_view_matrix() {
+    view = transform.scale.get_transformation_matrix() * transform.rotation.get_transformation_matrix() * transform.position.get_transformation_matrix();
+}
+
 
 //
 // THINGS:

@@ -48,6 +48,9 @@ void Engine::init_render_pipeline() {
 void Engine::render(const int camera_index) {
     glClearColor(0.4f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    cameras[camera_index]->transform_to_view_matrix();
+
     for (Thing * thing : things) {
         if (thing->renderable) {
             thing->render(cameras[camera_index]);

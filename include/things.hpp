@@ -3,14 +3,15 @@
 #pragma once
 #include <string>
 #include <glm/glm.hpp>
-
+#include "coordinates.h"
 #include "shaders.hpp"
 
 
 class Camera {
 public:
-    glm::mat4 projection{};
     glm::mat4 view{};
+    glm::mat4 projection{};
+    Transform transform{};
     float near_plane = 0;
     float far_plane = 0;
     float fov = 0;
@@ -19,6 +20,7 @@ public:
     explicit Camera(float _fov, float _far_plane, float _near_plane);
     explicit Camera(float _far_plane, float _near_plane);
     void change_resolution(int width, int height);
+    void transform_to_view_matrix();
 };
 
 
