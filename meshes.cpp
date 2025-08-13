@@ -303,14 +303,15 @@ Meshes::Meshes() {
 }
 
 Meshes::~Meshes() {
-    if (cube != nullptr) {
+    if (cube != nullptr)
         delete cube;
-    }
+
+    if (plane != nullptr)
+        delete plane;
 }
 
-Mesh* Meshes::get_cube() {
-    if (cube == nullptr) {
-        cube = new Mesh{&CUBE_VERTEX_DATA, &CUBE_INDICES, true, false, true};
-    }
-    return cube;
+Mesh* Meshes::get_plane() {
+    if (plane == nullptr)
+        plane = new Mesh{&PLANE_VERTEX_DATA, &PLANE_INDICES, true, true};
+    return plane;
 }

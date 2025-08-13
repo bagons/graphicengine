@@ -41,9 +41,19 @@ public:
         5, 7, 6
     };
 
+    const std::vector<float> PLANE_VERTEX_DATA = {
+        -0.5f, 0.0f, -0.5f, 0.0, 0.0, 0.0, 1.0, 0.0,
+        -0.5f, 0.0f, 0.5f, 0.0, 1.0, 0.0, 1.0, 0.0,
+        0.5f, 0.0f, 0.5f, 1.0, 1.0, 0.0, 1.0, 0.0,
+        0.5f, 0.0f, -0.5f, 1.0, 0.0, 0.0, 1.0, 0.0
+    };
+
+    const std::vector<unsigned int> PLANE_INDICES = {0, 1, 2, 0, 2, 3};
+
     Mesh* cube;
+    Mesh* plane;
     Meshes();
-    Mesh* get_cube();
+    Mesh* get_plane();
     ~Meshes();
 };
 
