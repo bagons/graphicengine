@@ -26,11 +26,10 @@ public:
 
 class Thing {
 public:
-    std::string name;
     bool renderable;
     bool updatable;
 
-    Thing (bool is_renderable, bool is_updatable, std::string object_name);
+    Thing (bool is_renderable, bool is_updatable);
 
     virtual void render(Camera *);
     virtual void update();
@@ -40,8 +39,8 @@ public:
 
 class SpatialThing : public Thing {
 public:
-    glm::mat4 transform{};
-    SpatialThing(bool is_renderable, bool is_updatable, std::string object_name);
+    Transform transform;
+    SpatialThing(bool is_renderable, bool is_updatable);
 };
 
 
@@ -53,7 +52,7 @@ public:
     Mesh* mesh;
     ShaderProgram* shader_program;
 
-    GeometryThing (std::string object_name, Mesh* _mesh, ShaderProgram* _shader_program);
+    GeometryThing (Mesh* _mesh, ShaderProgram* _shader_program);
 
     void update() override;
 

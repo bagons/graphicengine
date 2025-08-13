@@ -51,10 +51,9 @@ void Camera::transform_to_view_matrix() {
 // THINGS:
 //
 
-Thing::Thing (const bool is_renderable, const bool is_updatable, std::string object_name) {
+Thing::Thing (const bool is_renderable, const bool is_updatable) {
     renderable = is_renderable;
     updatable = is_updatable;
-    name = std::move(object_name);
 };
 
 Thing::~Thing() {};
@@ -69,7 +68,7 @@ SpatialThing::SpatialThing(const bool is_renderable, const bool is_updatable, st
 
 
 
-GeometryThing::GeometryThing (std::string object_name, Mesh* _mesh, ShaderProgram* _shader_program) : SpatialThing(true, true, std::move(object_name)) {
+GeometryThing::GeometryThing (Mesh* _mesh, ShaderProgram* _shader_program) : SpatialThing(true, true) {
     // mesh setup
     mesh = _mesh;
     shader_program = _shader_program;
