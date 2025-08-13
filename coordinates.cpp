@@ -172,6 +172,4 @@ void Rotation::rotate_point(float _x, float _y, float _z, glm::vec3& point) {
     point.x = rot.i;
     point.y = rot.j;
     point.z = rot.k;
-
-    std::cout << "rotated: " << rot.i << " " << rot.j << " " << rot.k << std::endl;
 }

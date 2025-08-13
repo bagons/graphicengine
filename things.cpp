@@ -62,8 +62,8 @@ void Thing::render(Camera *) {};
 void Thing::update() {};
 
 
-SpatialThing::SpatialThing(const bool is_renderable, const bool is_updatable, std::string object_name) : Thing(is_renderable, is_updatable, std::move(object_name)) {
-    transform = glm::mat4(1.0);
+SpatialThing::SpatialThing(const bool is_renderable, const bool is_updatable) : Thing(is_renderable, is_updatable) {
+    transform = Transform{};
 }
 
 
@@ -86,7 +86,9 @@ void GeometryThing::update() {
 void GeometryThing::render(Camera * from_camera) {
     shader_program->use();
 
-    glUniformMatrix4fv(vs_uniform_transform_loc, 1, GL_FALSE, &transform[0][0]);
+    glm::mat4 model = transform.position.get_transformation_matrix() * transform.rotation.get_transformation_matrix() * transform.scale.get_transformation_matrix();
+
+    glUniformMatrix4fv(vs_uniform_transform_loc, 1, GL_FALSE, &model[0][0]);
     glUniformMatrix4fv(vs_uniform_view_loc, 1, GL_FALSE, &from_camera->view[0][0]);
     glUniformMatrix4fv(vs_uniform_projection_loc, 1, GL_FALSE, &from_camera->projection[0][0]);
 
