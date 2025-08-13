@@ -15,6 +15,7 @@ public:
 
     void set_uniform(const char* uniform_name, glm::mat4 matrix) const;
     void set_uniform(const char* uniform_name, GLint64 texture_handle) const;
+    void set_uniform(const char* uniform_name, glm::vec3) const;
     void set_uniform(const char* uniform_name, float val) const;
 };
 

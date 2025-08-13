@@ -3,6 +3,8 @@
 #include <iostream>
 #include <__msvc_ostream.hpp>
 
+#include "gtc/type_ptr.inl"
+
 
 ShaderProgram::ShaderProgram(unsigned int vertex_shader, unsigned int fragment_shader, const std::span<const char *> quick_uniforms) {
     id = glCreateProgram();
@@ -33,6 +35,9 @@ void ShaderProgram::set_uniform(const char* uniform_name, float val) const {
     glUniform1f(glGetUniformLocation(id, uniform_name), val);
 }
 
+void ShaderProgram::set_uniform(const char* uniform_name, glm::vec3 val) const {
+    glUniform3fv(glGetUniformLocation(id, uniform_name), 1, glm::value_ptr(val));
+}
 
 
 //GLuint64 handle = glGetTextureHandleARB(0);
