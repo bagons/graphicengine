@@ -34,6 +34,8 @@ public:
 
     void update();
 
+    void init();
+
     static void connect_callbacks(GLFWwindow* window);
 };
 

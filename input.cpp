@@ -46,6 +46,11 @@ void Input::update() {
     //std::cout << "mp: " << mouse_position.x << " " << mouse_position.y << " delta: " << mouse_move_delta.x << "x" << mouse_move_delta.y << std::endl;
 }
 
+void Input::init() {
+    glfwGetCursorPos(ge.window.glfwwindow, &mouse_position.x, &mouse_position.y);
+    last_mouse_position = mouse_position;
+}
+
 
 // i can't give a non static function to a pointer
 void INPUT_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {

@@ -107,6 +107,7 @@ Engine* gameengine(const char* game_name) {
     window.select();
 
     // setup engine input handling
+    ge.input.init();
     ge.input.connect_callbacks(window.glfwwindow);
 
     // load glad
