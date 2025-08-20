@@ -36,6 +36,23 @@ unsigned int compile_shader_from_file(const char* file_path, GLenum shader_type)
     return shader;
 }
 
+unsigned int compile_shader_from_string(const char* shader_code, GLenum shader_type) {
+    unsigned int shader = glCreateShader(shader_type);
+    glShaderSource(shader, 1, &shader_code, nullptr);
+    glCompileShader(shader);
+
+    // check for shader compile errors
+    int success;
+    char infoLog[512];
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(shader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+    return shader;
+}
+
 unsigned int setup_texture_from_file(const char* file_path, bool generate_minimaps) {
     unsigned int texture;
     glGenTextures(1, &texture);
