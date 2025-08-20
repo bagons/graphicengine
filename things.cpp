@@ -43,7 +43,28 @@ void Camera::change_resolution(const int width, const int height) {
 }
 
 void Camera::transform_to_view_matrix() {
+    // reverse rotation
+    transform.rotation.euler_2_quat();
+    transform.rotation.i *= -1;
+    transform.rotation.j *= -1;
+    transform.rotation.k *= -1;
+
+    // reverse position
+    transform.position.x *= -1;
+    transform.position.y *= -1;
+    transform.position.z *= -1;
+
     view = transform.scale.get_transformation_matrix() * transform.rotation.get_transformation_matrix() * transform.position.get_transformation_matrix();
+
+    // reverse rotation back
+    transform.rotation.i *= -1;
+    transform.rotation.j *= -1;
+    transform.rotation.k *= -1;
+
+    // reverse position back
+    transform.position.x *= -1;
+    transform.position.y *= -1;
+    transform.position.z *= -1;
 }
 
 

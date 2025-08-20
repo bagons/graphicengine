@@ -65,7 +65,7 @@ public:
 class Transform {
 public:
     Position position{0, 0, 0};
-    Rotation rotation{0, 0, 0, 1};
+    Rotation rotation{1, 0, 0, 0};
     Scale scale{1, 1, 1};
 };
 
