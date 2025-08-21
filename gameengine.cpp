@@ -35,12 +35,8 @@ void Window::select() const {
     glfwMakeContextCurrent(glfwwindow);
 }
 
-void Engine::load_base_vertex_shader() {
-    base_vertex_shader = compile_shader_from_file("engine/base_shaders/vertex.glsl", GL_VERTEX_SHADER);
-}
 
 void Engine::init_render_pipeline() {
-    load_base_vertex_shader();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);
 }
