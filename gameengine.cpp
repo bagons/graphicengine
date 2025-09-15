@@ -45,6 +45,13 @@ Thing *Engine::get_thing(const int id) {
 void Engine::init_render_pipeline() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);
+
+    // create a Uniform Buffer for camera data
+    glGenBuffers(1, &camera_matrix_ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, camera_matrix_ubo);
+    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, camera_matrix_ubo, 0, 2 * sizeof(glm::mat4));
 }
 
 
