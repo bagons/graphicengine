@@ -89,17 +89,17 @@ SpatialThing::SpatialThing(const bool is_renderable, const bool is_updatable) : 
 
 
 
-GeometryThing::GeometryThing (Mesh* _mesh, ShaderProgram* _shader_program) : SpatialThing(true, true) {
+MeshThing::MeshThing (Mesh* _mesh, Material* _material) : SpatialThing(true, true) {
     // mesh setup
     mesh = _mesh;
-    shader_program = _shader_program;
+    material = _material;
 
-    vs_uniform_projection_loc = glGetUniformLocation(shader_program->id, "projection");
-    vs_uniform_transform_loc = glGetUniformLocation(shader_program->id, "transform");
-    vs_uniform_view_loc = glGetUniformLocation(shader_program->id, "view");
+    vs_uniform_projection_loc = glGetUniformLocation(material->shader_program->id, "projection");
+    vs_uniform_transform_loc = glGetUniformLocation(material->shader_program->id, "transform");
+    vs_uniform_view_loc = glGetUniformLocation(material->shader_program->id, "view");
 }
 
-void GeometryThing::update() {
+void MeshThing::update() {
 
 }
 

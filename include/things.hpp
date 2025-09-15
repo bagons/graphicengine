@@ -47,15 +47,18 @@ public:
 
 
 class GeometryThing : public SpatialThing {
+
+};
+
+class MeshThing : public SpatialThing {
 public:
-    unsigned int vs_uniform_transform_loc;
-    unsigned int vs_uniform_view_loc;
-    unsigned int vs_uniform_projection_loc;
+    unsigned int vs_uniform_transform_loc = 0;
+    unsigned int vs_uniform_view_loc = 0;
+    unsigned int vs_uniform_projection_loc = 0;
     Mesh* mesh;
-    ShaderProgram* shader_program;
+    Material* material;
 
-    GeometryThing (Mesh* _mesh, ShaderProgram* _shader_program);
-
+    MeshThing (Mesh* _mesh, Material* _material);
     void update() override;
 
     void render(Camera * from_camera) override;
