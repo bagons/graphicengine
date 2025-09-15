@@ -6,6 +6,10 @@
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include <string>
+#include <variant>
+#include <map>
+
+typedef std::map<int, std::variant<float, glm::vec3>> uniform_map;
 
 class ShaderProgram {
 public:
@@ -19,6 +23,23 @@ public:
     void set_uniform(const char* uniform_name, GLint64 texture_handle) const;
     void set_uniform(const char* uniform_name, glm::vec3 val) const;
     void set_uniform(const char* uniform_name, float val) const;
+};
+
+
+// HOLDS MATERIAL UNIFORM VALUES
+class Material {
+public:
+    ShaderProgram *shader_program;
+    uniform_map shader_values;
+    Material(ShaderProgram* _shader_program, uniform_map& _shader_values);
+
+    void set_uniform_values() const;
+};
+
+struct MaterialSorter {
+    bool operator()(const Material* m1, const Material* m2) const {
+        return m1->shader_program->id < m2->shader_program->id;
+    }
 };
 
 class Shaders {

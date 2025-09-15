@@ -45,6 +45,26 @@ void ShaderProgram::set_uniform(const char* uniform_name, glm::vec3 val) const {
     glUniform3fv(glGetUniformLocation(id, uniform_name), 1, &val[0]);
 }
 
+
+Material::Material(ShaderProgram* _shader_program, uniform_map& _shader_values) {
+    shader_program = _shader_program;
+    shader_values = std::move(_shader_values);
+}
+
+void Material::set_uniform_values() const {
+    uniform_map::const_iterator it;
+
+    for (it = shader_values.begin(); it != shader_values.end(); it++)
+    {
+        if (std::holds_alternative<float>(it->second))
+            glUniform1f(it->first, std::get<float>(it->second));
+        else if (std::holds_alternative<glm::vec3>(it->second))
+            glUniform3fv(it->first, 1, &std::get<glm::vec3>(it->second)[0]);
+    }
+}
+
+
+
 // SHADER GEN
 
 std::string ShaderGen::parse_shader_template(const char * file_path, const std::string flags_to_include) {
