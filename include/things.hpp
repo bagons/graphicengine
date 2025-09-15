@@ -18,7 +18,7 @@ public:
 
     Thing (bool is_renderable, bool is_updatable);
 
-    virtual void render(Camera *);
+    virtual void render();
     virtual void update();
 
     virtual ~Thing();
@@ -60,8 +60,7 @@ public:
 
     MeshThing (Mesh* _mesh, Material* _material);
     void update() override;
-
-    void render(Camera * from_camera) override;
+    void render() override;
 };
 
 #endif //THINGS_H

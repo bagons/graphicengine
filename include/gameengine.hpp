@@ -58,7 +58,7 @@ class Engine {
     int next_thing_id = 0;
     double last_game_time = 0.0;
 public:
-    unsigned int base_vertex_shader;
+    unsigned int camera_matrix_ubo;
     float frame_delta = 0.0f;
     things_container things{};
     std::multimap<Material*, int, MaterialSorter> thing_ids_by_shader_program;

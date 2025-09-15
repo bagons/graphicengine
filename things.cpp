@@ -79,7 +79,7 @@ Thing::Thing (const bool is_renderable, const bool is_updatable) {
 
 Thing::~Thing() {};
 
-void Thing::render(Camera *) {};
+void Thing::render() {};
 void Thing::update() {};
 
 
@@ -104,16 +104,10 @@ void MeshThing::update() {
 }
 
 
-void GeometryThing::render(Camera * from_camera) {
-    shader_program->use();
-
+void MeshThing::render() {
     glm::mat4 model = transform.position.get_transformation_matrix() * transform.rotation.get_transformation_matrix() * transform.scale.get_transformation_matrix();
 
     glUniformMatrix4fv(vs_uniform_transform_loc, 1, GL_FALSE, &model[0][0]);
-    glUniformMatrix4fv(vs_uniform_view_loc, 1, GL_FALSE, &from_camera->view[0][0]);
-    glUniformMatrix4fv(vs_uniform_projection_loc, 1, GL_FALSE, &from_camera->projection[0][0]);
-
-
     glBindVertexArray(mesh->vertex_array_object);
     glDrawElements(GL_TRIANGLES, mesh->vertex_count, GL_UNSIGNED_INT, 0);
 }

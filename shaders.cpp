@@ -18,6 +18,8 @@ ShaderProgram::ShaderProgram(unsigned int vertex_shader, unsigned int fragment_s
     glAttachShader(id, fragment_shader);
     glLinkProgram(id);
 
+    glUniformBlockBinding(id, glGetUniformBlockIndex(id, "CamMats"), 0);
+
     for (const auto& uniform : quick_uniforms) {
         quick_uniform_ids.push_back(glGetUniformLocation(id, uniform));
     }

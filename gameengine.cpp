@@ -16,7 +16,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     ge.window.width = width;
     ge.window.height = height;
     // WARNING taking into account we have only one camera
-    ge.cameras[0]->change_resolution(width, height);
+    //ge.cameras[0]->change_resolution(width, height);
 }
 
 Window::Window() {
@@ -120,6 +120,7 @@ Engine* gameengine(const char* game_name) {
 
 // run after stopping engine
 int noengine() {
+    glDeleteBuffers(1, &ge.camera_matrix_ubo);
     glfwTerminate();
     return 0;
 }
