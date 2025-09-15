@@ -5,9 +5,13 @@ layout (location = 0) in vec3 VERTEX_POS;
 !u>n layout (location = 1) in vec3 NORMALS;
 >u>n layout (location = 2) in vec3 NORMALS;
 
+layout (std140) uniform CamMats
+{
+    mat4 projection;
+    mat4 view;
+};
+
 uniform mat4 transform;
-uniform mat4 view;
-uniform mat4 projection;
 
 out vec3 FRAG_GLOBAL_POS;
 out vec3 CAMERA_GLOBAL_POS;
