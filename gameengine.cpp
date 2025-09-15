@@ -36,30 +36,25 @@ void Window::select() const {
 }
 
 
+
+Thing *Engine::get_thing(const int id) {
+    return things[id].get();
+}
+
+
 void Engine::init_render_pipeline() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);
 }
 
-void Engine::render(const int camera_index) {
-    glClearColor(0.4f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    cameras[camera_index]->transform_to_view_matrix();
-
-    for (Thing * thing : things) {
-        if (thing->renderable) {
-            thing->render(cameras[camera_index]);
-        }
-    }
-}
 
 void Engine::update() const {
-    for (Thing * thing : things) {
-        if (thing->updatable) {
-            thing->update();
-        }
+    things_container::const_iterator it;
+
+    for (it = things.begin(); it != things.end(); it++) {
+        it->second->update();
     }
+
     // input update to correctly adjust just pressed keys
     ge.input.update();
 }
@@ -76,10 +71,6 @@ void Engine::send_it_to_window() {
 
 bool Engine::is_running() const {
     return !glfwWindowShouldClose(window.glfwwindow);
-}
-
-Engine::~Engine() {
-    glDeleteShader(base_vertex_shader);
 }
 
 Engine ge;
