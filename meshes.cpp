@@ -74,15 +74,6 @@ struct UniqueVertexDataPoint {
 struct UniqueVertexDataPointHash {
     size_t operator()(const UniqueVertexDataPoint& key) const {
         return std::hash<int>()(key.i) ^ (std::hash<int>()(key.j) << 8) ^ (std::hash<int>()(key.k) << 16);
-        /*return std::hash<float>()(key.vd[0]) ^
-                std::hash<float>()(key.vd[1]) ^
-                    std::hash<float>()(key.vd[2]) ^
-                        std::hash<float>()(key.vd[3]) ^
-                            std::hash<float>()(key.vd[4]) ^
-                                std::hash<float>()(key.vd[5]) ^
-                                    std::hash<float>()(key.vd[6]) ^
-                                        std::hash<float>()(key.vd[7]);
-        */
     }
 };
 
