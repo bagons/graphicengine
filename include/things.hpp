@@ -5,23 +5,10 @@
 #include <glm/glm.hpp>
 #include "coordinates.h"
 #include "shaders.hpp"
+#include "meshes.hpp"
 
 
-class Camera {
-public:
-    glm::mat4 view{};
-    glm::mat4 projection{};
-    Transform transform{};
-    float near_plane = 0;
-    float far_plane = 0;
-    float fov = 0;
 
-    explicit Camera(const glm::mat4 &projection_matrix);
-    explicit Camera(float _fov, float _far_plane, float _near_plane);
-    explicit Camera(float _far_plane, float _near_plane);
-    void change_resolution(int width, int height);
-    void transform_to_view_matrix();
-};
 
 
 class Thing {
@@ -41,6 +28,21 @@ class SpatialThing : public Thing {
 public:
     Transform transform;
     SpatialThing(bool is_renderable, bool is_updatable);
+};
+
+class Camera : public SpatialThing {
+public:
+    glm::mat4 view{};
+    glm::mat4 projection{};
+    float near_plane = 0;
+    float far_plane = 0;
+    float fov = 0;
+
+    explicit Camera(const glm::mat4 &projection_matrix);
+    explicit Camera(float _fov, float _far_plane, float _near_plane);
+    explicit Camera(float _far_plane, float _near_plane);
+    void change_resolution(int width, int height);
+    void transform_to_view_matrix();
 };
 
 

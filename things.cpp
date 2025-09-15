@@ -14,12 +14,12 @@
 
 
 
-Camera::Camera(const glm::mat4 &projection_matrix) {
+Camera::Camera(const glm::mat4 &projection_matrix) : SpatialThing(false, true){
     projection = projection_matrix;
     view = glm::mat4(1.0);
 }
 
-Camera::Camera(float _fov, float _near_plane, float _far_plane) {
+Camera::Camera(float _fov, float _near_plane, float _far_plane) : SpatialThing(false, true) {
     fov = _fov;
     near_plane = _near_plane;
     far_plane = _far_plane;
@@ -27,7 +27,7 @@ Camera::Camera(float _fov, float _near_plane, float _far_plane) {
     view = glm::mat4(1.0);
 }
 
-Camera::Camera(float _near_plane, float _far_plane) {
+Camera::Camera(float _near_plane, float _far_plane) : SpatialThing(false, true) {
     near_plane = _near_plane;
     far_plane = _far_plane;
     projection = glm::ortho(0.0f, static_cast<float>(ge.window.width), 0.0f, static_cast<float>(ge.window.height), near_plane, far_plane);
