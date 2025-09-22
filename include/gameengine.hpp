@@ -65,7 +65,6 @@ public:
     Window window{};
     Input input{};
     Meshes meshes{};
-    Shaders shaders{};
     Textures textures{};
 
     void render(int camera_index);

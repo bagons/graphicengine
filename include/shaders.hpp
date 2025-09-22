@@ -42,10 +42,6 @@ struct MaterialSorter {
     }
 };
 
-class Shaders {
-public:
-    std::vector<ShaderProgram *> programs;
-};
 
 class ShaderGen {
 public:
