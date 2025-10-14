@@ -1,4 +1,5 @@
 #include "meshes.hpp"
+#include "gameengine.hpp"
 
 #include <filesystem>
 #include <glad/glad.h>
@@ -73,25 +74,18 @@ struct UniqueVertexDataPoint {
 
 struct UniqueVertexDataPointHash {
     size_t operator()(const UniqueVertexDataPoint& key) const {
-        return std::hash<int>()(key.i) ^ (std::hash<int>()(key.j) << 8) ^ (std::hash<int>()(key.k) << 16);
+        return std::hash<size_t>()(key.i) ^ (std::hash<size_t>()(key.j) << 8) ^ (std::hash<size_t>()(key.k) << 16);
     }
 };
 
 
-Mesh::Mesh(const char* file_path) {
-    vertex_buffer_object = -1;
-    vertex_array_object = -1;
-    element_buffer_object = -1;
-
+void parse_obj_file(const char* file_path, bool merge_all_groups, std::vector<float> (&vertex_data_vec)[3], std::vector<std::vector<size_t>>& vertex_groups, bool& has_normals, bool& has_texture_cords) {
     std::ifstream file(file_path);
     std::cout << "file state: " << file.good() << std::endl;
     std::string line;
 
-    std::vector<float> vertex_data_vec[3];
-    std::vector<size_t> vertex_triplets;
-
-    bool has_texture_cords = false;
-    bool has_normals = false;
+    vertex_groups.push_back(std::vector<size_t>());
+    int current_group_idx = 0;
 
     // PARSING OF .OBJ FILE
     // go line by line
@@ -122,78 +116,133 @@ Mesh::Mesh(const char* file_path) {
             char * end = const_cast<char *>(l);
             // fast parse of x/y/z (because of '/' we have an offset in the pointer)
             for (int i = 0; i < 3; i++) {
-                vertex_triplets.push_back(std::strtol(end, &end, 10));
+                vertex_groups[current_group_idx].push_back(std::strtol(end, &end, 10));
 
                 if (has_normals || has_texture_cords)
-                    vertex_triplets.push_back(std::strtol(end + 1, &end, 10));
+                    vertex_groups[current_group_idx].push_back(std::strtol(end + 1, &end, 10));
                 if (has_normals && has_texture_cords)
-                    vertex_triplets.push_back(std::strtol(end + 1, &end, 10));
+                    vertex_groups[current_group_idx].push_back(std::strtol(end + 1, &end, 10));
             }
+        } // groups
+        else if (!merge_all_groups && line[0] == 'g') {
+            vertex_groups.push_back(std::vector<size_t>());
+            current_group_idx += 1;
         }
     }
+}
 
-    unsigned int vertex_data_group_size = 1 + has_normals + has_texture_cords;
 
-    std::cout << ".obj parsed!" << std::endl;
-
+void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_data_vec)[3], const std::vector<size_t>& vertex_triplets, const bool has_normals, const bool has_texture_cords, std::vector<float>& out_vertex_data, std::vector<unsigned int>& out_indices) {
     std::unordered_map<UniqueVertexDataPoint, unsigned int, UniqueVertexDataPointHash> unique_vertex_data_points;
 
-    std::vector<float> vertex_data;
-    std::vector<unsigned int> indices;
+    unsigned int vertex_data_group_size = 1 + has_normals + has_texture_cords;
 
     unsigned int indecy_count = 0;
 
     for (size_t i = 0; i < (vertex_triplets.size() / vertex_data_group_size); i++) {
         // create UniqueVertexDataPoint object
-        UniqueVertexDataPoint vdp{};
+            UniqueVertexDataPoint vdp{};
 
-        vdp.i = vertex_triplets[i * vertex_data_group_size] - 1;
-        vdp.vd[0] = vertex_data_vec[0][vdp.i * 3];
-        vdp.vd[1] = vertex_data_vec[0][vdp.i * 3 + 1];
-        vdp.vd[2] = vertex_data_vec[0][vdp.i * 3 + 2];
+            vdp.i = vertex_triplets[i * vertex_data_group_size] - 1;
+            vdp.vd[0] = vertex_data_vec[0][vdp.i * 3];
+            vdp.vd[1] = vertex_data_vec[0][vdp.i * 3 + 1];
+            vdp.vd[2] = vertex_data_vec[0][vdp.i * 3 + 2];
 
 
-        // fill in data of if they exist
-        size_t t = 3;
+            // fill in data of if they exist
+            size_t t = 3;
 
-        if (has_texture_cords) {
+            if (has_texture_cords) {
+                vdp.j = vertex_triplets[i * vertex_data_group_size + 1] - 1;
 
-            vdp.j = vertex_triplets[i * vertex_data_group_size + 1] - 1;
+                vdp.vd[t] = vertex_data_vec[1][vdp.j * 2];
+                vdp.vd[t + 1] = vertex_data_vec[1][vdp.j * 2 + 1];
+                t = 5;
+            }
 
-            vdp.vd[t] = vertex_data_vec[1][vdp.j * 2];
-            vdp.vd[t + 1] = vertex_data_vec[1][vdp.j * 2 + 1];
-            t = 5;
+            if (has_normals) {
+                vdp.k = vertex_triplets[i * vertex_data_group_size + 1 + has_texture_cords] - 1;
+
+                vdp.vd[t] = vertex_data_vec[2][vdp.k * 3];
+                vdp.vd[t + 1] = vertex_data_vec[2][vdp.k * 3 + 1];
+                vdp.vd[t + 2] = vertex_data_vec[2][vdp.k * 3 + 2];
+            }
+
+
+            // check if already exists with hashmap
+            auto match = unique_vertex_data_points.find(vdp);
+            if (match == unique_vertex_data_points.end()) {
+                // add new indecy
+                unique_vertex_data_points[vdp] = indecy_count;
+                out_indices.push_back(indecy_count);
+                indecy_count += 1;
+
+                // insert vertex data
+                out_vertex_data.insert(out_vertex_data.end(), vdp.vd.begin(), vdp.vd.begin() + 3 + 3 * has_normals + 2 * has_texture_cords);
+            } else {
+                out_indices.push_back(match->second);
+            }
         }
 
-        if (has_normals) {
-            vdp.k = vertex_triplets[i * vertex_data_group_size + 1 + has_texture_cords] - 1;
-
-            vdp.vd[t] = vertex_data_vec[2][vdp.k * 3];
-            vdp.vd[t + 1] = vertex_data_vec[2][vdp.k * 3 + 1];
-            vdp.vd[t + 2] = vertex_data_vec[2][vdp.k * 3 + 2];
-        }
+        std::cout << "vertex_data size: " << out_vertex_data.size() << std::endl;
+        std::cout << "indecies size: " << out_vertex_data.size() << std::endl;
+}
 
 
-        // check if already exists with hashmap
-        auto match = unique_vertex_data_points.find(vdp);
-        if (match == unique_vertex_data_points.end()) {
-            // add new indecy
-            unique_vertex_data_points[vdp] = indecy_count;
-            indices.push_back(indecy_count);
-            indecy_count += 1;
+Mesh::Mesh(const char* file_path) {
+    vertex_buffer_object = -1;
+    vertex_array_object = -1;
+    element_buffer_object = -1;
 
-            // insert vertex data
-            vertex_data.insert(vertex_data.end(), vdp.vd.begin(), vdp.vd.begin() + 3 + 3 * has_normals + 2 * has_texture_cords);
-        } else {
-            indices.push_back(match->second);
-        }
+    // define structures
+    std::vector<float> vertex_data_vec[3];
+    std::vector<std::vector<size_t>> vertex_groups;
+
+    bool has_texture_cords = false;
+    bool has_normals = false;
+
+    // use structures to parse .obj file
+    parse_obj_file(file_path, true, vertex_data_vec, vertex_groups, has_normals, has_texture_cords);
+
+    std::cout << ".obj parsed!" << std::endl;
+
+    // define new structures, for reordering
+    std::vector<float> vertex_data;
+    std::vector<unsigned int> indices;
+
+    // use structures to create correctly formated values for Mesh
+
+    // vertex_groups[0], because usually we would loop through all the groups and create the appropriate Mesh
+    // but this is just a mesh, so we merged_all_groups, and now we work with only one group
+    construct_mesh_data_from_parsed_obj_data(vertex_data_vec, vertex_groups[0], has_normals, has_texture_cords, vertex_data, indices);
+
+    load_mesh_to_gpu(&vertex_data, &indices, has_texture_cords, has_normals, false);
+}
+
+Model::Model(const char* file_path) {
+    // define structures
+    std::vector<float> vertex_data_vec[3];
+    std::vector<std::vector<size_t>> vertex_groups;
+
+    bool has_texture_cords = false;
+    bool has_normals = false;
+
+    // use structures to parse .obj file
+    parse_obj_file(file_path, true, vertex_data_vec, vertex_groups, has_normals, has_texture_cords);
+
+    std::cout << ".obj parsed!" << std::endl;
+
+    for (auto &vertex_group : vertex_groups) {
+        // define new structures, for reordering
+        std::vector<float> vertex_data;
+        std::vector<unsigned int> indices;
+
+        // use structures to create correctly formated values for Mesh
+        construct_mesh_data_from_parsed_obj_data(vertex_data_vec, vertex_group, has_normals, has_texture_cords, vertex_data, indices);
+
+        auto msh = std::make_shared<Mesh>(&vertex_data, &indices, has_texture_cords, has_normals, false);
+        meshes.push_back(msh);
     }
-
-    std::cout << "vertex_data size: " << vertex_data.size() << std::endl;
-    std::cout << "indecies size: " << indices.size() << std::endl;
-
-    // set correct flags based on .obj properties. 1/1/1 triplets v/vt/vn
-    load_mesh_to_gpu(&vertex_data, &indices, has_texture_cords, has_texture_cords, false);
 }
 
 Mesh::~Mesh() {
@@ -203,19 +252,7 @@ Mesh::~Mesh() {
 }
 
 Meshes::Meshes() {
-
+    //plane = std::make_shared<Mesh>(&PLANE_VERTEX_DATA, &PLANE_INDICES, true, true);
 }
 
-Meshes::~Meshes() {
-    if (cube != nullptr)
-        delete cube;
 
-    if (plane != nullptr)
-        delete plane;
-}
-
-Mesh* Meshes::get_plane() {
-    if (plane == nullptr)
-        plane = new Mesh{&PLANE_VERTEX_DATA, &PLANE_INDICES, true, true};
-    return plane;
-}

@@ -1,6 +1,7 @@
 // std
 #include <string>
 #include <iostream>
+#include <utility>
 #include <vector>
 
 // open gl
@@ -89,14 +90,12 @@ SpatialThing::SpatialThing(const bool is_renderable, const bool is_updatable) : 
 
 
 
-MeshThing::MeshThing (Mesh* _mesh, Material* _material) : SpatialThing(true, true) {
+MeshThing::MeshThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material) : SpatialThing(true, true) {
     // mesh setup
-    mesh = _mesh;
-    material = _material;
+    mesh = std::move(_mesh);
+    material = std::move(_material);
 
-    vs_uniform_projection_loc = glGetUniformLocation(material->shader_program->id, "projection");
-    vs_uniform_transform_loc = glGetUniformLocation(material->shader_program->id, "transform");
-    vs_uniform_view_loc = glGetUniformLocation(material->shader_program->id, "view");
+    vs_uniform_transform_loc = glGetUniformLocation(material->shader_program.id, "transform");
 }
 
 void MeshThing::update() {
@@ -105,6 +104,36 @@ void MeshThing::update() {
 
 
 void MeshThing::render() {
+    glm::mat4 model = transform.position.get_transformation_matrix() * transform.rotation.get_transformation_matrix() * transform.scale.get_transformation_matrix();
+
+    glUniformMatrix4fv(vs_uniform_transform_loc, 1, GL_FALSE, &model[0][0]);
+    glBindVertexArray(mesh->vertex_array_object);
+    glDrawElements(GL_TRIANGLES, mesh->vertex_count, GL_UNSIGNED_INT, 0);
+}
+
+
+ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_ptr<Material>> _materials) : SpatialThing(false, true) {
+    model = std::move(_model);
+    materials = std::move(_materials);
+
+    const int model_geref_id = ge.next_thing_id - 1;
+    for (size_t i = 0; i < model->meshes.size(); i++) {
+        std::shared_ptr<Material> mat;
+        if (i >= _materials.size()) {
+            mat = ge.base_material;
+        } else {
+            mat = materials[i];
+        }
+        ge.add<ModelSlaveThing>(model->meshes[i], mat, geRef<ModelThing>(model_geref_id, &ge));
+    }
+}
+
+
+void ModelSlaveThing::render() {
+    // copy manager position (the slave part)
+    transform.position = manager->transform.position;
+
+    // standard MeshThing render
     glm::mat4 model = transform.position.get_transformation_matrix() * transform.rotation.get_transformation_matrix() * transform.scale.get_transformation_matrix();
 
     glUniformMatrix4fv(vs_uniform_transform_loc, 1, GL_FALSE, &model[0][0]);

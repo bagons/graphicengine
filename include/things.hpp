@@ -1,14 +1,13 @@
 #ifndef THINGS_H
 #define THINGS_H
-#pragma once
-#include <string>
+
 #include <glm/glm.hpp>
+#include <utility>
+#include <memory>
 #include "coordinates.h"
 #include "shaders.hpp"
 #include "meshes.hpp"
-
-
-
+#include "gereferences.hpp"
 
 
 class Thing {
@@ -46,20 +45,32 @@ public:
 };
 
 
-class GeometryThing : public SpatialThing {
-
-};
-
 class MeshThing : public SpatialThing {
 public:
-    unsigned int vs_uniform_transform_loc = 0;
-    unsigned int vs_uniform_view_loc = 0;
-    unsigned int vs_uniform_projection_loc = 0;
-    Mesh* mesh;
-    Material* material;
+    int vs_uniform_transform_loc = 0;
+    std::shared_ptr<Mesh> mesh;
+    std::shared_ptr<Material> material;
 
-    MeshThing (Mesh* _mesh, Material* _material);
+    MeshThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material);
     void update() override;
+    void render() override;
+};
+
+
+class ModelThing : public SpatialThing {
+public:
+    std::shared_ptr<Model> model;
+    std::vector<std::shared_ptr<Material>> materials;
+    ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_ptr<Material>> _materials);
+};
+
+
+class ModelSlaveThing : public MeshThing {
+public:
+    geRef<ModelThing> manager;
+    ModelSlaveThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material, const geRef<ModelThing> _manager) : MeshThing(std::move(_mesh), std::move(_material)) {
+        manager = _manager;
+    };
     void render() override;
 };
 
