@@ -48,6 +48,7 @@ public:
     Textures textures{};
 
     void render(int camera_index);
+    std::shared_ptr<Material> base_material;
 
     void update() const;
 

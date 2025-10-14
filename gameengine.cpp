@@ -127,6 +127,12 @@ Engine* gameengine(const char* game_name) {
     // engine setup
     ge.init_render_pipeline();
 
+    // setup base material
+    ge.base_material = std::make_shared<Material>(ShaderGen::phong_shader_program_gen(true));
+    ge.base_material->save_uniform_value("object_color", glm::vec3(1.0f, 1.0f, 1.0f));
+    ge.base_material->shader_program.use();
+    ge.base_material->shader_program.set_uniform("light_pos", glm::vec3{1.0f, 2.0f, 0.0});
+    ge.base_material->shader_program.set_uniform("light_color", glm::vec3{1.0f, 1.0f, 1.0f});
 
     std::cout << "finishing game engine setup" << std::endl;
     return &ge;
