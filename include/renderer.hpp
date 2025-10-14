@@ -1,23 +1,32 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
-#include "gameengine.hpp"
+#include "gereferences.hpp"
 #include "things.hpp"
 
-class RenderLayer {
 
+class RenderLayer {
+public:
+    virtual void render() {};
+    virtual void change_resolution(int width, int height){};
+
+    virtual ~RenderLayer() = default;
 };
+
 
 class ForwardRenderer3DLayer : public RenderLayer {
 public:
     geRef<Camera> cam;
-    explicit ForwardRenderer3DLayer(geRef<Camera> camera);
-    void render();
+    ForwardRenderer3DLayer(geRef<Camera> camera);
+
+    void render() override;
+    void change_resolution(int width, int height) override;
 };
+
 
 class DifferedRender3DLayer : public RenderLayer {
 public:
-    void render();
+    void render() override;
 };
 
 #endif //RENDERER_HPP

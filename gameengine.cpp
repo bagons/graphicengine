@@ -15,8 +15,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     std::cout << width << "x" << height << std::endl;
     ge.window.width = width;
     ge.window.height = height;
-    // WARNING taking into account we have only one camera
-    //ge.cameras[0]->change_resolution(width, height);
+
+    // update all render layers
+    for (render_layer_container::const_iterator it = ge.render_layers.begin(); it != ge.render_layers.end(); ++it) {
+        it->second->change_resolution(width, height);
+    }
 }
 
 Window::Window() {
@@ -39,6 +42,10 @@ void Window::select() const {
 
 Thing *Engine::get_thing(const int id) {
     return things[id].get();
+}
+
+RenderLayer *Engine::get_render_layer(const int id) {
+    return render_layers[id].get();
 }
 
 
