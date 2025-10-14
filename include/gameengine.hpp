@@ -46,9 +46,8 @@ public:
     Input input{};
     Meshes meshes{};
     Textures textures{};
-
-    void render(int camera_index);
     std::shared_ptr<Material> base_material;
+    Shaders shaders{};
 
     void update() const;
 

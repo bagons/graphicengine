@@ -1,32 +1,122 @@
 #include "shaders.hpp"
 #include <iostream>
 #include <fstream>
+
+#include "gameengine.hpp"
 #include "utils.h"
 
 
-ShaderProgram::ShaderProgram(unsigned int vertex_shader, unsigned int fragment_shader) {
-    id = glCreateProgram();
-    glAttachShader(id, vertex_shader);
-    glAttachShader(id, fragment_shader);
-    glLinkProgram(id);
-}
+Shader::Shader(const char *file_path, const GLenum _shader_type) {
+    shader_type = _shader_type;
+    id = glCreateShader(_shader_type);
+
+    std::cout << "loading direct shader file: " << file_path << std::endl;
+    std::string shader_string;
+
+    std::ifstream file(file_path);
+    std::cout << "file_read_state: " << file.good() << std::endl;
+
+    if (!file.good()) {
+        glDeleteShader(id);
+        std::cout << "failed to load file: " << file_path << std::endl;
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        shader_string += line + '\n';
+    }
+    file.close();
+
+    file_path = shader_string.c_str();
+    glShaderSource(id, 1, &file_path, nullptr);
+    glCompileShader(id);
+    std::cout << "file: " << std::endl << file_path << std::endl;
 
 
-ShaderProgram::ShaderProgram(unsigned int vertex_shader, unsigned int fragment_shader, const std::vector<const char *>& quick_uniforms) {
-    id = glCreateProgram();
-    glAttachShader(id, vertex_shader);
-    glAttachShader(id, fragment_shader);
-    glLinkProgram(id);
-
-    glUniformBlockBinding(id, glGetUniformBlockIndex(id, "CamMats"), 0);
-
-    for (const auto& uniform : quick_uniforms) {
-        quick_uniform_ids.push_back(glGetUniformLocation(id, uniform));
+    // check for shader compile errors
+    int success;
+    char infoLog[512];
+    glGetShaderiv(id, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(id, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    } else {
+        std::cout << "Shader successfully compiled" << std::endl;
     }
 }
 
 
-void ShaderProgram::use() {
+Shader::Shader(const std::string &shader_code, const GLenum _shader_type) {
+    shader_type = _shader_type;
+    id = glCreateShader(_shader_type);
+    const char *content = shader_code.c_str();
+    glShaderSource(id, 1, &content, nullptr);
+    glCompileShader(id);
+
+
+    //std::cout << "SHADER CODE: " << content << std::endl;
+
+    // check for shader compile errors
+    int success;
+    char infoLog[512];
+    glGetShaderiv(id, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(id, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+    } else {
+        std::cout << "Shader successfully compiled from std::string" << std::endl;
+    }
+}
+
+
+Shader::~Shader() {
+    glDeleteShader(id);
+}
+
+
+
+ShaderProgram::ShaderProgram(unsigned int _id) {
+    id = _id;
+    ge.shaders.add_shader_id_use(id);
+}
+
+ShaderProgram::ShaderProgram(const ShaderProgram &sp) {
+    id = sp.id;
+    ge.shaders.add_shader_id_use(id);
+}
+
+
+ShaderProgram::ShaderProgram(const Shader &vertex_shader, const Shader &fragment_shader) {
+    id = glCreateProgram();
+    glAttachShader(id, vertex_shader.id);
+    std::cout << "attaching vertex shader" << vertex_shader.id << std::endl;
+    glAttachShader(id, fragment_shader.id);
+    std::cout << "attaching fragment shader" << fragment_shader.id << std::endl;
+    glLinkProgram(id);
+
+    int success;
+    char infoLog[512];
+    glGetProgramiv(id, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(id, 512, NULL, infoLog);
+        std::cout << "Program link error:\n" << infoLog << std::endl;
+    }
+
+    ge.shaders.add_shader_id_use(id);
+}
+
+
+ShaderProgram::~ShaderProgram() {
+    ge.shaders.remove_shader_id_use(id);
+}
+
+
+
+void ShaderProgram::use() const {
     glUseProgram(id);
 }
 
@@ -47,10 +137,19 @@ void ShaderProgram::set_uniform(const char* uniform_name, glm::vec3 val) const {
     glUniform3fv(glGetUniformLocation(id, uniform_name), 1, &val[0]);
 }
 
+unsigned int ShaderProgram::get_uniform_location(const char *uniform_name) const {
+    return glGetUniformLocation(id, uniform_name);
+}
 
-Material::Material(ShaderProgram* _shader_program, uniform_map& _shader_values) {
-    shader_program = _shader_program;
-    shader_values = std::move(_shader_values);
+ShaderProgram& ShaderProgram::operator=(const ShaderProgram &other) {
+    id = other.id;
+    ge.shaders.add_shader_id_use(id);
+    return *this;
+}
+
+
+Material::Material(const ShaderProgram &_shader_program) : shader_program(_shader_program) {
+
 }
 
 void Material::set_uniform_values() const {
@@ -62,6 +161,31 @@ void Material::set_uniform_values() const {
             glUniform1f(it->first, std::get<float>(it->second));
         else if (std::holds_alternative<glm::vec3>(it->second))
             glUniform3fv(it->first, 1, &std::get<glm::vec3>(it->second)[0]);
+    }
+}
+
+
+unsigned int Material::get_uniform_location(const char *uniform_name) const {
+    return glGetUniformLocation(shader_program.id, uniform_name);
+}
+
+void Material::save_uniform_value(const char *uniform_name, const uniform_variant val) {
+    shader_values[glGetUniformLocation(shader_program.id, uniform_name)] = val;
+}
+
+
+
+void Shaders::add_shader_id_use(const unsigned int sp_id) {
+    shader_programs_id_used[sp_id] += 1;
+    std::cout << "adding use - shader_program_id: " << sp_id << std::endl;
+}
+
+void Shaders::remove_shader_id_use(const unsigned int sp_id) {
+    shader_programs_id_used[sp_id] -= 1;
+
+    if (shader_programs_id_used[sp_id] == 0) {
+        //glDeleteProgram(sp_id);
+        std::cout << "deleting " << sp_id << std::endl;
     }
 }
 
@@ -85,7 +209,7 @@ std::string ShaderGen::parse_shader_template(const char * file_path, const std::
                 // # means flag should be present, ! means flag should NOT be present
                 // do we want a match or no
                 bool match = line[i] == '>';
-                std::cout << line[i] << std::endl;
+                //std::cout << line[i] << std::endl;
 
                 bool found_a_letter = false;
                 // loop through all flags
@@ -126,13 +250,13 @@ std::string ShaderGen::parse_shader_template(const char * file_path, const std::
     }
     file.close();
 
-    std::cout << shader_string << std::endl;
+    //std::cout << shader_string << std::endl;
 
     return shader_string;
 }
 
-unsigned int ShaderGen::base_vertex_shader_gen(bool support_uv, bool support_normal) {
-    std::string shader_code = "";
+Shader ShaderGen::base_vertex_shader_gen(bool support_uv, bool support_normal) {
+    std::string shader_code;
     if (support_uv && support_normal)
         shader_code = parse_shader_template("engine/shaders/templates/vertex_shader_template.glsl", "un");
     else if (support_normal)
@@ -140,26 +264,24 @@ unsigned int ShaderGen::base_vertex_shader_gen(bool support_uv, bool support_nor
     else
         shader_code = parse_shader_template("engine/shaders/templates/vertex_shader_template.glsl", "u");
 
-
-    return compile_shader_from_string(shader_code.c_str(), GL_VERTEX_SHADER);
+    return Shader{shader_code, GL_VERTEX_SHADER};
 }
 
 
-unsigned int ShaderGen::base_phong_shader_gen(bool support_uv) {
-    std::string shader_code = "";
+Shader ShaderGen::base_phong_shader_gen(bool support_uv) {
+    std::string shader_code;
     if (support_uv)
         shader_code = parse_shader_template("engine/shaders/templates/phong.glsl", "un");
     else
         shader_code = parse_shader_template("engine/shaders/templates/phong.glsl", "n");
 
-    return compile_shader_from_string(shader_code.c_str(), GL_FRAGMENT_SHADER);
+    return Shader{shader_code, GL_FRAGMENT_SHADER};
 }
 
 ShaderProgram ShaderGen::phong_shader_program_gen(bool has_uvs) {
-    const std::vector quick_uniforms = {
-        "object_color"
-    };
-    return ShaderProgram{base_vertex_shader_gen(has_uvs, true), base_phong_shader_gen(has_uvs), quick_uniforms};
+    ShaderProgram sp {base_vertex_shader_gen(has_uvs, true), base_phong_shader_gen(has_uvs)};
+    glUniformBlockBinding(sp.id, glGetUniformBlockIndex(sp.id, "MATRICES"), 0);
+    return sp;
 }
 
 
