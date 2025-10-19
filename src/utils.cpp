@@ -3,7 +3,7 @@
 #include <string>
 #include <glad/glad.h>
 #define STB_IMAGE_IMPLEMENTATION
-#include "utils/stb_image.h"
+#include "../utils/stb_image.h"
 #include "meshes.hpp"
 
 
