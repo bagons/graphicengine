@@ -16,8 +16,6 @@ include_directories(ext/glad/include)
 add_subdirectory(ext/glm)
 include_directories(ext/glm/glm)
 
-#find_package(OpenGL REQUIRED)
-
 include_directories(include)
 
 add_library(${PROJECT_NAME} STATIC
