@@ -1,22 +1,16 @@
 cmake_minimum_required(VERSION 3.2)  # CMake version check
-project(gameengine)
+project(graphicengine)
 
 set(CMAKE_CXX_STANDARD 20)
 
 # Including GLFW
-#set(SOURCE_FILES gameengine.cpp)
 add_subdirectory(ext/glfw)
-include_directories(glfw/include)
 
 # Including GLAD
 add_subdirectory(ext/glad)
-include_directories(ext/glad/include)
 
 # Including GLM
 add_subdirectory(ext/glm)
-include_directories(ext/glm/glm)
-
-include_directories(include)
 
 add_library(${PROJECT_NAME} STATIC
         src/gameengine.cpp ext/glad/glad.c
@@ -37,6 +31,13 @@ add_library(${PROJECT_NAME} STATIC
         src/renderer.cpp
         include/renderer.hpp
         include/gereferences.hpp
+)
+
+target_include_directories(graphicengine PUBLIC
+        include
+        ${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/ext/glad/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/ext/glm/glm
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm)
