@@ -258,11 +258,11 @@ std::string ShaderGen::parse_shader_template(const char * file_path, const std::
 Shader ShaderGen::base_vertex_shader_gen(bool support_uv, bool support_normal) {
     std::string shader_code;
     if (support_uv && support_normal)
-        shader_code = parse_shader_template("engine/shaders/templates/vertex_shader_template.glsl", "un");
+        shader_code = parse_shader_template("engine/res/shaders/templates/vertex_shader_template.glsl", "un");
     else if (support_normal)
-        shader_code = parse_shader_template("engine/shaders/templates/vertex_shader_template.glsl", "n");
+        shader_code = parse_shader_template("engine/res/shaders/templates/vertex_shader_template.glsl", "n");
     else
-        shader_code = parse_shader_template("engine/shaders/templates/vertex_shader_template.glsl", "u");
+        shader_code = parse_shader_template("engine/res/shaders/templates/vertex_shader_template.glsl", "u");
 
     return Shader{shader_code, GL_VERTEX_SHADER};
 }
@@ -271,9 +271,9 @@ Shader ShaderGen::base_vertex_shader_gen(bool support_uv, bool support_normal) {
 Shader ShaderGen::base_phong_shader_gen(bool support_uv) {
     std::string shader_code;
     if (support_uv)
-        shader_code = parse_shader_template("engine/shaders/templates/phong.glsl", "un");
+        shader_code = parse_shader_template("engine/res/shaders/templates/phong.glsl", "un");
     else
-        shader_code = parse_shader_template("engine/shaders/templates/phong.glsl", "n");
+        shader_code = parse_shader_template("engine/res/shaders/templates/phong.glsl", "n");
 
     return Shader{shader_code, GL_FRAGMENT_SHADER};
 }
