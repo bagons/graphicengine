@@ -124,14 +124,15 @@ ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_pt
         } else {
             mat = materials[i];
         }
-        ge.add<ModelSlaveThing>(model->meshes[i], mat, geRef<ModelThing>(model_geref_id, &ge));
+        auto model_slave = ge.add<ModelSlaveThing>(model->meshes[i], mat, geRef<ModelThing>(model_geref_id, &ge));
+        model_slaves.push_back(model_slave);
     }
 }
 
 
 void ModelSlaveThing::render() {
     // copy manager position (the slave part)
-    transform.position = manager->transform.position;
+    transform = manager->transform;
 
     // standard MeshThing render
     glm::mat4 model = transform.position.get_transformation_matrix() * transform.rotation.get_transformation_matrix() * transform.scale.get_transformation_matrix();

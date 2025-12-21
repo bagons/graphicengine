@@ -61,6 +61,7 @@ class ModelThing : public SpatialThing {
 public:
     std::shared_ptr<Model> model;
     std::vector<std::shared_ptr<Material>> materials;
+    std::vector<geRef<class ModelSlaveThing>> model_slaves;
     ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_ptr<Material>> _materials);
 };
 
