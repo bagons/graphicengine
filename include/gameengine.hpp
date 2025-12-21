@@ -70,7 +70,6 @@ public:
         auto thing = std::make_unique<T>(std::forward<Args>(args)...);
 
         if constexpr (std::is_base_of_v<MeshThing, T>) {
-            std::cout << "inserting into thing x sp map: " << thing.get()->material->shader_program.id << " " << ref.id << std::endl;
             thing_ids_by_shader_program.insert({thing.get()->material, ref.id});
         }
 

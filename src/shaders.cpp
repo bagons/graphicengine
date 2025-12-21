@@ -14,6 +14,7 @@ Shader::Shader(const char *file_path, const GLenum _shader_type) {
     std::string shader_string;
 
     std::ifstream file(file_path);
+    std::cout << "path: " << file_path << std::endl;
     std::cout << "file_read_state: " << file.good() << std::endl;
 
     if (!file.good()) {
@@ -197,6 +198,7 @@ std::string ShaderGen::parse_shader_template(const char * file_path, const std::
     std::string shader_string;
 
     std::ifstream file(file_path);
+    std::cout << "path: " << file_path << std::endl;
     std::cout << "file_read_state: " << file.good() << std::endl;
     std::string line;
     while (std::getline(file, line)) {

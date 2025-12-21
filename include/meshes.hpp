@@ -13,8 +13,8 @@ public:
     unsigned int element_buffer_object = 0;
     int vertex_count = 0;
 
-    Mesh(const std::vector<float>* vertices, const std::vector<unsigned int>* indices, bool has_texture_cords = false, bool has_normals = false, bool has_vertex_colors = false);
-    explicit Mesh(const char* file_path);
+    Mesh(const std::vector<float>* vertices, const std::vector<unsigned int>* indices, bool has_texture_cords = true, bool has_normals = true, bool has_vertex_colors = false);
+    explicit Mesh(const char* file_path, bool has_texture_cords = true, bool has_normals = true, bool has_vertex_colors = false);
     Mesh();
 
     ~Mesh();
@@ -27,7 +27,7 @@ void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_
 class Model {
 public:
     std::vector<std::shared_ptr<Mesh>> meshes;
-    explicit Model(const char* file_path);
+    explicit Model(const char* file_path, bool has_texture_cords = true, bool has_normals = true, bool has_vertex_colors = false);
 };
 
 

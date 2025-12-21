@@ -87,6 +87,8 @@ void parse_obj_file(const char* file_path, bool merge_all_groups, std::vector<fl
     vertex_groups.push_back(std::vector<size_t>());
     int current_group_idx = 0;
 
+    int vertex_data_group_size = 1 + has_normals + has_texture_cords;
+
     // PARSING OF .OBJ FILE
     // go line by line
     // TODO seems a bit slow, after parsing unordered map is instant, this will be the constraint
@@ -122,6 +124,61 @@ void parse_obj_file(const char* file_path, bool merge_all_groups, std::vector<fl
                     vertex_groups[current_group_idx].push_back(std::strtol(end + 1, &end, 10));
                 if (has_normals && has_texture_cords)
                     vertex_groups[current_group_idx].push_back(std::strtol(end + 1, &end, 10));
+
+            }
+
+            // IF THERE IS A FORTH POINT IN A FACE (A QUAD)
+            if (*end != '\0' and *(end + 1) != '\0') {
+                size_t vtx_group_list_end = vertex_groups[current_group_idx].size() - 1;
+                // spawn second triangle
+
+                // fill in points to form a triangle
+                // point 1
+                vertex_groups[current_group_idx].push_back(
+                    vertex_groups[current_group_idx][ vtx_group_list_end - 3 * vertex_data_group_size + 1]
+                    );
+
+                if (has_normals || has_texture_cords) {
+                    vertex_groups[current_group_idx].push_back(
+                        vertex_groups[current_group_idx][vtx_group_list_end - 3 * vertex_data_group_size + 2]
+                    );
+                }
+
+                if (has_normals && has_texture_cords) {
+                    vertex_groups[current_group_idx].push_back(
+                        vertex_groups[current_group_idx][vtx_group_list_end - 3 * vertex_data_group_size + 3]
+                    );
+                }
+
+                //point 2
+                vertex_groups[current_group_idx].push_back(
+                    vertex_groups[current_group_idx][vtx_group_list_end - 1 * vertex_data_group_size + 1]
+                    );
+
+                if (has_normals || has_texture_cords) {
+                    vertex_groups[current_group_idx].push_back(
+                        vertex_groups[current_group_idx][vtx_group_list_end - 1 * vertex_data_group_size + 2]
+                    );
+                }
+
+                if (has_normals && has_texture_cords) {
+                    vertex_groups[current_group_idx].push_back(
+                        vertex_groups[current_group_idx][vtx_group_list_end - 1 * vertex_data_group_size + 3]
+                    );
+                }
+
+                //parse NEW point
+                int dp_idx = std::strtol(end + 1, &end, 10);
+                vertex_groups[current_group_idx].push_back(dp_idx);
+
+                if (has_normals || has_texture_cords) {
+                    dp_idx = std::strtol(end + 1, &end, 10);
+                    vertex_groups[current_group_idx].push_back(dp_idx);
+                }
+                if (has_normals && has_texture_cords) {
+                    dp_idx = std::strtol(end + 1, &end, 10);
+                    vertex_groups[current_group_idx].push_back(dp_idx);
+                }
             }
         } // groups
         else if (!merge_all_groups && line[0] == 'g') {
@@ -162,7 +219,6 @@ void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_
 
             if (has_normals) {
                 vdp.k = vertex_triplets[i * vertex_data_group_size + 1 + has_texture_cords] - 1;
-
                 vdp.vd[t] = vertex_data_vec[2][vdp.k * 3];
                 vdp.vd[t + 1] = vertex_data_vec[2][vdp.k * 3 + 1];
                 vdp.vd[t + 2] = vertex_data_vec[2][vdp.k * 3 + 2];
@@ -185,11 +241,11 @@ void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_
         }
 
         std::cout << "vertex_data size: " << out_vertex_data.size() << std::endl;
-        std::cout << "indecies size: " << out_vertex_data.size() << std::endl;
+        std::cout << "indecies size: " << out_indices.size() << std::endl;
 }
 
 
-Mesh::Mesh(const char* file_path) {
+Mesh::Mesh(const char* file_path, bool has_texture_cords, bool has_normals, bool has_vertex_colors) {
     vertex_buffer_object = -1;
     vertex_array_object = -1;
     element_buffer_object = -1;
@@ -197,9 +253,6 @@ Mesh::Mesh(const char* file_path) {
     // define structures
     std::vector<float> vertex_data_vec[3];
     std::vector<std::vector<size_t>> vertex_groups;
-
-    bool has_texture_cords = false;
-    bool has_normals = false;
 
     // use structures to parse .obj file
     parse_obj_file(file_path, true, vertex_data_vec, vertex_groups, has_normals, has_texture_cords);
@@ -215,27 +268,25 @@ Mesh::Mesh(const char* file_path) {
     // vertex_groups[0], because usually we would loop through all the groups and create the appropriate Mesh
     // but this is just a mesh, so we merged_all_groups, and now we work with only one group
     construct_mesh_data_from_parsed_obj_data(vertex_data_vec, vertex_groups[0], has_normals, has_texture_cords, vertex_data, indices);
-
     load_mesh_to_gpu(&vertex_data, &indices, has_texture_cords, has_normals, false);
 }
 
-Model::Model(const char* file_path) {
+Model::Model(const char* file_path, bool has_texture_cords, bool has_normals, bool has_vertex_colors) {
     // define structures
     std::vector<float> vertex_data_vec[3];
     std::vector<std::vector<size_t>> vertex_groups;
 
-    bool has_texture_cords = false;
-    bool has_normals = false;
-
     // use structures to parse .obj file
-    parse_obj_file(file_path, true, vertex_data_vec, vertex_groups, has_normals, has_texture_cords);
+    parse_obj_file(file_path, false, vertex_data_vec, vertex_groups, has_normals, has_texture_cords);
 
     std::cout << ".obj parsed!" << std::endl;
 
     for (auto &vertex_group : vertex_groups) {
+
         // define new structures, for reordering
         std::vector<float> vertex_data;
         std::vector<unsigned int> indices;
+
 
         // use structures to create correctly formated values for Mesh
         construct_mesh_data_from_parsed_obj_data(vertex_data_vec, vertex_group, has_normals, has_texture_cords, vertex_data, indices);
@@ -243,6 +294,8 @@ Model::Model(const char* file_path) {
         auto msh = std::make_shared<Mesh>(&vertex_data, &indices, has_texture_cords, has_normals, false);
         meshes.push_back(msh);
     }
+
+    std::cout << "post model" << std::endl;
 }
 
 Mesh::~Mesh() {
