@@ -4,30 +4,47 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include "shaders.hpp"
+#include "unordered_map"
 
 class Mesh {
-void load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, bool has_texture_cords, bool has_normals, bool has_vertex_colors);
+void load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, bool has_uvs, bool has_normals, bool has_vertex_colors = false);
 public:
     unsigned int vertex_buffer_object = 0;
     unsigned int vertex_array_object = 0;
     unsigned int element_buffer_object = 0;
     int vertex_count = 0;
+    bool has_uvs = false;
+    bool has_normals = false;
 
-    Mesh(const std::vector<float>* vertices, const std::vector<unsigned int>* indices, bool has_texture_cords = true, bool has_normals = true, bool has_vertex_colors = false);
-    explicit Mesh(const char* file_path, bool has_texture_cords = true, bool has_normals = true, bool has_vertex_colors = false);
+    Mesh(const std::vector<float>* vertices, const std::vector<unsigned int>* indices, bool has_uvs = true, bool has_normals = true, bool has_vertex_colors = false);
+    explicit Mesh(const char* file_path);
     Mesh();
 
     ~Mesh();
 };
 
-void parse_obj_file(const char* file_path, bool merge_all_groups, std::vector<float> (&vertex_data_vec)[3], std::vector<std::vector<size_t>>& vertex_groups, bool& has_normals, bool& has_texture_cords);
+// obj parsing
+// for models with material parsing
+void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[3], std::vector<std::vector<size_t>>& vertex_groups, std::vector<std::shared_ptr<Material>>& materials, bool &has_uvs, bool &has_normals);
+// material parser
+std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const char* file_path, bool has_normals, bool has_uvs);
+// for basic meshes, with no material parsing
+void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[3], std::vector<size_t>& vertex_group, bool &has_uvs, bool &has_normals);
+// second stage of file.obj -> mesh
 void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_data_vec)[3], const std::vector<size_t>& vertex_triplets, bool has_normals, bool has_texture_cords, std::vector<float>& out_vertex_data, std::vector<unsigned int>& out_indices);
 
+
+// parser helper
+std::string after_char(const std::string& s, char delimiter);
 
 class Model {
 public:
     std::vector<std::shared_ptr<Mesh>> meshes;
-    explicit Model(const char* file_path, bool has_texture_cords = true, bool has_normals = true, bool has_vertex_colors = false);
+    std::vector<std::shared_ptr<Material>> materials;
+    bool has_uvs = false;
+    bool has_normals = false;
+    explicit Model(const char* file_path);
 };
 
 

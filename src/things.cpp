@@ -115,15 +115,25 @@ void MeshThing::render() {
 ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_ptr<Material>> _materials) : SpatialThing(false, true) {
     model = std::move(_model);
     materials = std::move(_materials);
-
+    std::cout << "starting ModelThing construction" << std::endl;
     const int model_geref_id = ge.next_thing_id - 1;
     for (size_t i = 0; i < model->meshes.size(); i++) {
         std::shared_ptr<Material> mat;
-        if (i >= _materials.size()) {
-            mat = ge.base_material;
-        } else {
+        std::cout << "model->mat size " << model->materials.size() << " | " << i << std::endl;
+        // if no custom material load model material
+        if (i >= materials.size() or materials[i] == nullptr) {
+            mat = model->materials[i];
+            std::cout << "NO CUSTOM MATERIAL, loading og: " << mat << std::endl;
+        } // else load custom material
+        else {
             mat = materials[i];
         }
+
+        // if some of the materials are nullptr -> equivalent to the base material
+        if (mat == nullptr)
+            mat = ge.shaders.get_base_material(model->has_uvs, model->has_normals);
+
+        // spawn slave
         auto model_slave = ge.add<ModelSlaveThing>(model->meshes[i], mat, geRef<ModelThing>(model_geref_id, &ge));
         model_slaves.push_back(model_slave);
     }

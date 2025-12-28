@@ -46,7 +46,6 @@ public:
     Input input{};
     Meshes meshes{};
     Textures textures{};
-    std::shared_ptr<Material> base_material;
     Shaders shaders{};
 
     void update() const;

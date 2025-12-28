@@ -170,7 +170,7 @@ unsigned int Material::get_uniform_location(const char *uniform_name) const {
     return glGetUniformLocation(shader_program.id, uniform_name);
 }
 
-void Material::save_uniform_value(const char *uniform_name, const uniform_variant val) {
+void Material::save_uniform_value(const char *uniform_name, const uniform_variant &val) {
     shader_values[glGetUniformLocation(shader_program.id, uniform_name)] = val;
 }
 
@@ -189,6 +189,46 @@ void Shaders::remove_shader_id_use(const unsigned int sp_id) {
         std::cout << "deleting " << sp_id << std::endl;
     }
 }
+
+
+void Shaders::setup_base_materials() {
+    base_materials[0] = std::make_shared<Material>(ShaderGen::phong_shader_program_gen(true));
+    base_materials[0]->save_uniform_value("material.ambient", glm::vec3(0.2, 0.2, 0.2));
+    base_materials[0]->save_uniform_value("material.diffuse", glm::vec3(1.0, 1.0, 1.0));
+    base_materials[0]->save_uniform_value("material.specular", glm::vec3(1.0, 1.0, 1.0));
+    base_materials[0]->save_uniform_value("material.shininess", 32.0f);
+    base_materials[0]->save_uniform_value("material.has_albedo", false);
+
+    base_materials[1] = std::make_shared<Material>(ShaderGen::phong_shader_program_gen(false));
+    base_materials[1]->save_uniform_value("material.ambient", glm::vec3(0.2, 0.2, 0.2));
+    base_materials[1]->save_uniform_value("material.diffuse", glm::vec3(1.0, 1.0, 1.0));
+    base_materials[1]->save_uniform_value("material.specular", glm::vec3(1.0, 1.0, 1.0));
+    base_materials[1]->save_uniform_value("material.shininess", 32.0f);
+    base_materials[1]->save_uniform_value("material.has_albedo", false);
+
+    base_materials[2] = std::make_shared<Material>(ShaderGen::no_normal_program_gen(true));
+    base_materials[2]->save_uniform_value("material.diffuse", glm::vec3(1.0, 1.0, 1.0));
+    base_materials[2]->save_uniform_value("material.has_albedo", false);
+
+    base_materials[3] = std::make_shared<Material>(ShaderGen::no_normal_program_gen(false));
+    base_materials[3]->save_uniform_value("material.diffuse", glm::vec3(1.0, 1.0, 1.0));
+    base_materials[3]->save_uniform_value("material.has_albedo", false);
+}
+
+std::shared_ptr<Material> Shaders::get_base_material(bool with_uvs, bool with_normals) {
+    if (with_uvs and with_normals)
+        return base_materials[0];
+    if (with_normals)
+        return base_materials[1];
+    if (with_uvs)
+        return base_materials[2];
+    return base_materials[3];
+}
+
+void Shaders::clear_base_material(size_t index) {
+    base_materials[index] = nullptr;
+}
+
 
 
 
@@ -216,7 +256,6 @@ std::string ShaderGen::parse_shader_template(const char * file_path, const std::
                 bool found_a_letter = false;
                 // loop through all flags
                 for (auto letter : flags_to_include) {
-                    std::cout << letter << std::endl;
                     // if NOT maching and we find it, hard stop.
                     if (!match && line[i + 1] == letter) {
                         passed = false;
@@ -273,15 +312,32 @@ Shader ShaderGen::base_vertex_shader_gen(bool support_uv, bool support_normal) {
 Shader ShaderGen::base_phong_shader_gen(bool support_uv) {
     std::string shader_code;
     if (support_uv)
-        shader_code = parse_shader_template("engine/res/shaders/templates/phong.glsl", "un");
+        shader_code = parse_shader_template("engine/res/shaders/templates/obj_phong.glsl", "un");
     else
-        shader_code = parse_shader_template("engine/res/shaders/templates/phong.glsl", "n");
+        shader_code = parse_shader_template("engine/res/shaders/templates/obj_phong.glsl", "n");
+
+    return Shader{shader_code, GL_FRAGMENT_SHADER};
+}
+
+
+Shader ShaderGen::base_no_normal_shader_gen(bool support_uv) {
+    std::string shader_code;
+    if (support_uv)
+        shader_code = parse_shader_template("engine/res/shaders/templates/obj_no_normal.glsl", "u");
+    else
+        shader_code = parse_shader_template("engine/res/shaders/templates/obj_no_normal.glsl", "");
 
     return Shader{shader_code, GL_FRAGMENT_SHADER};
 }
 
 ShaderProgram ShaderGen::phong_shader_program_gen(bool has_uvs) {
     ShaderProgram sp {base_vertex_shader_gen(has_uvs, true), base_phong_shader_gen(has_uvs)};
+    glUniformBlockBinding(sp.id, glGetUniformBlockIndex(sp.id, "MATRICES"), 0);
+    return sp;
+}
+
+ShaderProgram ShaderGen::no_normal_program_gen(bool has_uvs) {
+    ShaderProgram sp {base_vertex_shader_gen(has_uvs, false), base_no_normal_shader_gen(has_uvs)};
     glUniformBlockBinding(sp.id, glGetUniformBlockIndex(sp.id, "MATRICES"), 0);
     return sp;
 }
