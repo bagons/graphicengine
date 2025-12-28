@@ -10,8 +10,9 @@
 #include <memory>
 #include <map>
 #include <array>
+#include "textures.hpp"
 
-typedef std::variant<float, glm::vec3> uniform_variant;
+typedef std::variant<float, glm::vec3, GLint64, bool>  uniform_variant;
 typedef std::map<int, uniform_variant> uniform_map;
 
 
@@ -53,11 +54,13 @@ public:
     ShaderProgram shader_program;
     uniform_map shader_values = {};
     explicit Material(const ShaderProgram &_shader_program);
+    ~Material();
 
     void set_uniform_values() const;
 
-    void save_uniform_value(const char* uniform_name, uniform_variant val);
     void save_uniform_value(const char* uniform_name, const uniform_variant &val);
+
+    void save_uniform_value(const char* uniform_name, const TextureRef &texture);
 
     unsigned int get_uniform_location(const char *uniform_name) const;
 };

@@ -14,8 +14,6 @@ add_subdirectory(ext/glm)
 
 add_library(${PROJECT_NAME} STATIC
         src/gameengine.cpp ext/glad/glad.c
-        src/utils.cpp
-        include/utils.h
         src/things.cpp
         include/things.hpp
         src/input.cpp

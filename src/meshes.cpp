@@ -92,7 +92,6 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
     // parsed values
     std::shared_ptr<Material> mat = nullptr;
 
-void parse_obj_file(const char* file_path, bool merge_all_groups, std::vector<float> (&vertex_data_vec)[3], std::vector<std::vector<size_t>>& vertex_groups, bool& has_normals, bool& has_texture_cords) {
     auto template_shader_program = ge.shaders.get_base_material(has_uvs, has_normals)->shader_program;
 
     while (std::getline(file, line)) {
@@ -126,6 +125,12 @@ void parse_obj_file(const char* file_path, bool merge_all_groups, std::vector<fl
                 if (line[2] == 'i')
                     mat->save_uniform_value("material.shininess", std::strtof(l, nullptr));
             } else if (line[1] == 'm') {
+                if (line[6] == 'd') {
+                    mat->save_uniform_value("material.has_albedo", true);
+                    auto texture_path = std::filesystem::path(file_path).parent_path() / after_char(line, ' ');
+                    std::cout << "texture path: " << texture_path << std::endl;
+                    auto texture_ref = ge.textures.load(texture_path.string().c_str());
+                    mat->save_uniform_value("material.albedo_texture", texture_ref);
                 }
             }
         }

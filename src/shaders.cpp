@@ -3,7 +3,6 @@
 #include <fstream>
 
 #include "gameengine.hpp"
-#include "utils.h"
 
 
 Shader::Shader(const char *file_path, const GLenum _shader_type) {
@@ -162,6 +161,10 @@ void Material::set_uniform_values() const {
             glUniform1f(it->first, std::get<float>(it->second));
         else if (std::holds_alternative<glm::vec3>(it->second))
             glUniform3fv(it->first, 1, &std::get<glm::vec3>(it->second)[0]);
+        else if (std::holds_alternative<GLint64>(it->second))
+            glProgramUniformHandleui64ARB(shader_program.id, it->first, std::get<GLint64>(it->second));
+        else if (std::holds_alternative<bool>(it->second))
+            glUniform1i(it->first, std::get<bool>(it->second));
     }
 }
 
@@ -172,6 +175,20 @@ unsigned int Material::get_uniform_location(const char *uniform_name) const {
 
 void Material::save_uniform_value(const char *uniform_name, const uniform_variant &val) {
     shader_values[glGetUniformLocation(shader_program.id, uniform_name)] = val;
+}
+
+void Material::save_uniform_value(const char *uniform_name, const TextureRef &texture) {
+    ge.textures.add_use_of_texture_reference(texture);
+    shader_values[glGetUniformLocation(shader_program.id, uniform_name)] = texture.handle;
+}
+
+Material::~Material() {
+    // call off any references of possible textures
+    for (auto it = shader_values.begin(); it != shader_values.end(); it++) {
+        if (std::holds_alternative<GLint64>(it->second)) {
+            ge.textures.call_of_texture_reference(std::get<GLint64>(it->second));
+        }
+    }
 }
 
 
