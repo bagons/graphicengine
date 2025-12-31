@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)  # CMake version check
+cmake_minimum_required(VERSION 3.31)  # CMake version check
 project(graphicengine)
 
 set(CMAKE_CXX_STANDARD 20)
