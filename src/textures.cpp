@@ -1,6 +1,6 @@
 #include "textures.hpp"
 #include <iostream>
-#include <gameengine.hpp>
+#include <graphicengine.hpp>
 
 #pragma once
 #define STB_IMAGE_IMPLEMENTATION

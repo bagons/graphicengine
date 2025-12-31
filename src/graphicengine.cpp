@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "gameengine.hpp"
+#include "graphicengine.hpp"
 
 
 const int SCREEN_WIDTH = 800;

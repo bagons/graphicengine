@@ -4,7 +4,7 @@
 #include <__msvc_ostream.hpp>
 
 #include "shaders.hpp"
-#include "gameengine.hpp"
+#include "graphicengine.hpp"
 
 #include "gtc/type_ptr.inl"
 

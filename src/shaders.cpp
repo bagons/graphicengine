@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "gameengine.hpp"
+#include "graphicengine.hpp"
 
 
 Shader::Shader(const char *file_path, const GLenum _shader_type) {

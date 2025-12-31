@@ -1,5 +1,5 @@
 #include "meshes.hpp"
-#include "gameengine.hpp"
+#include "graphicengine.hpp"
 
 #include <filesystem>
 #include <glad/glad.h>
