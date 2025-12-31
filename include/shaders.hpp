@@ -4,7 +4,6 @@
 #include <span>
 #include <vector>
 #include <glm/glm.hpp>
-#include <glad/glad.h>
 #include <string>
 #include <variant>
 #include <memory>
