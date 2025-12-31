@@ -1,6 +1,5 @@
 #include "coordinates.h"
 
-#include <iostream>
 
 Vector3::Vector3(const float _x, const float _y, const float _z) {
     x = _x;

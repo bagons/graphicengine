@@ -1,11 +1,6 @@
 #include "renderer.hpp"
-
-#include <iostream>
-#include <__msvc_ostream.hpp>
-
 #include "shaders.hpp"
 #include "graphicengine.hpp"
-
 #include "gtc/type_ptr.inl"
 
 ForwardRenderer3DLayer::ForwardRenderer3DLayer(const geRef<Camera> camera) {

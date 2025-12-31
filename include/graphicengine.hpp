@@ -3,11 +3,8 @@
 #include <map>
 #include <unordered_map>
 #include <memory>
-#include <iostream>
 
 #pragma once
-#include "glad/glad.h"
-
 #include "input.hpp"
 #include "meshes.hpp"
 #include "things.hpp"
