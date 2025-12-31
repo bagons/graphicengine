@@ -86,8 +86,6 @@ bool Engine::is_running() const {
     return !glfwWindowShouldClose(window.glfwwindow);
 }
 
-Engine ge;
-
 // run to start engine
 Engine* gameengine(const char* game_name) {
     // init window library

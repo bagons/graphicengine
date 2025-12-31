@@ -74,7 +74,7 @@ void Textures::call_of_texture_reference(const GLint64 handle) {
 }
 
 
-TextureRef::~TextureRef() {
+TextureRef::~TextureRef() { // DESTRUCTOR WARNING
     ge.textures.call_of_texture_reference(*this);
 }
 

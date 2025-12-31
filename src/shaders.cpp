@@ -110,7 +110,7 @@ ShaderProgram::ShaderProgram(const Shader &vertex_shader, const Shader &fragment
 }
 
 
-ShaderProgram::~ShaderProgram() {
+ShaderProgram::~ShaderProgram() { // DESTRUCTOR WARNING !!
     ge.shaders.remove_shader_id_use(id);
 }
 
@@ -182,7 +182,7 @@ void Material::save_uniform_value(const char *uniform_name, const TextureRef &te
     shader_values[glGetUniformLocation(shader_program.id, uniform_name)] = texture.handle;
 }
 
-Material::~Material() {
+Material::~Material() { // DESTRUCTOR WARNING
     // call off any references of possible textures
     for (auto it = shader_values.begin(); it != shader_values.end(); it++) {
         if (std::holds_alternative<GLint64>(it->second)) {
@@ -199,11 +199,23 @@ void Shaders::add_shader_id_use(const unsigned int sp_id) {
 }
 
 void Shaders::remove_shader_id_use(const unsigned int sp_id) {
+    if (!shader_programs_id_used.contains(sp_id)) {
+        std::cout << "sp_id: " << sp_id << " NOT FOUND !! " << std::endl;
+        return;
+    }
     shader_programs_id_used[sp_id] -= 1;
 
     if (shader_programs_id_used[sp_id] == 0) {
         //glDeleteProgram(sp_id);
         std::cout << "deleting " << sp_id << std::endl;
+    }
+}
+
+void Shaders::debug_show_shader_program_use() {
+    std::cout << "SHADER PROGRAM USE DEBUG" << std::endl;
+    std::cout << "! - ID X USE COUNT -  !" << std::endl;
+    for (auto it = shader_programs_id_used.begin(); it != shader_programs_id_used.end(); it++) {
+        std::cout << it->first << " X " << it->second << std::endl;
     }
 }
 

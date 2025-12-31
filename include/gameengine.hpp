@@ -36,17 +36,18 @@ class Engine {
     int next_render_layer_id = 0;
     double last_game_time = 0.0;
 public:
+    Window window{};
+    Input input{};
+    Meshes meshes{};
+    Textures textures{};
+    Shaders shaders{};
+
     int next_thing_id = 0;
     unsigned int camera_matrix_ubo;
     float frame_delta = 0.0f;
     things_container things{};
     render_layer_container render_layers{};
     std::multimap<std::shared_ptr<Material>, int, MaterialSorter> thing_ids_by_shader_program;
-    Window window{};
-    Input input{};
-    Meshes meshes{};
-    Textures textures{};
-    Shaders shaders{};
 
     void update() const;
 

@@ -90,6 +90,7 @@ public:
     void setup_base_materials();
     void add_shader_id_use(unsigned int sp_id);
     void remove_shader_id_use(unsigned int sp_id);
+    void debug_show_shader_program_use();
 
     //base shader ps
     std::shared_ptr<Material> get_base_material(bool with_uvs, bool with_normals);
