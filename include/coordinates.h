@@ -8,9 +8,9 @@ public:
     float y;
     float z;
     Vector3(float _x, float _y, float _z);
-    Vector3(glm::vec3 position);
+    explicit Vector3(glm::vec3 position);
 
-    Vector3& operator= (glm::vec3& position);
+    Vector3& operator= (const glm::vec3& position);
     Vector3& operator= (const Vector3& position);
     Vector3& operator+ (const Vector3& position);
     Vector3& operator+ (const glm::vec3& position);
@@ -54,10 +54,10 @@ public:
     Rotation(float _x, float _y, float _z);
     Rotation();
 
-    Rotation operator* (const Rotation& rot);
+    Rotation operator* (const Rotation& rot) const;
     Rotation& operator= (const glm::vec3& rotation);
     Rotation& operator*= (const Rotation& rot);
-    Rotation conjugate();
+    [[nodiscard]] Rotation conjugate() const;
 
     static void rotate_point(float _x, float _y, float _z, glm::vec3& point);
 };

@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-Vector3::Vector3(float _x, float _y, float _z) {
+Vector3::Vector3(const float _x, const float _y, const float _z) {
     x = _x;
     y = _y;
     z = _z;
@@ -14,19 +14,14 @@ Vector3::Vector3(const glm::vec3 position) {
     z = position.z;
 }
 
-Vector3& Vector3::operator=(glm::vec3& position) {
+Vector3& Vector3::operator=(const glm::vec3& position) {
     x = position.x;
     y = position.y;
     z = position.z;
     return *this;
 }
 
-Vector3& Vector3::operator=(const Vector3& position) {
-    x = position.x;
-    y = position.y;
-    z = position.z;
-    return *this;
-}
+Vector3& Vector3::operator=(const Vector3& position) = default;
 
 Vector3& Vector3::operator+ (const Vector3& position) {
     x += position.x;
@@ -96,6 +91,10 @@ Rotation::Rotation(float _r, float _i, float _j, float _k) {
     j = _j;
     k = _k;
 
+    x = 0.0f;
+    y = 0.0f;
+    z = 0.0f;
+
     quat_2_euler();
 }
 
@@ -111,13 +110,18 @@ Rotation::Rotation() {
 }
 
 Rotation::Rotation(float _x, float _y, float _z) {
+    i = 0.0f;
+    j = 0.0f;
+    k = 0.0f;
+    r = 1.0f;
+
     x = _x;
     y = _y;
     z = _z;
     euler_2_quat();
 }
 
-Rotation Rotation::operator* (const Rotation& rot) {
+Rotation Rotation::operator* (const Rotation& rot) const {
     Rotation multiplied_rot{};
     multiplied_rot.r = r * rot.r - r * rot.i - j * rot.j - k * rot.k;
     multiplied_rot.i = r * rot.i + rot.r * i - j * rot.k - k * rot.j;
@@ -158,13 +162,13 @@ Rotation& Rotation::operator*= (const Rotation& rot) {
     return *this;
 }
 
-Rotation Rotation::conjugate() {
-    return Rotation(r, -i, -j, -k);
+Rotation Rotation::conjugate() const {
+    return {r, -i, -j, -k};
 }
 
 void Rotation::rotate_point(float _x, float _y, float _z, glm::vec3& point) {
     Rotation rot{_x, _y, _z};
-    Rotation rot_c = rot.conjugate();
+    const Rotation rot_c = rot.conjugate();
 
     rot *= Rotation{0, point.x, point.y, point.z};
     rot *= rot_c;
