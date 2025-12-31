@@ -80,6 +80,11 @@ std::string after_char(const std::string& s, char delimiter) {
     return s.substr(pos + 1);
 }
 
+std::string normalize_path(std::string path) {
+    std::ranges::replace(path, '\\', '/');
+    return path;
+}
+
 
 std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const char* file_path, bool has_normals, bool has_uvs) {
     std::unordered_map<std::string, std::shared_ptr<Material>> materials;
@@ -127,7 +132,7 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
             } else if (line[1] == 'm') {
                 if (line[6] == 'd') {
                     mat->save_uniform_value("material.has_albedo", true);
-                    auto texture_path = std::filesystem::path(file_path).parent_path() / after_char(line, ' ');
+                    auto texture_path = std::filesystem::path(file_path).parent_path() / normalize_path(after_char(line, ' '));
                     std::cout << "texture path: " << texture_path << std::endl;
                     auto texture_ref = ge.textures.load(texture_path.string().c_str());
                     mat->save_uniform_value("material.albedo_texture", texture_ref);
@@ -164,7 +169,7 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
     while (std::getline(file, line)) {
         // mtllib X
         if (line[0] == 'm') {
-            auto mlt_file = after_char(line, ' ');
+            auto mlt_file = normalize_path(after_char(line, ' '));
             std::filesystem::path path(file_path);
             std::filesystem::path mtl_path = path.parent_path() / mlt_file;
             mtl_materials = parse_mlt_file(mtl_path.string().c_str(), true, true); // TODO NOT FINISHED

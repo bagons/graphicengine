@@ -37,6 +37,7 @@ void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_
 
 // parser helper
 std::string after_char(const std::string& s, char delimiter);
+std::string normalize_path(std::string path);
 
 class Model {
 public:
