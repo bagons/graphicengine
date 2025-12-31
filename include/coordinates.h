@@ -30,6 +30,7 @@ class Scale : public Vector3 {
     glm::mat4 scale_matrix = glm::mat4(1.0f);
 public:
     using Vector3::Vector3;
+    using Vector3::operator=;
     glm::mat4& get_transformation_matrix();
 };
 
