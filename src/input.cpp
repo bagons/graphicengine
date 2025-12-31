@@ -40,10 +40,6 @@ void Input::update() {
     mouse_move_delta = last_mouse_position - mouse_position;
 
     last_mouse_position = mouse_position;
-
-    //last_mouse_position = glm::vec2(mouse_position.x, mouse_position.y);
-
-    //std::cout << "mp: " << mouse_position.x << " " << mouse_position.y << " delta: " << mouse_move_delta.x << "x" << mouse_move_delta.y << std::endl;
 }
 
 void Input::init() {
@@ -52,26 +48,21 @@ void Input::init() {
 }
 
 
-// i can't give a non static function to a pointer
-void INPUT_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    ge.input.key_callback(window, key, scancode, action, mods);
-}
-
-
 void Input::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    Input& input_man = static_cast<Engine*>(glfwGetWindowUserPointer(window))->input;
     if (action == GLFW_PRESS || action == GLFW_RELEASE) {
-        all_key_states[key] = action + 2;
+        input_man.all_key_states[key] = action + 2;
 
         // update in order a 64 int long buffer that tells wich keys were just pressed (next part processed in update method)
-        if (just_updated_key_states_count < 64) {
-            just_updated_key_states[just_updated_key_states_count] = key;
-            just_updated_key_states_count++;
+        if (input_man.just_updated_key_states_count < 64) {
+            input_man.just_updated_key_states[input_man.just_updated_key_states_count] = key;
+            input_man.just_updated_key_states_count++;
         }
     }
 }
 
 void Input::connect_callbacks(GLFWwindow *window) {
-    glfwSetKeyCallback(window, INPUT_key_callback);
+    glfwSetKeyCallback(window, key_callback);
 }
 
 

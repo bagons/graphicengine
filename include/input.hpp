@@ -12,8 +12,8 @@ struct action {
 
 class Input {
     std::vector<action> actions;
-    int all_key_states[GLFW_KEY_LAST];
-    bool just_updated_key_states[64];
+    int all_key_states[GLFW_KEY_LAST]{};
+    bool just_updated_key_states[64]{};
     int just_updated_key_states_count = 0;
     glm::dvec2 last_mouse_position{};
 public:
@@ -26,8 +26,6 @@ public:
 
     bool just_released(int action_idx);
 
-    void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
     void set_action_list(const std::vector<int> &action_keys);
 
     void set_mouse_mode(int mode);
@@ -36,7 +34,8 @@ public:
 
     void init();
 
-    static void connect_callbacks(GLFWwindow* window);
+    void connect_callbacks(GLFWwindow* window);
+    static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 };
 
 #endif //INPUT_HPP

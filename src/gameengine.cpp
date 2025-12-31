@@ -12,11 +12,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // we work with the premiss that we have only one window
     glViewport(0, 0, width, height);
     std::cout << width << "x" << height << std::endl;
-    ge.window.width = width;
-    ge.window.height = height;
+    const auto engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
+    engine->window.width = width;
+    engine->window.height = height;
 
     // update all render layers
-    for (render_layer_container::const_iterator it = ge.render_layers.begin(); it != ge.render_layers.end(); ++it) {
+    for (render_layer_container::const_iterator it = engine->render_layers.begin(); it != engine->render_layers.end(); ++it) {
         it->second->change_resolution(width, height);
     }
 }
@@ -36,8 +37,6 @@ Window::Window(const int _width, const int _height, const char* title) {
 void Window::select() const {
     glfwMakeContextCurrent(glfwwindow);
 }
-
-
 
 Thing *Engine::get_thing(const int id) {
     return things[id].get();
@@ -61,7 +60,7 @@ void Engine::init_render_pipeline() {
 }
 
 
-void Engine::update() const {
+void Engine::update() {
     things_container::const_iterator it;
 
     for (it = things.begin(); it != things.end(); it++) {
@@ -69,7 +68,7 @@ void Engine::update() const {
     }
 
     // input update to correctly adjust just pressed keys
-    ge.input.update();
+    input.update();
 }
 
 void Engine::send_it_to_window() {
@@ -100,15 +99,15 @@ Engine* gameengine(const char* game_name) {
 
     // connect window to engine class
     ge.window = window;
-
+    glfwSetWindowUserPointer(ge.window.glfwwindow, &ge);
     // select windows context for rendering (possibile to select another window if rendering onto more windows, not supported yet, but why tho)
-    window.select();
+    ge.window.select();
 
     // setup engine input handling
     ge.input.init();
     ge.input.connect_callbacks(window.glfwwindow);
 
-    // load glad
+    // LOAD OPEN GL
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;

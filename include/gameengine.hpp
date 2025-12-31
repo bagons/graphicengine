@@ -49,13 +49,13 @@ public:
     render_layer_container render_layers{};
     std::multimap<std::shared_ptr<Material>, int, MaterialSorter> thing_ids_by_shader_program;
 
-    void update() const;
+    void update();
 
     void init_render_pipeline();
 
     void send_it_to_window();
 
-    bool is_running() const;
+    [[nodiscard]] bool is_running() const;
 
     Thing* get_thing(int id);
 
