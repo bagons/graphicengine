@@ -137,7 +137,7 @@ Engine::Engine(const char* display_name, const int screen_width, const int scree
         std::cout << "Bindless texture supported!" << std::endl;
     } else {
         ge.set_bindless_texture_support(false);
-        std::cerr << "Bindless texture NOT supported!" << std::endl;
+        std::cout << "Bindless texture NOT supported!" << std::endl;
     }
 
     // engine setup
