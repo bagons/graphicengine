@@ -65,7 +65,9 @@ void Textures::call_of_texture_reference(const TextureRef& ref) {
     texture_reference_count[ref.id] -= 1;
 
     if (texture_reference_count[ref.id] == 0) {
-        glMakeTextureHandleNonResidentARB(ref.handle);
+        if (ge.are_bindless_textures_supported()) {
+            glMakeTextureHandleNonResidentARB(ref.handle);
+        }
         glDeleteTextures(1, &ref.id);
         std::cout << "deleting texture " << ref.id << " " << ref.handle << std::endl;
     }
