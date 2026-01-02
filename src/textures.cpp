@@ -10,6 +10,7 @@ unsigned int setup_texture_from_file(const char* file_path, bool generate_minima
     unsigned int texture;
     glGenTextures(1, &texture);
     int width, height, channel_count;
+    stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load(file_path, &width, &height, &channel_count, 0);
 
     if (data == nullptr) {
