@@ -146,6 +146,9 @@ Material::Material(const ShaderProgram &_shader_program) : shader_program(_shade
 void Material::set_uniform_values() const {
     uniform_map::const_iterator it;
 
+    // (only used when bindless textures are NOT supported)
+    int bind_texture_slot = 0;
+
     for (it = shader_values.begin(); it != shader_values.end(); it++)
     {
         if (std::holds_alternative<float>(it->second)) {
@@ -157,6 +160,11 @@ void Material::set_uniform_values() const {
         else if (std::holds_alternative<TextureRef>(it->second)) {
             if (ge.are_bindless_textures_supported()) {
                 glProgramUniformHandleui64ARB(shader_program.id, it->first, std::get<TextureRef>(it->second).handle);
+            } else {
+                glActiveTexture(GL_TEXTURE0 + bind_texture_slot);
+                glBindTexture(GL_TEXTURE_2D, std::get<TextureRef>(it->second).id);
+                glUniform1i(it->first, bind_texture_slot);
+                bind_texture_slot += 1;
             }
         } else if (std::holds_alternative<bool>(it->second)) {
             glUniform1i(it->first, std::get<bool>(it->second));
