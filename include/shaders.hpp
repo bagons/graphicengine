@@ -20,7 +20,7 @@ public:
     unsigned int id = -1;
     GLenum shader_type = 0;
 
-    Shader(const char* file_path, GLenum shader_type,std::string prepend = "");
+    Shader(const char* file_path, GLenum shader_type, const std::string &define_header = "");
     Shader(const std::string &shader_code, GLenum _shader_type);
     ~Shader();
 };
@@ -94,13 +94,13 @@ public:
 
     // shader gen
     bool bindless_textures_supported = false;
-    ShaderProgram phong_shader_program_gen(bool has_uvs);
-    ShaderProgram no_normal_program_gen(bool has_uvs);
+    [[nodiscard]] ShaderProgram phong_shader_program_gen(bool has_uvs) const;
+    [[nodiscard]] ShaderProgram no_normal_program_gen(bool has_uvs) const;
 
-    Shader base_vertex_shader_gen(bool support_uv = true, bool support_normal = true);
-    Shader base_phong_shader_gen(bool support_uv = true);
-    Shader base_no_normal_shader_gen(bool support_uv = true);
-    std::string parse_shader_template(const char* file_path, const std::string &flags_to_include);
+    static Shader base_vertex_shader_gen(bool support_uv = true, bool support_normal = true);
+
+    [[nodiscard]] Shader base_phong_shader_gen(bool support_uv = true) const;
+    [[nodiscard]] Shader base_no_normal_shader_gen(bool support_uv = true) const;
 };
 
 #endif //SHADERS_HPP

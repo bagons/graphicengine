@@ -3,7 +3,9 @@
 #extension GL_ARB_bindless_texture : require
 #endif
 
->u in vec2 UV;
+#ifdef HAS_UV
+in vec2 UV;
+#endif
 in vec3 NORMAL;
 in vec3 FRAG_GLOBAL_POS;
 in vec3 CAMERA_GLOBAL_POS;
@@ -25,7 +27,9 @@ out vec4 FragColor;
 void main() {
     vec3 diffuse = light_color * material.diffuse;
 
->u  diffuse *= material.has_albedo ? texture(material.albedo_texture, UV).xyz : vec3(1.0);
+#ifdef HAS_UV
+    diffuse *= material.has_albedo ? texture(material.albedo_texture, UV).xyz : vec3(1.0);
+#endif
 
     FragColor = vec4(diffuse, 1.0);
 }

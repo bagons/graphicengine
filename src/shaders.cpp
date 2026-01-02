@@ -5,12 +5,12 @@
 #include "graphicengine.hpp"
 
 
-Shader::Shader(const char *file_path, const GLenum _shader_type, std::string prepend) {
+Shader::Shader(const char *file_path, const GLenum _shader_type, const std::string &define_header) {
     shader_type = _shader_type;
     id = glCreateShader(_shader_type);
 
     std::cout << "loading direct shader file: " << file_path << std::endl;
-    std::string shader_string = std::move(prepend);
+    std::string shader_string;
 
     std::ifstream file(file_path);
     std::cout << "path: " << file_path << std::endl;
@@ -23,8 +23,13 @@ Shader::Shader(const char *file_path, const GLenum _shader_type, std::string pre
     }
 
     std::string line;
+    bool prepended_header = false;
     while (std::getline(file, line)) {
         shader_string += line + '\n';
+        if (!prepended_header and line[0] == '#' and line[1] == 'v') {
+            prepended_header = true;
+            shader_string += define_header;
+        }
     }
     file.close();
 
@@ -234,7 +239,7 @@ void Shaders::setup_base_materials() {
     base_materials[3]->save_uniform_value("material.has_albedo", false);
 }
 
-std::shared_ptr<Material> Shaders::get_base_material(bool with_uvs, bool with_normals) {
+std::shared_ptr<Material> Shaders::get_base_material(const bool with_uvs, const bool with_normals) {
     if (with_uvs and with_normals)
         return base_materials[0];
     if (with_normals)
@@ -244,118 +249,47 @@ std::shared_ptr<Material> Shaders::get_base_material(bool with_uvs, bool with_no
     return base_materials[3];
 }
 
-void Shaders::clear_base_material(size_t index) {
+void Shaders::clear_base_material(const size_t index) {
     base_materials[index] = nullptr;
 }
 
 
-
-
 // SHADER GEN
-
-std::string Shaders::parse_shader_template(const char * file_path, const std::string &flags_to_include) {
-    std::string shader_string;
-
-    std::ifstream file(file_path);
-    std::cout << "path: " << file_path << std::endl;
-    std::cout << "file_read_state: " << file.good() << std::endl;
-    std::string line;
-    while (std::getline(file, line)) {
-        // if template line
-
-        if (line[0] == '>' || line[0] == '!') {
-            size_t i = 0;
-            bool passed = true;
-            while (line[i] == '>' || line[i] == '!') {
-                // # means flag should be present, ! means flag should NOT be present
-                // do we want a match or no
-                bool match = line[i] == '>';
-                //std::cout << line[i] << std::endl;
-
-                bool found_a_letter = false;
-                // loop through all flags
-                for (auto letter : flags_to_include) {
-                    // if NOT maching and we find it, hard stop.
-                    if (!match && line[i + 1] == letter) {
-                        passed = false;
-                        break;
-                        // if matchng and we found match great!
-                    } else if (match && line[i + 1] == letter) {
-                        found_a_letter = true;
-                        break;
-                    }
-                }
-
-                // hard stop
-                if (!passed)
-                    break;
-
-                // if maching and we didn't find anything, hard stop.
-                if (match && !found_a_letter) {
-                    passed = false;
-                    break;
-                }
-
-                // if everything ok, move on to the next
-                line[i] = ' ';
-                line[i + 1] = ' ';
-                i += 2;
-            }
-            if (passed)
-                shader_string += line + '\n';
-
-        } else {
-            shader_string += line + '\n';
-        }
-    }
-    file.close();
-
-    //std::cout << shader_string << std::endl;
-
-    return shader_string;
-}
-
-Shader Shaders::base_vertex_shader_gen(bool support_uv, bool support_normal) {
-    std::string shader_code;
-    if (support_uv && support_normal)
-        shader_code += parse_shader_template("engine/res/shaders/templates/vertex_shader_template.glsl", "un");
-    else if (support_normal)
-        shader_code += parse_shader_template("engine/res/shaders/templates/vertex_shader_template.glsl", "n");
-    else
-        shader_code += parse_shader_template("engine/res/shaders/templates/vertex_shader_template.glsl", "u");
-
-    return Shader{shader_code, GL_VERTEX_SHADER};
-}
-
-
-Shader Shaders::base_phong_shader_gen(bool support_uv) {
-    std::string shader_code = bindless_textures_supported ? "#define USE_BINDLESS\n" : "";
+Shader Shaders::base_vertex_shader_gen(const bool support_uv, const bool support_normal) {
+    std::string define_header;
     if (support_uv)
-        shader_code += parse_shader_template("engine/res/shaders/templates/obj_phong.glsl", "un");
-    else
-        shader_code += parse_shader_template("engine/res/shaders/templates/obj_phong.glsl", "n");
+        define_header += "#define HAS_UV\n";
+    if (support_normal)
+        define_header += "#define HAS_NORMAL\n";
 
-    return Shader{shader_code, GL_FRAGMENT_SHADER};
+    return Shader{"engine/res/shaders/vertex_shader_template.glsl", GL_VERTEX_SHADER, define_header};
 }
 
 
-Shader Shaders::base_no_normal_shader_gen(bool support_uv) {
-    std::string shader_code = bindless_textures_supported ? "#define USE_BINDLESS\n" : "";
-    if (support_uv)
-        shader_code = parse_shader_template("engine/res/shaders/templates/obj_no_normal.glsl", "u");
-    else
-        shader_code = parse_shader_template("engine/res/shaders/templates/obj_no_normal.glsl", "");
-
-    return Shader{shader_code, GL_FRAGMENT_SHADER};
+Shader Shaders::base_phong_shader_gen(const bool support_uv) const {
+    std::string define_header = support_uv ? "#define HAS_UV\n" : "";
+    if (bindless_textures_supported)
+        define_header += "#define USE_BINDLESS\n";
+    return Shader{"engine/res/shaders/obj_phong.glsl", GL_FRAGMENT_SHADER, define_header};
 }
 
-ShaderProgram Shaders::phong_shader_program_gen(bool has_uvs) {
+
+Shader Shaders::base_no_normal_shader_gen(bool support_uv) const {
+    std::string define_header = support_uv ? "#define HAS_UV\n" : "";
+    if (bindless_textures_supported)
+        define_header += "#define USE_BINDLESS\n";
+    return Shader{"engine/res/shaders/obj_no_normal.glsl", GL_FRAGMENT_SHADER, define_header};
+}
+
+
+ShaderProgram Shaders::phong_shader_program_gen(bool has_uvs) const {
     ShaderProgram sp {base_vertex_shader_gen(has_uvs, true), base_phong_shader_gen(has_uvs)};
     glUniformBlockBinding(sp.id, glGetUniformBlockIndex(sp.id, "MATRICES"), 0);
     return sp;
 }
 
-ShaderProgram Shaders::no_normal_program_gen(bool has_uvs) {
+
+ShaderProgram Shaders::no_normal_program_gen(bool has_uvs) const {
     ShaderProgram sp {base_vertex_shader_gen(has_uvs, false), base_no_normal_shader_gen(has_uvs)};
     glUniformBlockBinding(sp.id, glGetUniformBlockIndex(sp.id, "MATRICES"), 0);
     return sp;
