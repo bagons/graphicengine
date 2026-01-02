@@ -47,9 +47,7 @@ TextureRef Textures::load(const char* file_path, bool generate_minimap) {
         glMakeTextureHandleResidentARB(texture.handle);
 
         if (!glIsTextureHandleResidentARB(texture.handle)) {
-            std::cout << "Texture handle is NOT resident!" << std::endl;
-        } else {
-            std::cout << "Texture handle is resident!" << std::endl;
+            std::cerr << "Texture handle is NOT resident!" << std::endl;
         }
     }
 

@@ -9,12 +9,9 @@ Shader::Shader(const char *file_path, const GLenum _shader_type, const std::stri
     shader_type = _shader_type;
     id = glCreateShader(_shader_type);
 
-    std::cout << "loading direct shader file: " << file_path << std::endl;
     std::string shader_string;
 
     std::ifstream file(file_path);
-    std::cout << "path: " << file_path << std::endl;
-    std::cout << "file_read_state: " << file.good() << std::endl;
 
     if (!file.good()) {
         glDeleteShader(id);
@@ -36,8 +33,6 @@ Shader::Shader(const char *file_path, const GLenum _shader_type, const std::stri
     file_path = shader_string.c_str();
     glShaderSource(id, 1, &file_path, nullptr);
     glCompileShader(id);
-    std::cout << "file: " << std::endl << file_path << std::endl;
-
 
     // check for shader compile errors
     int success;
@@ -48,7 +43,7 @@ Shader::Shader(const char *file_path, const GLenum _shader_type, const std::stri
         glGetShaderInfoLog(id, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     } else {
-        std::cout << "Shader successfully compiled" << std::endl;
+        std::cout << "Shader successfully compiled!" << std::endl;
     }
 }
 
@@ -60,8 +55,6 @@ Shader::Shader(const std::string &shader_code, const GLenum _shader_type) {
     glShaderSource(id, 1, &content, nullptr);
     glCompileShader(id);
 
-
-    //std::cout << "SHADER CODE: " << content << std::endl;
 
     // check for shader compile errors
     int success;
@@ -97,9 +90,7 @@ ShaderProgram::ShaderProgram(const ShaderProgram &sp) {
 ShaderProgram::ShaderProgram(const Shader &vertex_shader, const Shader &fragment_shader) {
     id = glCreateProgram();
     glAttachShader(id, vertex_shader.id);
-    std::cout << "attaching vertex shader" << vertex_shader.id << std::endl;
     glAttachShader(id, fragment_shader.id);
-    std::cout << "attaching fragment shader" << fragment_shader.id << std::endl;
     glLinkProgram(id);
 
     int success;
@@ -128,12 +119,7 @@ void ShaderProgram::use() const {
 void ShaderProgram::set_uniform(const char* uniform_name, glm::mat4 matrix) const {
     glUniformMatrix4fv(glGetUniformLocation(id, uniform_name), 1, GL_FALSE, &matrix[0][0]);
 }
-void ShaderProgram::set_uniform(const char* uniform_name, GLint64 texture_handle) const {
-    std::cout << texture_handle << std::endl;
-    const int uniform_loc = glGetUniformLocation(id, uniform_name);
-    std::cout << "uniform loc: " << uniform_loc << std::endl;
-    glUniformHandleui64ARB(uniform_loc, texture_handle);
-}
+
 void ShaderProgram::set_uniform(const char* uniform_name, float val) const {
     glUniform1f(glGetUniformLocation(id, uniform_name), val);
 }
@@ -190,7 +176,6 @@ void Material::save_uniform_value(const char *uniform_name, const uniform_varian
 
 void Shaders::add_shader_id_use(const unsigned int sp_id) {
     shader_programs_id_used[sp_id] += 1;
-    std::cout << "adding use - shader_program_id: " << sp_id << std::endl;
 }
 
 void Shaders::remove_shader_id_use(const unsigned int sp_id) {

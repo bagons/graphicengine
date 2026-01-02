@@ -91,8 +91,10 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
     std::unordered_map<std::string, std::shared_ptr<Material>> materials;
 
     std::ifstream file(file_path);
-    std::cout << "PARSING MLT" << std::endl;
-    std::cout << "file state: " << file.good() << std::endl;
+    if (!file.good()) {
+        std::cout << "FAILED LOADING .mtl file: " << file_path << std::endl;
+        return materials;
+    }
     std::string line;
 
     // parsed values
@@ -103,7 +105,6 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
     while (std::getline(file, line)) {
         if (line[0] == 'n') {
             auto material_name = after_char(line, ' ');
-            std::cout << "new mat "<< material_name << std::endl;
             mat = std::make_shared<Material>(template_shader_program);
             materials[material_name] = mat;
         } else if (line[0] == '\0') {
@@ -119,7 +120,6 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
             }
 
             const char * l = line.c_str() + 2 + char_offset;
-            std::cout << line[char_offset] << std::endl;
             if (line[char_offset] == 'K') {
                 char * end;
                 auto v3 = glm::vec3{};
@@ -138,10 +138,8 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
                     mat->save_uniform_value("material.shininess", std::strtof(l, nullptr));
             } else if (line[char_offset] == 'm') {
                 if (line[char_offset + 5] == 'd') {
-                    std::cout << "hey hey" << std::endl;
                     mat->save_uniform_value("material.has_albedo", true);
                     auto texture_path = std::filesystem::path(file_path).parent_path() / normalize_path(after_char(line, ' '));
-                    std::cout << "texture path: " << texture_path << std::endl;
                     auto texture_ref = ge.textures.load(texture_path.string().c_str());
                     mat->save_uniform_value("material.albedo_texture", texture_ref);
                 }
@@ -156,7 +154,10 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
 // PARSES OBJ FILE AS A MODEL (separating vertex groups, parsing materials from mtllib)
 void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[3], std::vector<std::vector<size_t>>& vertex_groups, std::vector<std::shared_ptr<Material>>& materials, bool &has_uvs, bool &has_normals) {
     std::ifstream file(file_path);
-    std::cout << "file state: " << file.good() << std::endl;
+    if (!file.good()) {
+        std::cout << "FAILED LOADING .obj file: " << file_path << std::endl;
+        return;
+    }
     std::string line;
 
     size_t current_group_idx = -1;
@@ -295,7 +296,10 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
 // PARSE OBJ FILE AS A UNIFORM MESH WITH NO MATERIAL
 void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[3], std::vector<size_t>& vertex_group, bool &has_uvs, bool &has_normals) {
     std::ifstream file(file_path);
-    std::cout << "file state: " << file.good() << std::endl;
+    if (!file.good()) {
+        std::cout << "FAILED LOADING .obj file: " << file_path << std::endl;
+        return;
+    }
     std::string line;
     has_normals = false;
     has_uvs = false;
@@ -447,9 +451,6 @@ void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_
                 out_indices.push_back(match->second);
             }
         }
-
-        std::cout << "vertex_data size: " << out_vertex_data.size() << std::endl;
-        std::cout << "indecies size: " << out_indices.size() << std::endl;
 }
 
 
@@ -464,8 +465,6 @@ Mesh::Mesh(const char* file_path) {
 
     // use structures to parse .obj file
     parse_obj_file(file_path, vertex_data_vec, vertex_group, has_uvs, has_normals);
-
-    std::cout << ".obj parsed!" << std::endl;
 
     // define new structures, for reordering
     std::vector<float> vertex_data;
@@ -487,8 +486,6 @@ Model::Model(const char* file_path) {
     // use structures to parse .obj file
     parse_obj_file(file_path, vertex_data_vec, vertex_groups, materials, has_uvs, has_normals);
 
-    std::cout << ".obj parsed!" << std::endl;
-
     for (auto &vertex_group : vertex_groups) {
         if (vertex_group.empty())
             continue;
@@ -503,8 +500,6 @@ Model::Model(const char* file_path) {
         auto msh = std::make_shared<Mesh>(&vertex_data, &indices, has_uvs, has_normals, false);
         meshes.push_back(msh);
     }
-
-    std::cout << "post model" << std::endl;
 }
 
 Mesh::~Mesh() {
