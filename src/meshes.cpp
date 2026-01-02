@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <array>
+#include <algorithm>
 
 
 void Mesh::load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, const bool has_uvs, const bool has_normals, const bool has_vertex_colors) {

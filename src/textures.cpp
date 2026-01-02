@@ -35,13 +35,15 @@ TextureRef Textures::load(const char* file_path, bool generate_minimap) {
     TextureRef texture{};
     texture.id = setup_texture_from_file(file_path, generate_minimap);
 
-    texture.handle = glGetTextureHandleARB(texture.id);
-    glMakeTextureHandleResidentARB(texture.handle);
+    if (ge.are_bindless_textures_supported()) {
+        texture.handle = glGetTextureHandleARB(texture.id);
+        glMakeTextureHandleResidentARB(texture.handle);
 
-    if (!glIsTextureHandleResidentARB(texture.handle)) {
-        std::cout << "Texture handle is NOT resident!" << std::endl;
-    } else {
-        std::cout << "Texture handle is resident!" << std::endl;
+        if (!glIsTextureHandleResidentARB(texture.handle)) {
+            std::cout << "Texture handle is NOT resident!" << std::endl;
+        } else {
+            std::cout << "Texture handle is resident!" << std::endl;
+        }
     }
 
     add_use_of_texture_reference(texture);
