@@ -112,26 +112,33 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
 
         //
         if (mat != nullptr) {
-            const char * l = line.c_str() + 3;
+            unsigned int char_offset = 0;
 
-            if (line[1] == 'K') {
+            while (std::isspace(line[char_offset])) {
+                char_offset += 1;
+            }
+
+            const char * l = line.c_str() + 2 + char_offset;
+            std::cout << line[char_offset] << std::endl;
+            if (line[char_offset] == 'K') {
                 char * end;
                 auto v3 = glm::vec3{};
                 v3.x = std::strtof(l, &end);
                 v3.y = std::strtof(end, &end);
                 v3.z = std::strtof(end, nullptr);
 
-                if (line[2] == 'a' and has_normals)
+                if (line[char_offset + 1] == 'a' and has_normals)
                     mat->save_uniform_value("material.ambient", v3);
-                else if (line[2] == 'd')
+                else if (line[char_offset + 1] == 'd')
                     mat->save_uniform_value("material.diffuse", v3);
-                else if (line[2] == 's' and has_normals)
+                else if (line[char_offset + 1] == 's' and has_normals)
                     mat->save_uniform_value("material.specular", v3);
-            } else if (line[1] == 'N' and has_normals) {
-                if (line[2] == 'i')
+            } else if (line[char_offset] == 'N' and has_normals) {
+                if (line[char_offset + 1] == 'i')
                     mat->save_uniform_value("material.shininess", std::strtof(l, nullptr));
-            } else if (line[1] == 'm') {
-                if (line[6] == 'd') {
+            } else if (line[char_offset] == 'm') {
+                if (line[char_offset + 5] == 'd') {
+                    std::cout << "hey hey" << std::endl;
                     mat->save_uniform_value("material.has_albedo", true);
                     auto texture_path = std::filesystem::path(file_path).parent_path() / normalize_path(after_char(line, ' '));
                     std::cout << "texture path: " << texture_path << std::endl;
@@ -152,13 +159,11 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
     std::cout << "file state: " << file.good() << std::endl;
     std::string line;
 
-    vertex_groups.push_back(std::vector<size_t>());
-    int current_group_idx = 0;
+    size_t current_group_idx = -1;
 
     has_normals = false;
     has_uvs = false;
 
-    materials.push_back(nullptr);
 
     std::unordered_map<std::string, std::shared_ptr<Material>> mtl_materials;
 
@@ -192,7 +197,9 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
             char * end;
             vertex_data_vec[data_type].push_back(std::strtof(l, &end));
             vertex_data_vec[data_type].push_back(std::strtof(end, &end));
-            vertex_data_vec[data_type].push_back(std::strtof(end, nullptr));
+            if (data_type != 1) {
+                vertex_data_vec[data_type].push_back(std::strtof(end, nullptr));
+            }
         }
         // if face definition
         else if (line[0] == 'f') {
@@ -313,7 +320,9 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
             char * end;
             vertex_data_vec[data_type].push_back(std::strtof(l, &end));
             vertex_data_vec[data_type].push_back(std::strtof(end, &end));
-            vertex_data_vec[data_type].push_back(std::strtof(end, nullptr));
+            if (data_type != 1) {
+                vertex_data_vec[data_type].push_back(std::strtof(end, nullptr));
+            }
         }
         // if face definition
         else if (line[0] == 'f') {
@@ -481,11 +490,12 @@ Model::Model(const char* file_path) {
     std::cout << ".obj parsed!" << std::endl;
 
     for (auto &vertex_group : vertex_groups) {
+        if (vertex_group.empty())
+            continue;
 
         // define new structures, for reordering
         std::vector<float> vertex_data;
         std::vector<unsigned int> indices;
-
 
         // use structures to create correctly formated values for Mesh
         construct_mesh_data_from_parsed_obj_data(vertex_data_vec, vertex_group, has_normals, has_uvs, vertex_data, indices);
