@@ -24,10 +24,10 @@ typedef std::unordered_map<int, std::unique_ptr<class RenderLayer>> render_layer
 class Window {
 public:
     GLFWwindow *glfwwindow;
-    int width{}, height{};
-    Window();
-    Window(int _width, int _height, const char* title);
+    int width, height;
+    Window(const char* title, int _width, int _height);
     void select() const;
+    ~Window();
 };
 
 
@@ -36,18 +36,21 @@ class Engine {
     double last_game_time = 0.0;
     bool bindless_texture_supported = false;
 public:
-    Window window{};
+    Window window;
     Input input{};
     Meshes meshes{};
     Textures textures{};
     Shaders shaders{};
 
     int next_thing_id = 0;
-    unsigned int camera_matrix_ubo;
+    unsigned int camera_matrix_ubo = -1;
     float frame_delta = 0.0f;
     things_container things{};
     render_layer_container render_layers{};
     std::multimap<std::shared_ptr<Material>, int, MaterialSorter> thing_ids_by_shader_program;
+
+    Engine(const char *display_name, int window_width, int window_height);
+    ~Engine();
 
     void update();
 
@@ -94,9 +97,7 @@ public:
     void set_bindless_texture_support(bool support_bindless_textures);
     [[nodiscard]] bool are_bindless_textures_supported() const;
 };
-Engine* gameengine(const char* game_name);
-extern Engine ge;
 
-int noengine();
+extern Engine ge;
 
 #endif //MAIN_H

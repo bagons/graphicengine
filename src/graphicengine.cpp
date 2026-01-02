@@ -2,10 +2,6 @@
 #include "graphicengine.hpp"
 
 
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
-
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // we work with the premiss that we have only one window
@@ -21,16 +17,30 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     }
 }
 
-Window::Window() {
-    glfwwindow = nullptr;
-}
-
     /* Create a windowed mode window and its OpenGL context */
-Window::Window(const int _width, const int _height, const char* title) {
+Window::Window(const char* title, const int _width, const int _height) {
+    if (glfwGetCurrentContext()) {
+        std::cerr << "A WINDOW ALREADY EXISTS, ONLY ONE WINDOW ALLOWED! -your engine <3" << std::endl;
+        return;
+    }
+
+    if (!glfwInit()) {
+        std::cerr << "Failed to initialize GLFW" << std::endl;
+        return;
+    }
+
     width = _width;
     height = _height;
     glfwwindow = glfwCreateWindow(width, height, title, nullptr, nullptr);
     glfwSetFramebufferSizeCallback(glfwwindow, framebuffer_size_callback);
+}
+
+Window::~Window() {
+    if (!glfwGetCurrentContext()) {
+        std::cerr << "GLFW already terminated!" << std::endl;
+        return;
+    }
+    glfwTerminate();
 }
 
 void Window::select() const {
@@ -94,32 +104,32 @@ bool Engine::are_bindless_textures_supported() const {
 }
 
 // run to start engine
-Engine* gameengine(const char* game_name) {
+Engine::Engine(const char* display_name, const int screen_width, const int screen_height) : window(display_name, screen_width, screen_height) {
+    std::cout << window.width << "x" << window.height << std::endl;
     // init window library
-    if (!glfwInit())
-        return nullptr;
+
 
     // handles window initialization
-    Window window(SCREEN_WIDTH, SCREEN_HEIGHT, game_name);
     // error when creating a window
-    if (!window.glfwwindow)
-        return nullptr;
+    if (!window.glfwwindow) {
+        std::cerr << "Failed to create window" << std::endl;
+        return;
+    }
 
     // connect window to engine class
-    ge.window = window;
-    glfwSetWindowUserPointer(ge.window.glfwwindow, &ge);
+    glfwSetWindowUserPointer(window.glfwwindow, &ge);
     // select windows context for rendering (possibile to select another window if rendering onto more windows, not supported yet, but why tho)
-    ge.window.select();
+    window.select();
 
     // setup engine input handling
-    ge.input.init();
-    ge.input.connect_callbacks(window.glfwwindow);
+    input.init();
+    input.connect_callbacks(window.glfwwindow);
 
     // LOAD OPEN GL
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
-        return nullptr;
+        return;
     }
 
     if (GLAD_GL_ARB_bindless_texture) {
@@ -131,19 +141,16 @@ Engine* gameengine(const char* game_name) {
     }
 
     // engine setup
-    ge.init_render_pipeline();
+    init_render_pipeline();
 
     // base material setup
-    ge.shaders.setup_base_materials();
+    shaders.setup_base_materials();
 
     std::cout << "finishing game engine setup" << std::endl;
-    return &ge;
 }
 
-// run after stopping engine
-int noengine() {
+Engine::~Engine() {
     glDeleteBuffers(1, &ge.camera_matrix_ubo);
-    glfwTerminate();
-    return 0;
 }
+
 
