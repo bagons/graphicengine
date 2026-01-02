@@ -22,8 +22,14 @@ unsigned int setup_texture_from_file(const char* file_path, bool generate_minima
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load texture to gpu
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    if (channel_count < 3) {
+        std::cerr << "LESS THEN 3 CHANNELS (" << channel_count << ")" << " in texture, WTF? -> continuing as RGB format, may lead to crashes, beware"<< std::endl;
+    }
+
+    const auto format = channel_count == 4 ? GL_RGBA : GL_RGB;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+
     if (generate_minimaps) {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
