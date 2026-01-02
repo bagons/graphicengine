@@ -32,7 +32,7 @@ unsigned int setup_texture_from_file(const char* file_path, bool generate_minima
 }
 
 TextureRef Textures::load(const char* file_path, bool generate_minimap) {
-    TextureRef texture;
+    TextureRef texture{};
     texture.id = setup_texture_from_file(file_path, generate_minimap);
 
     texture.handle = glGetTextureHandleARB(texture.id);
@@ -61,15 +61,6 @@ void Textures::call_of_texture_reference(const TextureRef& ref) {
         glMakeTextureHandleNonResidentARB(ref.handle);
         glDeleteTextures(1, &ref.id);
         std::cout << "deleting texture " << ref.id << " " << ref.handle << std::endl;
-    }
-}
-
-void Textures::call_of_texture_reference(const GLint64 handle) {
-    texture_reference_count[handle] -= 1;
-
-    if (texture_reference_count[handle] == 0) {
-        glMakeTextureHandleNonResidentARB(handle);
-        glDeleteTextures(1, &texture_handle_to_id[handle]);
     }
 }
 

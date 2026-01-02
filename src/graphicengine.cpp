@@ -84,6 +84,15 @@ bool Engine::is_running() const {
     return !glfwWindowShouldClose(window.glfwwindow);
 }
 
+void Engine::set_bindless_texture_support(const bool support_bindless_textures) {
+    bindless_texture_supported = support_bindless_textures;
+    shaders.bindless_textures_supported = support_bindless_textures;
+}
+
+bool Engine::are_bindless_textures_supported() const {
+    return bindless_texture_supported;
+}
+
 // run to start engine
 Engine* gameengine(const char* game_name) {
     // init window library
@@ -114,8 +123,10 @@ Engine* gameengine(const char* game_name) {
     }
 
     if (GLAD_GL_ARB_bindless_texture) {
+        ge.set_bindless_texture_support(true);
         std::cout << "Bindless texture supported!" << std::endl;
     } else {
+        ge.set_bindless_texture_support(false);
         std::cerr << "Bindless texture NOT supported!" << std::endl;
     }
 

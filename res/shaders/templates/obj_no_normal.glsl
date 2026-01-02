@@ -1,5 +1,7 @@
 #version 330 core
+#ifdef USE_BINDLESS
 #extension GL_ARB_bindless_texture : require
+#endif
 
 >u in vec2 UV;
 in vec3 NORMAL;

@@ -34,6 +34,7 @@ public:
 class Engine {
     int next_render_layer_id = 0;
     double last_game_time = 0.0;
+    bool bindless_texture_supported = false;
 public:
     Window window{};
     Input input{};
@@ -89,6 +90,9 @@ public:
         next_render_layer_id++;
         return ref;
     };
+
+    void set_bindless_texture_support(bool support_bindless_textures);
+    [[nodiscard]] bool are_bindless_textures_supported() const;
 };
 Engine* gameengine(const char* game_name);
 extern Engine ge;

@@ -11,7 +11,7 @@
 #include <array>
 #include "textures.hpp"
 
-typedef std::variant<float, glm::vec3, GLint64, bool>  uniform_variant;
+typedef std::variant<float, glm::vec3, TextureRef, bool>  uniform_variant;
 typedef std::map<int, uniform_variant> uniform_map;
 
 
@@ -20,7 +20,7 @@ public:
     unsigned int id = -1;
     GLenum shader_type = 0;
 
-    Shader(const char* file_path, GLenum shader_type);
+    Shader(const char* file_path, GLenum shader_type,std::string prepend = "");
     Shader(const std::string &shader_code, GLenum _shader_type);
     ~Shader();
 };
@@ -53,13 +53,10 @@ public:
     ShaderProgram shader_program;
     uniform_map shader_values = {};
     explicit Material(const ShaderProgram &_shader_program);
-    ~Material();
 
     void set_uniform_values() const;
 
     void save_uniform_value(const char* uniform_name, const uniform_variant &val);
-
-    void save_uniform_value(const char* uniform_name, const TextureRef &texture);
 
     unsigned int get_uniform_location(const char *uniform_name) const;
 };
@@ -94,18 +91,16 @@ public:
     //base shader ps
     std::shared_ptr<Material> get_base_material(bool with_uvs, bool with_normals);
     void clear_base_material(size_t index);
-};
 
+    // shader gen
+    bool bindless_textures_supported = false;
+    ShaderProgram phong_shader_program_gen(bool has_uvs);
+    ShaderProgram no_normal_program_gen(bool has_uvs);
 
-class ShaderGen {
-public:
-    static ShaderProgram phong_shader_program_gen(bool has_uvs);
-    static ShaderProgram no_normal_program_gen(bool has_uvs);
-
-    static Shader base_vertex_shader_gen(bool support_uv = true, bool support_normal = true);
-    static Shader base_phong_shader_gen(bool support_uv = true);
-    static Shader base_no_normal_shader_gen(bool support_uv = true);
-    static std::string parse_shader_template(const char* file_path, std::string flags_to_include);
+    Shader base_vertex_shader_gen(bool support_uv = true, bool support_normal = true);
+    Shader base_phong_shader_gen(bool support_uv = true);
+    Shader base_no_normal_shader_gen(bool support_uv = true);
+    std::string parse_shader_template(const char* file_path, const std::string &flags_to_include);
 };
 
 #endif //SHADERS_HPP

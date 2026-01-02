@@ -1,15 +1,16 @@
 #include "shaders.hpp"
 #include <iostream>
 #include <fstream>
+#include <utility>
 #include "graphicengine.hpp"
 
 
-Shader::Shader(const char *file_path, const GLenum _shader_type) {
+Shader::Shader(const char *file_path, const GLenum _shader_type, std::string prepend) {
     shader_type = _shader_type;
     id = glCreateShader(_shader_type);
 
     std::cout << "loading direct shader file: " << file_path << std::endl;
-    std::string shader_string;
+    std::string shader_string = std::move(prepend);
 
     std::ifstream file(file_path);
     std::cout << "path: " << file_path << std::endl;
@@ -156,14 +157,19 @@ void Material::set_uniform_values() const {
 
     for (it = shader_values.begin(); it != shader_values.end(); it++)
     {
-        if (std::holds_alternative<float>(it->second))
+        if (std::holds_alternative<float>(it->second)) {
             glUniform1f(it->first, std::get<float>(it->second));
-        else if (std::holds_alternative<glm::vec3>(it->second))
+        }
+        else if (std::holds_alternative<glm::vec3>(it->second)) {
             glUniform3fv(it->first, 1, &std::get<glm::vec3>(it->second)[0]);
-        else if (std::holds_alternative<GLint64>(it->second))
-            glProgramUniformHandleui64ARB(shader_program.id, it->first, std::get<GLint64>(it->second));
-        else if (std::holds_alternative<bool>(it->second))
+        }
+        else if (std::holds_alternative<TextureRef>(it->second)) {
+            if (ge.are_bindless_textures_supported()) {
+                glProgramUniformHandleui64ARB(shader_program.id, it->first, std::get<TextureRef>(it->second).handle);
+            }
+        } else if (std::holds_alternative<bool>(it->second)) {
             glUniform1i(it->first, std::get<bool>(it->second));
+        }
     }
 }
 
@@ -175,21 +181,6 @@ unsigned int Material::get_uniform_location(const char *uniform_name) const {
 void Material::save_uniform_value(const char *uniform_name, const uniform_variant &val) {
     shader_values[glGetUniformLocation(shader_program.id, uniform_name)] = val;
 }
-
-void Material::save_uniform_value(const char *uniform_name, const TextureRef &texture) {
-    ge.textures.add_use_of_texture_reference(texture);
-    shader_values[glGetUniformLocation(shader_program.id, uniform_name)] = texture.handle;
-}
-
-Material::~Material() { // DESTRUCTOR WARNING
-    // call off any references of possible textures
-    for (auto it = shader_values.begin(); it != shader_values.end(); it++) {
-        if (std::holds_alternative<GLint64>(it->second)) {
-            ge.textures.call_of_texture_reference(std::get<GLint64>(it->second));
-        }
-    }
-}
-
 
 
 void Shaders::add_shader_id_use(const unsigned int sp_id) {
@@ -220,25 +211,25 @@ void Shaders::debug_show_shader_program_use() {
 
 
 void Shaders::setup_base_materials() {
-    base_materials[0] = std::make_shared<Material>(ShaderGen::phong_shader_program_gen(true));
+    base_materials[0] = std::make_shared<Material>(phong_shader_program_gen(true));
     base_materials[0]->save_uniform_value("material.ambient", glm::vec3(0.2, 0.2, 0.2));
     base_materials[0]->save_uniform_value("material.diffuse", glm::vec3(1.0, 1.0, 1.0));
     base_materials[0]->save_uniform_value("material.specular", glm::vec3(1.0, 1.0, 1.0));
     base_materials[0]->save_uniform_value("material.shininess", 32.0f);
     base_materials[0]->save_uniform_value("material.has_albedo", false);
 
-    base_materials[1] = std::make_shared<Material>(ShaderGen::phong_shader_program_gen(false));
+    base_materials[1] = std::make_shared<Material>(phong_shader_program_gen(false));
     base_materials[1]->save_uniform_value("material.ambient", glm::vec3(0.2, 0.2, 0.2));
     base_materials[1]->save_uniform_value("material.diffuse", glm::vec3(1.0, 1.0, 1.0));
     base_materials[1]->save_uniform_value("material.specular", glm::vec3(1.0, 1.0, 1.0));
     base_materials[1]->save_uniform_value("material.shininess", 32.0f);
     base_materials[1]->save_uniform_value("material.has_albedo", false);
 
-    base_materials[2] = std::make_shared<Material>(ShaderGen::no_normal_program_gen(true));
+    base_materials[2] = std::make_shared<Material>(no_normal_program_gen(true));
     base_materials[2]->save_uniform_value("material.diffuse", glm::vec3(1.0, 1.0, 1.0));
     base_materials[2]->save_uniform_value("material.has_albedo", false);
 
-    base_materials[3] = std::make_shared<Material>(ShaderGen::no_normal_program_gen(false));
+    base_materials[3] = std::make_shared<Material>(no_normal_program_gen(false));
     base_materials[3]->save_uniform_value("material.diffuse", glm::vec3(1.0, 1.0, 1.0));
     base_materials[3]->save_uniform_value("material.has_albedo", false);
 }
@@ -262,7 +253,7 @@ void Shaders::clear_base_material(size_t index) {
 
 // SHADER GEN
 
-std::string ShaderGen::parse_shader_template(const char * file_path, const std::string flags_to_include) {
+std::string Shaders::parse_shader_template(const char * file_path, const std::string &flags_to_include) {
     std::string shader_string;
 
     std::ifstream file(file_path);
@@ -324,32 +315,32 @@ std::string ShaderGen::parse_shader_template(const char * file_path, const std::
     return shader_string;
 }
 
-Shader ShaderGen::base_vertex_shader_gen(bool support_uv, bool support_normal) {
+Shader Shaders::base_vertex_shader_gen(bool support_uv, bool support_normal) {
     std::string shader_code;
     if (support_uv && support_normal)
-        shader_code = parse_shader_template("engine/res/shaders/templates/vertex_shader_template.glsl", "un");
+        shader_code += parse_shader_template("engine/res/shaders/templates/vertex_shader_template.glsl", "un");
     else if (support_normal)
-        shader_code = parse_shader_template("engine/res/shaders/templates/vertex_shader_template.glsl", "n");
+        shader_code += parse_shader_template("engine/res/shaders/templates/vertex_shader_template.glsl", "n");
     else
-        shader_code = parse_shader_template("engine/res/shaders/templates/vertex_shader_template.glsl", "u");
+        shader_code += parse_shader_template("engine/res/shaders/templates/vertex_shader_template.glsl", "u");
 
     return Shader{shader_code, GL_VERTEX_SHADER};
 }
 
 
-Shader ShaderGen::base_phong_shader_gen(bool support_uv) {
-    std::string shader_code;
+Shader Shaders::base_phong_shader_gen(bool support_uv) {
+    std::string shader_code = bindless_textures_supported ? "#define USE_BINDLESS\n" : "";
     if (support_uv)
-        shader_code = parse_shader_template("engine/res/shaders/templates/obj_phong.glsl", "un");
+        shader_code += parse_shader_template("engine/res/shaders/templates/obj_phong.glsl", "un");
     else
-        shader_code = parse_shader_template("engine/res/shaders/templates/obj_phong.glsl", "n");
+        shader_code += parse_shader_template("engine/res/shaders/templates/obj_phong.glsl", "n");
 
     return Shader{shader_code, GL_FRAGMENT_SHADER};
 }
 
 
-Shader ShaderGen::base_no_normal_shader_gen(bool support_uv) {
-    std::string shader_code;
+Shader Shaders::base_no_normal_shader_gen(bool support_uv) {
+    std::string shader_code = bindless_textures_supported ? "#define USE_BINDLESS\n" : "";
     if (support_uv)
         shader_code = parse_shader_template("engine/res/shaders/templates/obj_no_normal.glsl", "u");
     else
@@ -358,19 +349,14 @@ Shader ShaderGen::base_no_normal_shader_gen(bool support_uv) {
     return Shader{shader_code, GL_FRAGMENT_SHADER};
 }
 
-ShaderProgram ShaderGen::phong_shader_program_gen(bool has_uvs) {
+ShaderProgram Shaders::phong_shader_program_gen(bool has_uvs) {
     ShaderProgram sp {base_vertex_shader_gen(has_uvs, true), base_phong_shader_gen(has_uvs)};
     glUniformBlockBinding(sp.id, glGetUniformBlockIndex(sp.id, "MATRICES"), 0);
     return sp;
 }
 
-ShaderProgram ShaderGen::no_normal_program_gen(bool has_uvs) {
+ShaderProgram Shaders::no_normal_program_gen(bool has_uvs) {
     ShaderProgram sp {base_vertex_shader_gen(has_uvs, false), base_no_normal_shader_gen(has_uvs)};
     glUniformBlockBinding(sp.id, glGetUniformBlockIndex(sp.id, "MATRICES"), 0);
     return sp;
 }
-
-
-
-
-//GLuint64 handle = glGetTextureHandleARB(0);
