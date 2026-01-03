@@ -13,7 +13,7 @@ layout (location = 1) in vec3 NORMALS;
 #endif
 #endif
 
-layout (std140) uniform CamMats
+layout (std140) uniform MATRICES
 {
     mat4 projection;
     mat4 view;

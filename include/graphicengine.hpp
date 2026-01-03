@@ -78,6 +78,10 @@ public:
             thing_ids_by_shader_program.insert({thing.get()->material, ref.id});
         }
 
+        if constexpr (std::is_base_of_v<PointLightThing, T>) {
+            lights.add_point_light(ref.id);
+        }
+
         things[ref.id] = std::move(thing);
 
         return ref;

@@ -109,6 +109,11 @@ ShaderProgram::ShaderProgram(const Shader &vertex_shader, const Shader &fragment
 
     glUniformBlockBinding(id, glGetUniformBlockIndex(id, "MATRICES"), 0);
 
+    const auto light_block_idx = glGetUniformBlockIndex(id, "LIGHTS");
+    if (light_block_idx != GL_INVALID_INDEX) {
+        glUniformBlockBinding(id, light_block_idx, 1);
+    }
+
     ge.shaders.add_shader_id_use(id);
 }
 

@@ -27,21 +27,30 @@ void Lights::init_ubo() {
 void Lights::update_ubo(Position& camera_pos) {
     // SORT LIGHTS BY PROXIMITY IF ABOVE LIGHT LIMIT
     if (point_lights.size() > max_rendered_point_lights) {
-        /*std::ranges::nth_element(point_lights, point_lights.begin() + max_rendered_point_lights,
-            [camera_pos](geRef<PointLightThing>& a, geRef<PointLightThing>& b)
+        std::ranges::nth_element(point_lights, point_lights.begin() + max_rendered_point_lights,
+            [camera_pos](const int a, const int b)
             {
-                return camera_pos.distance_to(a->transform.position) < camera_pos.distance_to(b->transform.position);   // custom order
+                return camera_pos.distance_to(dynamic_cast<PointLightThing*>(ge.get_thing(a))->transform.position) < camera_pos.distance_to(dynamic_cast<PointLightThing*>(ge.get_thing(b))->transform.position);   // custom order
             }
-            );*/
+            );
     }
 
     // Fill in buffer data
     glBindBuffer(GL_UNIFORM_BUFFER, lights_ubo);
     for (size_t i = 0; i < std::min(point_lights.size(), static_cast<size_t>(max_rendered_point_lights)); i++) {
         const auto ptl = dynamic_cast<PointLightThing*>(ge.get_thing(point_lights[i]));
-        glBufferSubData(GL_UNIFORM_BUFFER, static_cast<unsigned int>(i) * PointLightThing::size_on_gpu, sizeof(float), &ptl->intensity);
-        glBufferSubData(GL_UNIFORM_BUFFER, static_cast<unsigned int>(i) * PointLightThing::size_on_gpu + 4, sizeof(glm::vec4), &ptl->color);
+        glBufferSubData(GL_UNIFORM_BUFFER, static_cast<unsigned int>(i) * PointLightThing::size_on_gpu, sizeof(glm::vec4), &ptl->light_data);
     }
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+
+void Lights::add_point_light(const int ge_ref_id) {
+    point_lights.push_back(ge_ref_id);
+}
+
+void Lights::remove_point_light(const int ge_ref_id) {
+    point_lights[std::ranges::find(point_lights, ge_ref_id) - point_lights.begin()] = point_lights.back();
+    point_lights.pop_back();
 }
 

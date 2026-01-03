@@ -147,7 +147,6 @@ void ModelSlaveThing::render() {
     glDrawElements(GL_TRIANGLES, mesh->vertex_count, GL_UNSIGNED_INT, 0);
 }
 
-PointLightThing::PointLightThing(const float _intensity, const glm::vec3 _color, const bool is_updatable) : SpatialThing(false, is_updatable) {
-    intensity = _intensity;
-    color = _color;
+PointLightThing::PointLightThing(const glm::vec4 _light_data, const bool is_updatable) : SpatialThing(false, is_updatable) {
+    light_data = _light_data;
 }

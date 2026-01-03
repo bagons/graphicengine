@@ -11,13 +11,12 @@ in vec3 FRAG_GLOBAL_POS;
 in vec3 CAMERA_GLOBAL_POS;
 /* <GRAPHIC ENGINE TEMPLATE CODE> */
 struct PointLight{
-  float intensity;
-  vec3 color;
+  vec4 light_data; // color + intensity
 };
 
 layout (std140) uniform LIGHTS
 {
-    PointLight pointLights[NR_POINT_LIGHTS];
+    PointLight point_lights[NR_POINT_LIGHTS];
 };
 
 /* </GRAPHIC ENGINE TEMPLATE CODE> */
@@ -35,6 +34,15 @@ struct Material {
 uniform Material material;
 
 out vec4 FragColor;
+
+
+vec3 light() {
+    vec3 out_color = vec3(0.0, 0.0, 0.0);
+    for(int i = 0; i < NR_POINT_LIGHTS; i++){
+        out_color += point_lights[i].light_data.xyz;
+    }
+    return out_color;
+}
 
 void main() {
     // ambient
@@ -56,6 +64,7 @@ void main() {
 
 #ifdef HAS_UV
     result = material.has_albedo ? texture(material.albedo_texture, UV).xyz : vec3(0.0, 1.0, 0.0);
+    result *= light();
 #endif
 
     FragColor = vec4(result, 1.0);

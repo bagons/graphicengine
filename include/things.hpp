@@ -77,10 +77,9 @@ public:
 
 class PointLightThing : public SpatialThing {
 public:
-    static constexpr int size_on_gpu = 32;
-    float intensity = 0;
-    glm::vec3 color = glm::vec3(1, 1, 1);
-    PointLightThing(float _intensity, glm::vec3 _color, bool is_updatable = false);
+    static constexpr int size_on_gpu = 16;
+    glm::vec4 light_data{}; // color + intesity
+    PointLightThing(glm::vec4 _light_data , bool is_updatable = false);
 };
 
 #endif //THINGS_H
