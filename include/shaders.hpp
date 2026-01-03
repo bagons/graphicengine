@@ -49,6 +49,7 @@ public:
 // HOLDS MATERIAL UNIFORM VALUES
 class Material {
 public:
+    uint64_t id = -1;
     ShaderProgram shader_program;
     uniform_map shader_values = {};
     explicit Material(const ShaderProgram &_shader_program);
@@ -62,7 +63,10 @@ public:
 
 struct MaterialSorter {
     bool operator()(const std::shared_ptr<Material>& m1, const std::shared_ptr<Material>& m2) const {
-        return m1->shader_program.id < m2->shader_program.id;
+        if (m1->shader_program.id != m2->shader_program.id) {
+            return m1->shader_program.id < m2->shader_program.id;
+        }
+        return m1->id < m2->id;
     }
 };
 
@@ -81,11 +85,13 @@ class Shaders {
     // 3 -> vnu
     // PS: these sp can be useful if you don't want to use custom shaders
     std::array<std::shared_ptr<Material>, 4> base_materials{};
+    uint64_t next_material_id = 0;
 public:
     void setup_base_materials();
     void add_shader_id_use(unsigned int sp_id);
     void remove_shader_id_use(unsigned int sp_id);
     void debug_show_shader_program_use();
+    uint64_t get_material_identificator();
 
     //base shader ps
     std::shared_ptr<Material> get_base_material(bool with_uvs, bool with_normals);

@@ -140,7 +140,7 @@ ShaderProgram& ShaderProgram::operator=(const ShaderProgram &other) {
 
 
 Material::Material(const ShaderProgram &_shader_program) : shader_program(_shader_program) {
-
+    id = ge.shaders.get_material_identificator();
 }
 
 void Material::set_uniform_values() const {
@@ -245,6 +245,12 @@ std::shared_ptr<Material> Shaders::get_base_material(const bool with_uvs, const 
 void Shaders::clear_base_material(const size_t index) {
     base_materials[index] = nullptr;
 }
+
+uint64_t Shaders::get_material_identificator() {
+    next_material_id += 1;
+    return next_material_id - 1;
+}
+
 
 
 // SHADER GEN

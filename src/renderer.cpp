@@ -18,6 +18,7 @@ void ForwardRenderer3DLayer::render() {
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     unsigned int current_sp = -1;
+    uint64_t current_mat_id = -1;
     //ge.base_material->shader_program.use();
     for (const auto& [mat, id] : ge.thing_ids_by_shader_program) {
         // switch shader program if need be
@@ -25,8 +26,12 @@ void ForwardRenderer3DLayer::render() {
             current_sp = mat->shader_program.id;
             mat->shader_program.use();
         }
-        // for now always set values, even though they could be the same
-        mat->set_uniform_values();
+        // update uniform values only if mat id changes, which means we can repeat uniform setting, but only when 2 different material have the same values
+        if (mat->id != current_mat_id) {
+            current_mat_id = mat->id;
+            mat->set_uniform_values();
+        }
+
         // render thing
         ge.get_thing(id)->render();
     }
