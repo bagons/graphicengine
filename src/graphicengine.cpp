@@ -106,7 +106,6 @@ bool Engine::are_bindless_textures_supported() const {
 // run to start engine
 Engine::Engine(const char* display_name, const int screen_width, const int screen_height) : window(display_name, screen_width, screen_height) {
     std::cout << window.width << "x" << window.height << std::endl;
-    // init window library
 
 
     // handles window initialization

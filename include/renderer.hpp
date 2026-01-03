@@ -2,8 +2,8 @@
 #define RENDERER_HPP
 
 #include "gereferences.hpp"
-#include "things.hpp"
 
+class Camera;
 
 class RenderLayer {
 public:

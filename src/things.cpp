@@ -131,7 +131,6 @@ ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_pt
 
         // spawn slave
         auto model_slave = ge.add<ModelSlaveThing>(model->meshes[i], mat, geRef<ModelThing>(model_geref_id, &ge));
-        model_slaves.push_back(model_slave);
     }
 }
 

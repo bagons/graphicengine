@@ -28,7 +28,7 @@ void main() {
     vec3 diffuse = light_color * material.diffuse;
 
 #ifdef HAS_UV
-    diffuse *= material.has_albedo ? texture(material.albedo_texture, UV).xyz : vec3(1.0);
+    diffuse = material.has_albedo ? texture(material.albedo_texture, UV).xyz : vec3(1.0);
 #endif
 
     FragColor = vec4(diffuse, 1.0);

@@ -2,7 +2,6 @@
 #define TEXTURES_HPP
 #pragma once
 #include <unordered_map>
-#include <vector>
 #include <glad/glad.h>
 
 unsigned int setup_texture_from_file(const char* file_path, bool generate_minimaps);

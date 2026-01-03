@@ -7,18 +7,18 @@
 #pragma once
 #include <glad/glad.h>
 
+#include "gereferences.hpp"
 #include "input.hpp"
 #include "meshes.hpp"
-#include "things.hpp"
-#include "shaders.hpp"
 #include "textures.hpp"
+#include "shaders.hpp"
+#include "things.hpp"
 #include "renderer.hpp"
-#include "gereferences.hpp"
 
 #include <GLFW/glfw3.h>
 
 typedef std::unordered_map<int, std::unique_ptr<Thing>> things_container;
-typedef std::unordered_map<int, std::unique_ptr<class RenderLayer>> render_layer_container;
+typedef std::unordered_map<int, std::unique_ptr<RenderLayer>> render_layer_container;
 
 
 class Window {
