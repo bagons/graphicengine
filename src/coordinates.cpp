@@ -52,6 +52,11 @@ Vector3& Vector3::operator- (const glm::vec3& position) {
     return *this;
 }
 
+float Vector3::distance_to(Vector3& other) const {
+    const Vector3 diff = other - *this;
+    return sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+}
+
 glm::mat4& Position::get_transformation_matrix() {
     pos_matrix[3][0] = x;
     pos_matrix[3][1] = y;

@@ -16,6 +16,8 @@ public:
     Vector3& operator+ (const glm::vec3& position);
     Vector3& operator- (const Vector3& position);
     Vector3& operator- (const glm::vec3& position);
+
+    [[nodiscard]] float distance_to(Vector3& other) const;
 };
 
 class Position : public Vector3 {
