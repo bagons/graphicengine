@@ -165,7 +165,8 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
     has_normals = false;
     has_uvs = false;
 
-
+    std::filesystem::path mtl_path;
+    bool generated_materials = false;
     std::unordered_map<std::string, std::shared_ptr<Material>> mtl_materials;
 
     std::string current_material_name;
@@ -178,8 +179,7 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
         if (line[0] == 'm') {
             auto mlt_file = normalize_path(after_char(line, ' '));
             std::filesystem::path path(file_path);
-            std::filesystem::path mtl_path = path.parent_path() / mlt_file;
-            mtl_materials = parse_mlt_file(mtl_path.string().c_str(), true, true); // TODO NOT FINISHED
+            mtl_path = path.parent_path() / mlt_file;
         }
         // if v data
         else if (line[0] == 'v') {
@@ -274,6 +274,12 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
         }
         // usemtl X
         else if (line[0] == 'u') {
+            // generate materials only once we know if .obj has normals and uvs
+            if (!generated_materials) {
+                mtl_materials = parse_mlt_file(mtl_path.string().c_str(), has_normals, has_uvs);
+                generated_materials = true;
+            }
+
             current_material_name = after_char(line, ' ');
             materials[materials.size() - 1] = mtl_materials[current_material_name];
         }
