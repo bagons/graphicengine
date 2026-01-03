@@ -107,6 +107,8 @@ ShaderProgram::ShaderProgram(const Shader &vertex_shader, const Shader &fragment
         std::cout << "Program link error:\n" << infoLog << std::endl;
     }
 
+    glUniformBlockBinding(id, glGetUniformBlockIndex(id, "MATRICES"), 0);
+
     ge.shaders.add_shader_id_use(id);
 }
 
@@ -288,13 +290,11 @@ Shader Shaders::base_no_normal_shader_gen(bool support_uv) const {
 
 ShaderProgram Shaders::phong_shader_program_gen(bool has_uvs) const {
     ShaderProgram sp {base_vertex_shader_gen(has_uvs, true), base_phong_shader_gen(has_uvs)};
-    glUniformBlockBinding(sp.id, glGetUniformBlockIndex(sp.id, "MATRICES"), 0);
     return sp;
 }
 
 
 ShaderProgram Shaders::no_normal_program_gen(bool has_uvs) const {
     ShaderProgram sp {base_vertex_shader_gen(has_uvs, false), base_no_normal_shader_gen(has_uvs)};
-    glUniformBlockBinding(sp.id, glGetUniformBlockIndex(sp.id, "MATRICES"), 0);
     return sp;
 }
