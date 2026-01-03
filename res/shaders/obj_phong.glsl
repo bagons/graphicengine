@@ -9,9 +9,18 @@ in vec2 UV;
 in vec3 NORMAL;
 in vec3 FRAG_GLOBAL_POS;
 in vec3 CAMERA_GLOBAL_POS;
+/* <GRAPHIC ENGINE TEMPLATE CODE> */
+struct PointLight{
+  float intensity;
+  vec3 color;
+};
 
-uniform vec3 light_pos = vec3(0.0, 0.0, 0.0);
-uniform vec3 light_color = vec3(1.0, 1.0, 1.0);
+layout (std140) uniform LIGHTS
+{
+    PointLight pointLights[NR_POINT_LIGHTS];
+};
+
+/* </GRAPHIC ENGINE TEMPLATE CODE> */
 
 struct Material {
     vec3 ambient;
@@ -29,7 +38,7 @@ out vec4 FragColor;
 
 void main() {
     // ambient
-    vec3 ambient = light_color * material.ambient;
+    /*vec3 ambient = light_color * material.ambient;
   	
     // diffuse 
     vec3 norm = normalize(NORMAL);
@@ -42,8 +51,8 @@ void main() {
     vec3 reflectDir = reflect(-lightDir, norm);  
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     vec3 specular = light_color * (spec * material.specular);  
-        
-    vec3 result = ambient + diffuse + specular;
+    */
+    vec3 result = vec3(0.0,0.0,0.0);
 
 #ifdef HAS_UV
     result = material.has_albedo ? texture(material.albedo_texture, UV).xyz : vec3(0.0, 1.0, 0.0);

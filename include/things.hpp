@@ -74,4 +74,13 @@ public:
     void render() override;
 };
 
+
+class PointLightThing : public SpatialThing {
+public:
+    static constexpr int size_on_gpu = 32;
+    float intensity = 0;
+    glm::vec3 color = glm::vec3(1, 1, 1);
+    PointLightThing(float _intensity, glm::vec3 _color, bool is_updatable = false);
+};
+
 #endif //THINGS_H

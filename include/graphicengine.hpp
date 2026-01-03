@@ -14,6 +14,7 @@
 #include "shaders.hpp"
 #include "things.hpp"
 #include "renderer.hpp"
+#include "lights.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -41,6 +42,7 @@ public:
     Meshes meshes{};
     Textures textures{};
     Shaders shaders{};
+    Lights lights{};
 
     int next_thing_id = 0;
     unsigned int camera_matrix_ubo = -1;

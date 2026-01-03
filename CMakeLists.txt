@@ -29,6 +29,8 @@ add_library(${PROJECT_NAME} STATIC
         src/renderer.cpp
         include/renderer.hpp
         include/gereferences.hpp
+        src/lights.cpp
+        include/lights.hpp
 )
 
 target_include_directories(graphicengine PUBLIC
