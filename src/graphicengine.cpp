@@ -150,7 +150,7 @@ Engine::Engine(const char* display_name, const int screen_width, const int scree
 }
 
 Engine::~Engine() {
-    glDeleteBuffers(1, &ge.camera_matrix_ubo);
+    glDeleteBuffers(1, &camera_matrix_ubo);
 }
 
 
