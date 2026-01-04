@@ -5,12 +5,10 @@ layout (location = 0) in vec3 VERTEX_POS;
 layout (location = 1) in vec2 TEXTURE_COORDS;
 #endif
 
-#ifdef HAS_NORMALS
-#ifdef HAS_UV
+#if defined(HAS_NORMALS) && defined(HAS_UV)
 layout (location = 2) in vec3 NORMALS;
-#else
+#elif defined(HAS_NORMALS)
 layout (location = 1) in vec3 NORMALS;
-#endif
 #endif
 
 layout (std140) uniform MATRICES

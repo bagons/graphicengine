@@ -57,6 +57,10 @@ float Vector3::distance_to(Vector3& other) const {
     return sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
 }
 
+glm::vec3 Vector3::glm_vector() const {
+    return {x, y, z};
+}
+
 glm::mat4& Position::get_transformation_matrix() {
     pos_matrix[3][0] = x;
     pos_matrix[3][1] = y;

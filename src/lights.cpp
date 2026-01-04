@@ -51,8 +51,11 @@ void Lights::update(Position& camera_pos) {
 
         unsigned int byte_offset = static_cast<unsigned int>(i) * PointLight::STRUCT_BYTE_SIZE;
 
-        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset, sizeof(glm::vec3), &ptl->color);
-        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset + sizeof(glm::vec3), sizeof(float), &ptl->intensity);
+        glm::vec3 plt_pos = ptl->transform.position.glm_vector();
+
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset, sizeof(float) * 3, &ptl->color);
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset + sizeof(float) * 3, sizeof(float), &ptl->intensity);
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset + sizeof(float) * 4, sizeof(float) * 3, &plt_pos);
     }
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

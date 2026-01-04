@@ -9,9 +9,12 @@ in vec2 UV;
 in vec3 NORMAL;
 in vec3 FRAG_GLOBAL_POS;
 in vec3 CAMERA_GLOBAL_POS;
+
+
 /* <GRAPHIC ENGINE TEMPLATE CODE> */
 struct PointLight{
-  vec4 light_data; // color + intensity
+  vec4 light_data;
+  vec3 position;
 };
 
 layout (std140) uniform LIGHTS
@@ -21,6 +24,23 @@ layout (std140) uniform LIGHTS
 
 /* </GRAPHIC ENGINE TEMPLATE CODE> */
 
+/* <GRAPHIC ENGINE DEFAULT LIGHT FUNCTION> */
+vec3 light() {
+    vec3 out_color = vec3(0.0, 0.0, 0.0);
+
+    vec3 norm = normalize(NORMAL);
+
+    // point lights
+    for(int i = 0; i < NR_POINT_LIGHTS; i++){
+        vec3 dir = normalize(point_lights[i].position - FRAG_GLOBAL_POS);
+        float diff = max(dot(norm, dir), 0.0);
+        out_color += point_lights[i].light_data.xyz * diff;
+    }
+    return out_color;
+}
+/* </GRAPHIC ENGINE DEFAULT LIGHT FUNCTION> */
+
+/* <GRAPHIC ENGINE DEFAULT MATERIAL> */
 struct Material {
     vec3 ambient;
     vec3 diffuse;
@@ -32,17 +52,10 @@ struct Material {
 };
 
 uniform Material material;
+/* </GRAPHIC ENGINE DEFAULT MATERIAL> */
 
 out vec4 FragColor;
 
-
-vec3 light() {
-    vec3 out_color = vec3(0.0, 0.0, 0.0);
-    for(int i = 0; i < NR_POINT_LIGHTS; i++){
-        out_color += point_lights[i].light_data.xyz;
-    }
-    return out_color;
-}
 
 void main() {
     // ambient

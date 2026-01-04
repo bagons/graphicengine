@@ -7,7 +7,7 @@
 
 class PointLight : public SpatialThing {
 public:
-    static constexpr unsigned int STRUCT_BYTE_SIZE = 16;
+    static constexpr unsigned int STRUCT_BYTE_SIZE = 32;
     glm::vec3 color;
     float intensity;
     PointLight(glm::vec3 color, float intensity, bool is_updatable = false);
