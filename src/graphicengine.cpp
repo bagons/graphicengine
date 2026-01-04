@@ -146,7 +146,7 @@ Engine::Engine(const char* display_name, const int screen_width, const int scree
     shaders.setup_base_materials();
 
     // init light system
-    lights.init_ubo();
+    lights.init_central_light_system();
 
     std::cout << "finishing game engine setup" << std::endl;
 }

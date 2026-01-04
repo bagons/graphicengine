@@ -74,12 +74,4 @@ public:
     void render() override;
 };
 
-
-class PointLightThing : public SpatialThing {
-public:
-    static constexpr int size_on_gpu = 16;
-    glm::vec4 light_data{}; // color + intesity
-    PointLightThing(glm::vec4 _light_data , bool is_updatable = false);
-};
-
 #endif //THINGS_H

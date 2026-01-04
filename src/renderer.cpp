@@ -11,7 +11,7 @@ ForwardRenderer3DLayer::ForwardRenderer3DLayer(const geRef<Camera> camera) {
 void ForwardRenderer3DLayer::render() {
     cam->transform_to_view_matrix();
 
-    ge.lights.update_ubo(cam->transform.position);
+    ge.lights.update(cam->transform.position);
 
     // update Camera Data Uniform Buffer
     glBindBuffer(GL_UNIFORM_BUFFER, ge.camera_matrix_ubo);

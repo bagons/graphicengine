@@ -130,7 +130,7 @@ ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_pt
             mat = ge.shaders.get_base_material(model->has_uvs, model->has_normals);
 
         // spawn slave
-        auto model_slave = ge.add<ModelSlaveThing>(model->meshes[i], mat, geRef<ModelThing>(model_geref_id, &ge));
+        ge.add<ModelSlaveThing>(model->meshes[i], mat, geRef<ModelThing>(model_geref_id, &ge));
     }
 }
 
@@ -145,8 +145,4 @@ void ModelSlaveThing::render() {
     glUniformMatrix4fv(vs_uniform_transform_loc, 1, GL_FALSE, &model[0][0]);
     glBindVertexArray(mesh->vertex_array_object);
     glDrawElements(GL_TRIANGLES, mesh->vertex_count, GL_UNSIGNED_INT, 0);
-}
-
-PointLightThing::PointLightThing(const glm::vec4 _light_data, const bool is_updatable) : SpatialThing(false, is_updatable) {
-    light_data = _light_data;
 }

@@ -3,22 +3,35 @@
 
 #include <vector>
 #include "coordinates.h"
+#include "things.hpp"
 
-class PointLightThing;
+class PointLight : public SpatialThing {
+public:
+    static constexpr unsigned int STRUCT_BYTE_SIZE = 16;
+    glm::vec3 color;
+    float intensity;
+    PointLight(glm::vec3 color, float intensity, bool is_updatable = false);
+};
 
 class Lights {
     std::vector<int> point_lights;
-public:
     unsigned int lights_ubo = -1;
-    unsigned int max_rendered_point_lights = 0;
+public:
+    enum LightOverflowAction {
+        CANCEL_NEW,
+        SORT_BY_PROXIMITY
+    };
 
-    explicit Lights(unsigned int _max_rendered_point_lights = 16);
+    unsigned int MAX_NR_POINT_LIGHTS = 0;
+    LightOverflowAction light_overflow_action;
+
+    explicit Lights(unsigned int MAX_NR_POINT_LIGHTS = 16, LightOverflowAction light_overflow_action = SORT_BY_PROXIMITY);
     ~Lights();
 
-    void init_ubo();
-    void update_ubo(Position& camera_pos);
+    void init_central_light_system();
+    void update(Position& camera_pos);
 
-    void add_point_light(int ge_ref_id);
+    bool add_point_light(int ge_ref_id);
     void remove_point_light(int ge_ref_id);
 };
 
