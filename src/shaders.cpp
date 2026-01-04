@@ -271,7 +271,7 @@ Shader Shaders::base_vertex_shader_gen(const bool support_uv, const bool support
     if (support_uv)
         define_header += "#define HAS_UV\n";
     if (support_normal)
-        define_header += "#define HAS_NORMAL\n";
+        define_header += "#define HAS_NORMALS\n";
 
     return Shader{"engine/res/shaders/vertex_shader_template.glsl", GL_VERTEX_SHADER, define_header};
 }
