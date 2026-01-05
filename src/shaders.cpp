@@ -30,6 +30,7 @@ Shader::Shader(const char *file_path, const GLenum _shader_type, const std::stri
             // add obligatory header (if not needed preprocessor will strip it away anyway)
             if (_shader_type == GL_FRAGMENT_SHADER) {
                 shader_string += "#define NR_POINT_LIGHTS " + std::to_string(ge.lights.MAX_NR_POINT_LIGHTS) + "\n";
+                shader_string += "#define NR_DIRECTIONAL_LIGHTS " + std::to_string(ge.lights.MAX_NR_DIRECTIONAL_LIGHTS) + "\n";
             }
         }
     }

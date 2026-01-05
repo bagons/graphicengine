@@ -17,9 +17,15 @@ struct PointLight{
   vec3 position;
 };
 
+struct DirectionalLight{
+  vec4 light_data;
+  vec3 direction;
+};
+
 layout (std140) uniform LIGHTS
 {
     PointLight point_lights[NR_POINT_LIGHTS];
+    DirectionalLight directional_lights[NR_DIRECTIONAL_LIGHTS];
 };
 
 /* </GRAPHIC ENGINE TEMPLATE CODE> */
@@ -36,6 +42,13 @@ vec3 light() {
         float diff = max(dot(norm, dir), 0.0);
         out_color += point_lights[i].light_data.xyz * diff;
     }
+    // directional lights
+    for(int i = 0; i < NR_DIRECTIONAL_LIGHTS; i++){
+        vec3 dir = -normalize(directional_lights[i].direction);
+        float diff = max(dot(norm, dir), 0.0);
+        out_color += directional_lights[i].light_data.xyz * diff;
+    }
+    
     return out_color;
 }
 /* </GRAPHIC ENGINE DEFAULT LIGHT FUNCTION> */

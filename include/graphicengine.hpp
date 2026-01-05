@@ -42,7 +42,7 @@ public:
     Meshes meshes{};
     Textures textures{};
     Shaders shaders{};
-    Lights lights{16, Lights::SORT_BY_PROXIMITY};
+    Lights lights{16, 1, Lights::SORT_BY_PROXIMITY};
 
     int next_thing_id = 0;
     unsigned int camera_matrix_ubo = -1;
@@ -78,6 +78,12 @@ public:
             thing_ids_by_shader_program.insert({thing.get()->material, ref.id});
         } else if constexpr (std::is_base_of_v<PointLight, T>) {
             if (!lights.add_point_light(ref.id)) {
+                ref.id = -1;
+                ref.ge = nullptr;
+                return ref;
+            }
+        } else if constexpr (std::is_base_of_v<DirectionalLight, T>) {
+            if (!lights.add_directional_light(ref.id)) {
                 ref.id = -1;
                 ref.ge = nullptr;
                 return ref;
