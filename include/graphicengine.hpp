@@ -42,7 +42,7 @@ public:
     Input input{};
     Meshes meshes{};
     Shaders shaders{};
-    Lights lights{16, 1, Lights::SORT_BY_PROXIMITY};
+    Lights lights;
 
     int next_thing_id = 0;
     unsigned int camera_matrix_ubo = -1;
@@ -51,7 +51,7 @@ public:
     render_layer_container render_layers{};
     std::multimap<std::shared_ptr<Material>, int, MaterialSorter> thing_ids_by_shader_program;
 
-    Engine(const char *display_name, int window_width, int window_height);
+    Engine(const char *display_name, int window_width, int window_height, unsigned int MAX_NR_POINT_LIGHTS = 16, unsigned int MAX_NR_DIRECTIONAL_LIGHTS = 3,  Lights::LightOverflowAction light_overflow_action = Lights::SORT_BY_PROXIMITY);
     ~Engine();
 
     void update();

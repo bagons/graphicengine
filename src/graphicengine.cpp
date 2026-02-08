@@ -109,7 +109,9 @@ bool Engine::are_bindless_textures_supported() const {
 }
 
 // run to start engine
-Engine::Engine(const char* display_name, const int screen_width, const int screen_height) : window(display_name, screen_width, screen_height) {
+Engine::Engine(const char* display_name, const int screen_width, const int screen_height
+    , unsigned int MAX_NR_POINT_LIGHTS, unsigned int MAX_NR_DIRECTIONAL_LIGHTS,  Lights::LightOverflowAction light_overflow_action) :
+    window(display_name, screen_width, screen_height), lights(MAX_NR_POINT_LIGHTS, MAX_NR_DIRECTIONAL_LIGHTS) {
     std::cout << window.width << "x" << window.height << std::endl;
 
 
