@@ -47,6 +47,11 @@ void Window::select() const {
     glfwMakeContextCurrent(glfwwindow);
 }
 
+void Window::set_vsync(const bool _vsync) const {
+    glfwMakeContextCurrent(glfwwindow);
+    glfwSwapInterval(_vsync ? 1 : 0);
+}
+
 Thing *Engine::get_thing(const int id) {
     return things[id].get();
 }
@@ -119,6 +124,7 @@ Engine::Engine(const char* display_name, const int screen_width, const int scree
     glfwSetWindowUserPointer(window.glfwwindow, &ge);
     // select windows context for rendering (possibile to select another window if rendering onto more windows, not supported yet, but why tho)
     window.select();
+    window.set_vsync(true);
 
     // setup engine input handling
     input.init();

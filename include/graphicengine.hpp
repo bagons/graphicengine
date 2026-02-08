@@ -28,6 +28,7 @@ public:
     int width, height;
     Window(const char* title, int _width, int _height);
     void select() const;
+    void set_vsync(bool _vsync) const;
     ~Window();
 };
 
