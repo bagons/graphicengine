@@ -40,7 +40,6 @@ public:
     Window window;
     Input input{};
     Meshes meshes{};
-    Textures textures{};
     Shaders shaders{};
     Lights lights{16, 1, Lights::SORT_BY_PROXIMITY};
 

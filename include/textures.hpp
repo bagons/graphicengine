@@ -6,21 +6,12 @@
 
 unsigned int setup_texture_from_file(const char* file_path, bool generate_minimaps);
 
-struct TextureRef {
+class Texture {
+public:
     unsigned int id;
     GLint64 handle;
-    ~TextureRef();
-    TextureRef& operator=(const TextureRef& ref);
-};
-
-class Textures {
-public:
-    std::unordered_map<GLint64, unsigned int> texture_reference_count;
-    std::unordered_map<GLint64, unsigned int> texture_handle_to_id;
-
-    TextureRef load(const char* file_path, bool generate_minimaps = true);
-    void call_of_texture_reference(const TextureRef& ref);
-    void add_use_of_texture_reference(const TextureRef& ref);
+    explicit Texture(const char* file_path, bool generate_minimap = true);
+    ~Texture();
 };
 
 #endif //TEXTURES_HPP

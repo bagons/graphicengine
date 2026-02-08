@@ -38,49 +38,25 @@ unsigned int setup_texture_from_file(const char* file_path, bool generate_minima
     return texture;
 }
 
-TextureRef Textures::load(const char* file_path, bool generate_minimap) {
-    TextureRef texture{};
-    texture.id = setup_texture_from_file(file_path, generate_minimap);
+
+Texture::Texture(const char* file_path, bool generate_minimap) {
+    id = setup_texture_from_file(file_path, generate_minimap);
 
     if (ge.are_bindless_textures_supported()) {
-        texture.handle = glGetTextureHandleARB(texture.id);
-        glMakeTextureHandleResidentARB(texture.handle);
+        handle = glGetTextureHandleARB(id);
+        glMakeTextureHandleResidentARB(handle);
 
-        if (!glIsTextureHandleResidentARB(texture.handle)) {
+        if (!glIsTextureHandleResidentARB(handle)) {
             std::cerr << "Texture handle is NOT resident!" << std::endl;
         }
     }
-
-    add_use_of_texture_reference(texture);
-
-    return texture;
 }
 
-void Textures::add_use_of_texture_reference(const TextureRef& ref) {
-    texture_handle_to_id[ref.handle] = ref.id;
-    texture_reference_count[ref.handle] += 1;
-}
-
-void Textures::call_of_texture_reference(const TextureRef& ref) {
-    texture_reference_count[ref.id] -= 1;
-
-    if (texture_reference_count[ref.id] == 0) {
-        if (ge.are_bindless_textures_supported()) {
-            glMakeTextureHandleNonResidentARB(ref.handle);
-        }
-        glDeleteTextures(1, &ref.id);
-        std::cout << "deleting texture " << ref.id << " " << ref.handle << std::endl;
+Texture::~Texture() {
+    if (ge.are_bindless_textures_supported()) {
+        glMakeTextureHandleNonResidentARB(handle);
     }
+    glDeleteTextures(1, &id);
+    std::cout << "deleting texture " << id << " " << handle << std::endl;
 }
 
-
-TextureRef::~TextureRef() { // DESTRUCTOR WARNING
-    ge.textures.call_of_texture_reference(*this);
-}
-
-TextureRef& TextureRef::operator=(const TextureRef& ref) {
-    id = ref.id;
-    handle = ref.handle;
-    ge.textures.add_use_of_texture_reference(*this);
-    return *this;
-}

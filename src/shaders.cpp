@@ -170,12 +170,12 @@ void Material::set_uniform_values() const {
         else if (std::holds_alternative<glm::vec3>(it->second)) {
             glUniform3fv(it->first, 1, &std::get<glm::vec3>(it->second)[0]);
         }
-        else if (std::holds_alternative<TextureRef>(it->second)) {
+        else if (std::holds_alternative<std::shared_ptr<Texture>>(it->second)) {
             if (ge.are_bindless_textures_supported()) {
-                glProgramUniformHandleui64ARB(shader_program.id, it->first, std::get<TextureRef>(it->second).handle);
+                glProgramUniformHandleui64ARB(shader_program.id, it->first, std::get<std::shared_ptr<Texture>>(it->second)->handle);
             } else {
                 glActiveTexture(GL_TEXTURE0 + bind_texture_slot);
-                glBindTexture(GL_TEXTURE_2D, std::get<TextureRef>(it->second).id);
+                glBindTexture(GL_TEXTURE_2D, std::get<std::shared_ptr<Texture>>(it->second)->id);
                 glUniform1i(it->first, bind_texture_slot);
                 bind_texture_slot += 1;
             }

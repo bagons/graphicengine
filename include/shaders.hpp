@@ -11,7 +11,7 @@
 #include <array>
 #include "textures.hpp"
 
-typedef std::variant<float, glm::vec3, TextureRef, bool>  uniform_variant;
+typedef std::variant<float, glm::vec3, std::shared_ptr<Texture>, bool>  uniform_variant;
 typedef std::map<int, uniform_variant> uniform_map;
 
 
