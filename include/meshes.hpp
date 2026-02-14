@@ -5,8 +5,8 @@
 #include <vector>
 #include <memory>
 #include "shaders.hpp"
-#include "unordered_map"
 
+/// @ingroup Resources
 class Mesh {
 void load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, bool has_uvs, bool has_normals, bool has_vertex_colors = false);
 public:
@@ -24,7 +24,7 @@ public:
     ~Mesh();
 };
 
-
+/// @ingroup Resources
 class Model {
 public:
     std::vector<std::shared_ptr<Mesh>> meshes;

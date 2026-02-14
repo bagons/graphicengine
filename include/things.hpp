@@ -9,9 +9,10 @@
 #include "meshes.hpp"
 #include "gereferences.hpp"
 
-
+/// Root entity class
 class Thing {
 public:
+    ///
     bool renderable;
     bool updatable;
 
@@ -23,14 +24,19 @@ public:
     virtual ~Thing();
 };
 
+/// Entity with a Transform
 class SpatialThing : public Thing {
 public:
+    /// describes the position, rotation, and scale
     Transform transform;
     SpatialThing(bool is_renderable, bool is_updatable);
 };
 
+/// Represents camera
 class Camera : public SpatialThing {
 public:
+    /// The VIEW matrix of the camera, same information as the transform.
+    /// @warning not updated on a within frame basis, only when transform_to_view_matrix() is called
     glm::mat4 view{};
     glm::mat4 projection{};
     float near_plane = 0;

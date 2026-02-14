@@ -74,16 +74,16 @@ struct MaterialSorter {
 class Shaders {
     std::map<unsigned int, unsigned int> shader_programs_id_used = {};
 
-    // BASE SHADER PROGRAMS
-    // a set of shader programs useful for loading MTL materials
-    // all here, so that they can be universally used across all loaded models
-    // but! we only instance them if they are needed, otherwise we keep the memory empty
-    // legenda:
-    // 0 -> v
-    // 1 -> vn
-    // 2 -> vu
-    // 3 -> vnu
-    // PS: these sp can be useful if you don't want to use custom shaders
+    /// BASE SHADER PROGRAMS
+    /// a set of shader programs useful for loading MTL materials,
+    /// all here, so that they can be universally used across all loaded models
+    /// @note all loaded in memory, unless clear_base_material(size_t index) is called
+    /// LEGEND:
+    /// 0 -> v
+    /// 1 -> vn
+    /// 2 -> vu
+    /// 3 -> vnu
+    /// PS: these sp can be useful if you don't want to use custom shaders
     std::array<std::shared_ptr<Material>, 4> base_materials{};
     uint64_t next_material_id = 0;
 public:
