@@ -78,7 +78,9 @@ void Engine::update() {
     things_container::const_iterator it;
 
     for (it = things.begin(); it != things.end(); it++) {
-        it->second->update();
+        if (it->second->updatable) {
+            it->second->update();
+        }
     }
 
     // input update to correctly adjust just pressed keys

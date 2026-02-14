@@ -23,6 +23,9 @@ void ForwardRenderer3DLayer::render() {
     uint64_t current_mat_id = -1;
     //ge.base_material->shader_program.use();
     for (const auto& [mat, id] : ge.thing_ids_by_shader_program) {
+        // skip not renderable entities
+        if (!ge.get_thing(id)->renderable)
+            continue;
         // switch shader program if need be
         if (mat->shader_program.id != current_sp) {
             current_sp = mat->shader_program.id;
