@@ -8,14 +8,18 @@
 
 /// @ingroup Resources
 class Mesh {
-void load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, bool has_uvs, bool has_normals, bool has_vertex_colors = false);
-public:
+    void load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, bool has_uvs, bool has_normals, bool has_vertex_colors = false);
+    bool has_uvs = false;
+    bool has_normals = false;
     unsigned int vertex_buffer_object = 0;
     unsigned int vertex_array_object = 0;
     unsigned int element_buffer_object = 0;
     int vertex_count = 0;
-    bool has_uvs = false;
-    bool has_normals = false;
+public:
+    /// getter for read-only vertex_buffer_object variable
+    [[nodiscard]] unsigned int get_vertex_array_object() const;
+    /// getter for read-only vertex count variable
+    [[nodiscard]] unsigned int get_vertex_count() const;
 
     Mesh(const std::vector<float>* vertices, const std::vector<unsigned int>* indices, bool has_uvs = true, bool has_normals = true, bool has_vertex_colors = false);
     explicit Mesh(const char* file_path);
@@ -26,11 +30,21 @@ public:
 
 /// @ingroup Resources
 class Model {
+    std::vector<std::shared_ptr<Mesh>> meshes;
+    std::vector<std::shared_ptr<Material>> materials;
+
+    bool has_uvs = false;
+    bool has_normals = false;
 public:
     std::vector<std::shared_ptr<Mesh>> meshes;
     std::vector<std::shared_ptr<Material>> materials;
     bool has_uvs = false;
     bool has_normals = false;
+    std::shared_ptr<Material> get_material(size_t index) const;
+    std::shared_ptr<Mesh> get_mesh(size_t index) const;
+    size_t get_mesh_count() const;
+    bool get_has_uvs() const;
+    bool get_has_normals() const;
     explicit Model(const char* file_path);
 };
 
@@ -75,6 +89,7 @@ public:
 
     std::shared_ptr<Mesh> plane;
     Meshes();
+    std::shared_ptr<Mesh> cube;
     void load_base_meshes();
     void unload_base_meshes();
     Meshes() = default;

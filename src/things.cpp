@@ -34,6 +34,19 @@ Camera::Camera(float _near_plane, float _far_plane) : SpatialThing(false, true) 
     view = glm::mat4(1.0);
 }
 
+float Camera::get_fov() const {
+    return fov;
+}
+
+float Camera::get_near_plane() const {
+    return near_plane;
+}
+
+float Camera::get_far_plane() const {
+    return far_plane;
+}
+
+
 void Camera::change_resolution(const int width, const int height) {
     if (fov == 0) {
         projection = glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height), near_plane, far_plane);
@@ -97,8 +110,12 @@ MeshThing::MeshThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _ma
     vs_uniform_transform_loc = glGetUniformLocation(material->shader_program.id, "transform");
 }
 
-void MeshThing::update() {
+std::shared_ptr<Mesh> MeshThing::get_mesh() {
+    return mesh;
+}
 
+std::shared_ptr<Material> MeshThing::get_material() {
+    return material;
 }
 
 
@@ -106,8 +123,8 @@ void MeshThing::render() {
     glm::mat4 model = transform.position.get_transformation_matrix() * transform.rotation.get_transformation_matrix() * transform.scale.get_transformation_matrix();
 
     glUniformMatrix4fv(vs_uniform_transform_loc, 1, GL_FALSE, &model[0][0]);
-    glBindVertexArray(mesh->vertex_array_object);
-    glDrawElements(GL_TRIANGLES, mesh->vertex_count, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(mesh->get_vertex_array_object());
+    glDrawElements(GL_TRIANGLES, mesh->get_vertex_count(), GL_UNSIGNED_INT, 0);
 }
 
 
@@ -115,11 +132,11 @@ ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_pt
     model = std::move(_model);
     materials = std::move(_materials);
     const int model_geref_id = ge.next_thing_id - 1;
-    for (size_t i = 0; i < model->meshes.size(); i++) {
+    for (size_t i = 0; i < model->get_mesh_count(); i++) {
         std::shared_ptr<Material> mat;
         // if no custom material load model material
         if (i >= materials.size() or materials[i] == nullptr) {
-            mat = model->materials[i];
+            mat = model->get_material(i);
         } // else load custom material
         else {
             mat = materials[i];
@@ -127,12 +144,21 @@ ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_pt
 
         // if some of the materials are nullptr -> equivalent to the base material
         if (mat == nullptr)
-            mat = ge.shaders.get_base_material(model->has_uvs, model->has_normals);
+            mat = ge.shaders.get_base_material(model->get_has_uvs(), model->get_has_normals());
 
         // spawn slave
-        ge.add<ModelSlaveThing>(model->meshes[i], mat, geRef<ModelThing>(model_geref_id, &ge));
+        ge.add<ModelSlaveThing>(model->get_mesh(i), mat, geRef<ModelThing>(model_geref_id, &ge));
     }
 }
+
+std::shared_ptr<Model> ModelThing::get_model() {
+    return model;
+}
+
+std::shared_ptr<Material> ModelThing::get_material(const size_t index) {
+    return materials[index];
+}
+
 
 
 void ModelSlaveThing::render() {
@@ -143,6 +169,6 @@ void ModelSlaveThing::render() {
     glm::mat4 model = transform.position.get_transformation_matrix() * transform.rotation.get_transformation_matrix() * transform.scale.get_transformation_matrix();
 
     glUniformMatrix4fv(vs_uniform_transform_loc, 1, GL_FALSE, &model[0][0]);
-    glBindVertexArray(mesh->vertex_array_object);
-    glDrawElements(GL_TRIANGLES, mesh->vertex_count, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(mesh->get_vertex_array_object());
+    glDrawElements(GL_TRIANGLES, mesh->get_vertex_count(), GL_UNSIGNED_INT, 0);
 }

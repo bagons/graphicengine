@@ -54,6 +54,14 @@ Mesh::Mesh(const std::vector<float>* vertex_data, const std::vector<unsigned int
     load_mesh_to_gpu(vertex_data, indices, has_uvs, has_normals, has_vertex_colors);
 }
 
+unsigned int Mesh::get_vertex_array_object() const {
+    return vertex_array_object;
+}
+
+unsigned int Mesh::get_vertex_count() const {
+    return vertex_count;
+}
+
 Mesh::Mesh(){
     vertex_buffer_object = -1;
     vertex_array_object = -1;
@@ -506,6 +514,26 @@ Model::Model(const char* file_path) {
         auto msh = std::make_shared<Mesh>(&vertex_data, &indices, has_uvs, has_normals, false);
         meshes.push_back(msh);
     }
+}
+
+std::shared_ptr<Material> Model::get_material(size_t index) const {
+    return materials[index];
+};
+
+std::shared_ptr<Mesh> Model::get_mesh(size_t index) const {
+    return meshes[index];
+}
+
+size_t Model::get_mesh_count() const {
+    return meshes.size();
+}
+
+bool Model::get_has_uvs() const {
+    return has_uvs;
+}
+
+bool Model::get_has_normals() const {
+    return has_normals;
 }
 
 Mesh::~Mesh() {

@@ -103,7 +103,7 @@ public:
         auto thing = std::make_unique<T>(std::forward<Args>(args)...);
 
         if constexpr (std::is_base_of_v<MeshThing, T>) {
-            thing_ids_by_shader_program.insert({thing.get()->material, ref.id});
+            thing_ids_by_shader_program.insert({thing.get()->get_material(), ref.id});
         } else if constexpr (std::is_base_of_v<PointLight, T>) {
             if (!lights.add_point_light(ref.id)) {
                 ref.id = -1;
