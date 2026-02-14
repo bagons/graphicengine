@@ -155,6 +155,9 @@ Engine::Engine(const char* display_name, const int screen_width, const int scree
     // base material setup
     shaders.setup_base_materials();
 
+    // base meshes setup
+    meshes.load_base_meshes();
+
     // init light system
     lights.init_central_light_system();
 

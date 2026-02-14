@@ -514,8 +514,17 @@ Mesh::~Mesh() {
     glDeleteBuffers(1, &element_buffer_object);
 }
 
-Meshes::Meshes() {
-    //plane = std::make_shared<Mesh>(&PLANE_VERTEX_DATA, &PLANE_INDICES, true, true);
+void Meshes::load_base_meshes()
+{
+    std::cout << "ENGINE: Default meshes created" << std::endl;
+    plane = std::make_shared<Mesh>(&PLANE_VERTEX_DATA, &PLANE_INDICES, true, true);
+    cube = std::make_shared<Mesh>(&CUBE_VERTEX_DATA, &CUBE_INDICES, true, true);
+}
+
+void Meshes::unload_base_meshes()
+{
+    plane = nullptr;
+    cube = nullptr;
 }
 
 

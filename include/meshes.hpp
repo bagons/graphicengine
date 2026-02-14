@@ -55,7 +55,13 @@ public:
         6, 7, 3,
         3, 2, 6,
         4, 5, 6,
-        5, 7, 6
+        5, 7, 6,
+        7, 5, 1,
+        1, 3, 7,
+        6, 4, 0,
+        0, 2, 6,
+        4, 5, 1,
+        1, 0, 4
     };
 
     const std::vector<float> PLANE_VERTEX_DATA = {
@@ -69,5 +75,8 @@ public:
 
     std::shared_ptr<Mesh> plane;
     Meshes();
+    void load_base_meshes();
+    void unload_base_meshes();
+    Meshes() = default;
 };
 #endif //MESHES_HPP
