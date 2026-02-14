@@ -20,12 +20,17 @@ typedef std::unordered_map<int, std::unique_ptr<Thing>> things_container;
 typedef std::unordered_map<int, std::unique_ptr<RenderLayer>> render_layer_container;
 
 
+/// Wrapper for a GLFWwindow. Only one window allowed.
 class Window {
 public:
+    /// pointer to a glfwwindow;
     GLFWwindow *glfwwindow;
+    /// Window dimensions
     int width, height;
     Window(const char* title, int _width, int _height);
+    /// Makes this window context the one which is render on.
     void select() const;
+    /// Sets VSync on this window
     void set_vsync(bool _vsync) const;
     ~Window();
 };
@@ -148,8 +153,10 @@ public:
 extern Engine ge;
 
 /// @defgroup Resources
-/// Classes that represent in engine GPU resources.
-/// @defgroup Entities (Things)
+/// Classes that represent in engine GPU resources. Except for ShaderProgram and Shader all resources work on a std::shared_ptr basis.
+/// @warning ! Multithreaded allocation not supported !
+/// @warning Resources interact with the GPU through OpenGL on construction and deconstruction. Meaning if you create any of these resources on different thread then the OpenGL context is open on OpenGL will automatically end the program.
+/// @defgroup Things
 /// All entities in this graphics engine are called Things. Based on a OOP model. Created using Engine.add method. Accessed through geRef which the engine gives.
 
 #endif //MAIN_H
