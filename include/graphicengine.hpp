@@ -6,11 +6,9 @@
 
 #pragma once
 #include <glad/glad.h>
-
 #include "gereferences.hpp"
 #include "input.hpp"
 #include "meshes.hpp"
-#include "textures.hpp"
 #include "shaders.hpp"
 #include "things.hpp"
 #include "renderer.hpp"
