@@ -23,10 +23,4 @@ public:
     void change_resolution(int width, int height) override;
 };
 
-
-class DifferedRender3DLayer : public RenderLayer {
-public:
-    void render() override;
-};
-
 #endif //RENDERER_HPP
