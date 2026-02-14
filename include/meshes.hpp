@@ -24,20 +24,6 @@ public:
     ~Mesh();
 };
 
-// obj parsing
-// for models with material parsing
-void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[3], std::vector<std::vector<size_t>>& vertex_groups, std::vector<std::shared_ptr<Material>>& materials, bool &has_uvs, bool &has_normals);
-// material parser
-std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const char* file_path, bool has_normals, bool has_uvs);
-// for basic meshes, with no material parsing
-void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[3], std::vector<size_t>& vertex_group, bool &has_uvs, bool &has_normals);
-// second stage of file.obj -> mesh
-void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_data_vec)[3], const std::vector<size_t>& vertex_triplets, bool has_normals, bool has_texture_cords, std::vector<float>& out_vertex_data, std::vector<unsigned int>& out_indices);
-
-
-// parser helper
-std::string after_char(const std::string& s, char delimiter);
-std::string normalize_path(std::string path);
 
 class Model {
 public:
