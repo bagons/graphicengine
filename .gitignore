@@ -101,3 +101,7 @@ http-client.private.env.json
 # Apifox Helper cache
 .idea/.cache/.Apifox_Helper
 .idea/ApifoxUploaderProjectSetting.xml
+
+# doxygen debug
+doxygen-awesome/
+doxygen-awesome-css-main/
