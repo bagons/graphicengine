@@ -152,7 +152,10 @@ public:
         return ref;
     };
 
+    /// Bindless Texture Support Setter
+    /// @warning Do not touch this
     void set_bindless_texture_support(bool support_bindless_textures);
+    /// Bindless Texture Support Getter
     [[nodiscard]] bool are_bindless_textures_supported() const;
 };
 
