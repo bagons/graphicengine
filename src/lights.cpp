@@ -11,7 +11,7 @@ color(color), intensity(intensity) {
 
 }
 
-DirectionalLight::DirectionalLight(const glm::vec3 color, const float intensity, const glm::vec3 direction, const bool is_updatable) : Thing(false, is_updatable),
+DirectionalLight::DirectionalLight(const glm::vec3 color, const float intensity, const Vector3 &direction, const bool is_updatable) : Thing(false, is_updatable),
 color(color), intensity(intensity), direction(direction) {
 
 }
