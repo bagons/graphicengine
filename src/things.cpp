@@ -107,7 +107,7 @@ MeshThing::MeshThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _ma
     mesh = std::move(_mesh);
     material = std::move(_material);
 
-    vs_uniform_transform_loc = glGetUniformLocation(material->shader_program.id, "transform");
+    vs_uniform_transform_loc = glGetUniformLocation(material->shader_program.get_id(), "transform");
 }
 
 std::shared_ptr<Mesh> MeshThing::get_mesh() {

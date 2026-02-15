@@ -27,8 +27,8 @@ void ForwardRenderer3DLayer::render() {
         if (!ge.get_thing(id)->renderable)
             continue;
         // switch shader program if need be
-        if (mat->shader_program.id != current_sp) {
-            current_sp = mat->shader_program.id;
+        if (mat->shader_program.get_id() != current_sp) {
+            current_sp = mat->shader_program.get_id();
             mat->shader_program.use();
         }
         // update uniform values only if mat id changes, which means we can repeat uniform setting, but only when 2 different material have the same values

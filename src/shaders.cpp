@@ -5,9 +5,8 @@
 #include "graphicengine.hpp"
 
 
-Shader::Shader(const char *file_path, const GLenum _shader_type, const std::string &define_header) {
-    shader_type = _shader_type;
-    id = glCreateShader(_shader_type);
+Shader::Shader(const char *file_path, const ShaderType shader_type, const std::string &define_header) {
+    id = glCreateShader(shader_type);
 
     std::string shader_string;
 
@@ -28,7 +27,7 @@ Shader::Shader(const char *file_path, const GLenum _shader_type, const std::stri
             shader_string += define_header;
 
             // add obligatory header (if not needed preprocessor will strip it away anyway)
-            if (_shader_type == GL_FRAGMENT_SHADER) {
+            if (shader_type == GL_FRAGMENT_SHADER) {
                 shader_string += "#define NR_POINT_LIGHTS " + std::to_string(ge.lights.MAX_NR_POINT_LIGHTS) + "\n";
                 shader_string += "#define NR_DIRECTIONAL_LIGHTS " + std::to_string(ge.lights.MAX_NR_DIRECTIONAL_LIGHTS) + "\n";
             }
@@ -54,9 +53,8 @@ Shader::Shader(const char *file_path, const GLenum _shader_type, const std::stri
 }
 
 
-Shader::Shader(const std::string &shader_code, const GLenum _shader_type) {
-    shader_type = _shader_type;
-    id = glCreateShader(_shader_type);
+Shader::Shader(const std::string &shader_code, const ShaderType shader_type) {
+    id = glCreateShader(shader_type);
     const char *content = shader_code.c_str();
     glShaderSource(id, 1, &content, nullptr);
     glCompileShader(id);
@@ -73,6 +71,10 @@ Shader::Shader(const std::string &shader_code, const GLenum _shader_type) {
     } else {
         Engine::debug_message("Shader successfully compiled from std::string");
     }
+}
+
+unsigned int Shader::get_id() const {
+    return id;
 }
 
 
@@ -95,8 +97,8 @@ ShaderProgram::ShaderProgram(const ShaderProgram &sp) {
 
 ShaderProgram::ShaderProgram(const Shader &vertex_shader, const Shader &fragment_shader) {
     id = glCreateProgram();
-    glAttachShader(id, vertex_shader.id);
-    glAttachShader(id, fragment_shader.id);
+    glAttachShader(id, vertex_shader.get_id());
+    glAttachShader(id, fragment_shader.get_id());
     glLinkProgram(id);
 
     int success;
@@ -116,6 +118,10 @@ ShaderProgram::ShaderProgram(const Shader &vertex_shader, const Shader &fragment
     }
 
     ge.shaders.add_shader_id_use(id);
+}
+
+unsigned int ShaderProgram::get_id() const {
+    return id;
 }
 
 
@@ -172,7 +178,7 @@ void Material::set_uniform_values() const {
         }
         else if (std::holds_alternative<std::shared_ptr<Texture>>(it->second)) {
             if (ge.are_bindless_textures_supported()) {
-                glProgramUniformHandleui64ARB(shader_program.id, it->first, std::get<std::shared_ptr<Texture>>(it->second)->handle);
+                glProgramUniformHandleui64ARB(shader_program.get_id(), it->first, std::get<std::shared_ptr<Texture>>(it->second)->handle);
             } else {
                 glActiveTexture(GL_TEXTURE0 + bind_texture_slot);
                 glBindTexture(GL_TEXTURE_2D, std::get<std::shared_ptr<Texture>>(it->second)->id);
@@ -187,11 +193,12 @@ void Material::set_uniform_values() const {
 
 
 unsigned int Material::get_uniform_location(const char *uniform_name) const {
-    return glGetUniformLocation(shader_program.id, uniform_name);
+    shader_program.use();
+    return glGetUniformLocation(shader_program.get_id(), uniform_name);
 }
 
 void Material::save_uniform_value(const char *uniform_name, const uniform_variant &val) {
-    shader_values[glGetUniformLocation(shader_program.id, uniform_name)] = val;
+    shader_values[glGetUniformLocation(shader_program.get_id(), uniform_name)] = val;
 }
 
 
@@ -274,7 +281,7 @@ Shader Shaders::base_vertex_shader_gen(const bool support_uv, const bool support
     if (support_normal)
         define_header += "#define HAS_NORMALS\n";
 
-    return Shader{"engine/res/shaders/vertex_shader_template.glsl", GL_VERTEX_SHADER, define_header};
+    return Shader{"engine/res/shaders/vertex_shader_template.glsl", Shader::VERTEX_SHADER, define_header};
 }
 
 
@@ -282,7 +289,7 @@ Shader Shaders::base_phong_shader_gen(const bool support_uv) const {
     std::string define_header = support_uv ? "#define HAS_UV\n" : "";
     if (bindless_textures_supported)
         define_header += "#define USE_BINDLESS\n";
-    return Shader{"engine/res/shaders/obj_phong.glsl", GL_FRAGMENT_SHADER, define_header};
+    return Shader{"engine/res/shaders/obj_phong.glsl", Shader::FRAGMENT_SHADER, define_header};
 }
 
 
@@ -290,7 +297,7 @@ Shader Shaders::base_no_normal_shader_gen(bool support_uv) const {
     std::string define_header = support_uv ? "#define HAS_UV\n" : "";
     if (bindless_textures_supported)
         define_header += "#define USE_BINDLESS\n";
-    return Shader{"engine/res/shaders/obj_no_normal.glsl", GL_FRAGMENT_SHADER, define_header};
+    return Shader{"engine/res/shaders/obj_no_normal.glsl", Shader::FRAGMENT_SHADER, define_header};
 }
 
 
