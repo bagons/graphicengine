@@ -94,7 +94,7 @@ public:
     /// read-only Material shared pointer getter, may be used for creating a new entity with the same Material
     [[nodiscard]] std::shared_ptr<Material> get_material();
 
-    /// Constructs a MeshThing with geometry and material
+    /// Constructs a MeshThing using a Mesh resource and Material resource
     /// @param _mesh the mesh that's going to be rendered
     /// @param _material the material that the mesh is going to be rendered with
     MeshThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material);

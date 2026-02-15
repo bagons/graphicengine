@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include "glm/vec2.hpp"
 
+/// An action struct,
 struct action {
     int key;
     int state;
