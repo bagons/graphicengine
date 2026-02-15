@@ -168,5 +168,6 @@ extern Engine ge;
 /// @warning Resources interact with the GPU through OpenGL on construction and deconstruction. Meaning if you create any of these resources on different thread then the OpenGL context is open on OpenGL will automatically end the program.
 /// @defgroup Things
 /// All entities in this graphics engine are called Things. Based on a OOP model. Created using Engine.add method. Accessed through geRef which the engine gives.
-
+/// @defgroup Coordinates
+/// A set of classes that serve as data types for Postion, Scale, Color and Rotation etc. with some useful functions. Connected with types from the GLM library.
 #endif //MAIN_H
