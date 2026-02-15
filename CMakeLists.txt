@@ -41,3 +41,19 @@ target_include_directories(graphicengine PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC glfw glm)
+
+# make sure path is relative
+set(GRAPHICENGINE_RES_DIR
+        "${CMAKE_CURRENT_SOURCE_DIR}/res"
+        CACHE INTERNAL ""
+)
+
+# resource copy function
+function(graphicengine_setup target)
+    add_custom_command(
+            TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${GRAPHICENGINE_RES_DIR}
+            $<TARGET_FILE_DIR:${target}>/engine/res
+    )
+endfunction()
