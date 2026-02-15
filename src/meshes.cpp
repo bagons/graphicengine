@@ -100,7 +100,7 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
 
     std::ifstream file(file_path);
     if (!file.good()) {
-        std::cout << "FAILED LOADING .mtl file: " << file_path << std::endl;
+        std::cerr << "ENGINE ERROR: FAILED LOADING .mtl file: " << file_path << std::endl;
         return materials;
     }
     std::string line;
@@ -163,7 +163,7 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
 void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[3], std::vector<std::vector<size_t>>& vertex_groups, std::vector<std::shared_ptr<Material>>& materials, bool &has_uvs, bool &has_normals) {
     std::ifstream file(file_path);
     if (!file.good()) {
-        std::cout << "FAILED LOADING .obj file: " << file_path << std::endl;
+        std::cerr << "ENGINE ERROR: FAILED LOADING .obj file: " << file_path << std::endl;
         return;
     }
     std::string line;
@@ -311,7 +311,7 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
 void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[3], std::vector<size_t>& vertex_group, bool &has_uvs, bool &has_normals) {
     std::ifstream file(file_path);
     if (!file.good()) {
-        std::cout << "FAILED LOADING .obj file: " << file_path << std::endl;
+        std::cerr << "ENGINE ERROR: FAILED LOADING .obj file: " << file_path << std::endl;
         return;
     }
     std::string line;
@@ -544,7 +544,7 @@ Mesh::~Mesh() {
 
 void Meshes::load_base_meshes()
 {
-    std::cout << "ENGINE: Default meshes created" << std::endl;
+    std::cout << "ENGINE MESSAGE: Default meshes created" << std::endl;
     plane = std::make_shared<Mesh>(&PLANE_VERTEX_DATA, &PLANE_INDICES, true, true);
     cube = std::make_shared<Mesh>(&CUBE_VERTEX_DATA, &CUBE_INDICES, true, true);
 }

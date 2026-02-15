@@ -15,7 +15,7 @@ Shader::Shader(const char *file_path, const GLenum _shader_type, const std::stri
 
     if (!file.good()) {
         glDeleteShader(id);
-        std::cout << "failed to load file: " << file_path << std::endl;
+        Engine::debug_error("Failed to load shader file: " + std::string(file_path));
         return;
     }
 
@@ -47,9 +47,9 @@ Shader::Shader(const char *file_path, const GLenum _shader_type, const std::stri
     if (!success)
     {
         glGetShaderInfoLog(id, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        Engine::debug_error("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" + std::string(infoLog));
     } else {
-        std::cout << "Shader successfully compiled!" << std::endl;
+        Engine::debug_message("Shader successfully compiled!");
     }
 }
 
@@ -69,9 +69,9 @@ Shader::Shader(const std::string &shader_code, const GLenum _shader_type) {
     if (!success)
     {
         glGetShaderInfoLog(id, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+        Engine::debug_error("ERROR::SHADER::COMPILATION_FAILED\n" + std::string(infoLog));
     } else {
-        std::cout << "Shader successfully compiled from std::string" << std::endl;
+        Engine::debug_message("Shader successfully compiled from std::string");
     }
 }
 
@@ -105,7 +105,7 @@ ShaderProgram::ShaderProgram(const Shader &vertex_shader, const Shader &fragment
     if (!success)
     {
         glGetProgramInfoLog(id, 512, NULL, infoLog);
-        std::cout << "Program link error:\n" << infoLog << std::endl;
+        Engine::debug_error("Program link error:\n" + std::string(infoLog));
     }
 
     glUniformBlockBinding(id, glGetUniformBlockIndex(id, "MATRICES"), 0);
@@ -201,19 +201,19 @@ void Shaders::add_shader_id_use(const unsigned int sp_id) {
 
 void Shaders::remove_shader_id_use(const unsigned int sp_id) {
     if (!shader_programs_id_used.contains(sp_id)) {
-        std::cout << "sp_id: " << sp_id << " NOT FOUND !! " << std::endl;
+        Engine::debug_error("sp_id: " + std::to_string(sp_id) + " NOT FOUND !! ");
         return;
     }
     shader_programs_id_used[sp_id] -= 1;
 
     if (shader_programs_id_used[sp_id] == 0) {
         //glDeleteProgram(sp_id);
-        std::cout << "deleting " << sp_id << std::endl;
+        Engine::debug_message("deleting shader program " + std::to_string(sp_id));
     }
 }
 
 void Shaders::debug_show_shader_program_use() {
-    std::cout << "SHADER PROGRAM USE DEBUG" << std::endl;
+    std::cout << "ENGINE MESSAGE: SHADER PROGRAM USE DEBUG" << std::endl;
     std::cout << "! - ID X USE COUNT -  !" << std::endl;
     for (auto it = shader_programs_id_used.begin(); it != shader_programs_id_used.end(); it++) {
         std::cout << it->first << " X " << it->second << std::endl;

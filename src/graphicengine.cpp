@@ -6,7 +6,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // we work with the premiss that we have only one window
     glViewport(0, 0, width, height);
-    std::cout << width << "x" << height << std::endl;
+    std::cout << "ENGINE MESSAGE: Window size changed: " << width << "x" << height << std::endl;
     const auto engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
     engine->window.width = width;
     engine->window.height = height;
@@ -20,12 +20,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     /* Create a windowed mode window and its OpenGL context */
 Window::Window(const char* title, const int _width, const int _height) {
     if (glfwGetCurrentContext()) {
-        std::cerr << "A WINDOW ALREADY EXISTS, ONLY ONE WINDOW ALLOWED! -your engine <3" << std::endl;
+        std::cerr << "ENGINE ERROR: A window already exists, only one window allowed!" << std::endl;
         return;
     }
 
     if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
+        std::cerr << "ENGINE ERROR: Failed to initialize GLFW" << std::endl;
         return;
     }
 
@@ -37,7 +37,7 @@ Window::Window(const char* title, const int _width, const int _height) {
 
 Window::~Window() {
     if (!glfwGetCurrentContext()) {
-        std::cerr << "GLFW already terminated!" << std::endl;
+        std::cerr << "ENGINE WARNING: GLFW already terminated! This condition SHOULD NOT have happened" << std::endl;
         return;
     }
     glfwTerminate();
@@ -114,13 +114,11 @@ bool Engine::are_bindless_textures_supported() const {
 Engine::Engine(const char* display_name, const int screen_width, const int screen_height
     , unsigned int MAX_NR_POINT_LIGHTS, unsigned int MAX_NR_DIRECTIONAL_LIGHTS,  Lights::LightOverflowAction light_overflow_action) :
     window(display_name, screen_width, screen_height), lights(MAX_NR_POINT_LIGHTS, MAX_NR_DIRECTIONAL_LIGHTS) {
-    std::cout << window.width << "x" << window.height << std::endl;
-
 
     // handles window initialization
     // error when creating a window
     if (!window.glfwwindow) {
-        std::cerr << "Failed to create window" << std::endl;
+        std::cerr << "ENGINE ERROR: Failed to create window" << std::endl;
         return;
     }
 
@@ -137,16 +135,16 @@ Engine::Engine(const char* display_name, const int screen_width, const int scree
     // LOAD OPEN GL
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        std::cout << "ENIGNE ERROR: Failed to initialize GLAD" << std::endl;
         return;
     }
 
     if (GLAD_GL_ARB_bindless_texture) {
         ge.set_bindless_texture_support(true);
-        std::cout << "Bindless texture supported!" << std::endl;
+        std::cout << "ENGINE MESSAGE: Bindless texture supported!" << std::endl;
     } else {
         ge.set_bindless_texture_support(false);
-        std::cout << "Bindless texture NOT supported!" << std::endl;
+        std::cout << "ENGINE MESSAGE: Bindless texture NOT supported!" << std::endl;
     }
 
     // engine setup
@@ -161,7 +159,19 @@ Engine::Engine(const char* display_name, const int screen_width, const int scree
     // init light system
     lights.init_central_light_system();
 
-    std::cout << "finishing game engine setup" << std::endl;
+    std::cout << "ENGINE MESSAGE: Engine setup done" << std::endl;
+}
+
+void Engine::debug_message(const std::string &message) {
+    std::cout << "ENGINE MESSAGE: " << message << std::endl;
+}
+
+void Engine::debug_error(const std::string &message) {
+    std::cerr << "ENGINE ERROR: " << message << std::endl;
+}
+
+void Engine::debug_warning(const std::string &message) {
+    std::cerr << "ENGINE WARNING: " << message << std::endl;
 }
 
 Engine::~Engine() {

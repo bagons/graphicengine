@@ -89,7 +89,7 @@ void Lights::update(Position& camera_pos) {
 
 bool Lights::add_point_light(const int ge_ref_id) {
     if (light_overflow_action == CANCEL_NEW and point_lights.size() >= MAX_NR_POINT_LIGHTS) {
-        std::cerr << "Failed to add point light, LIMIT REACHED" << std::endl;
+        std::cerr << "ENGINE WARNING: Failed to add point light, LIMIT REACHED. Returning null geRef." << std::endl;
         return false;
     }
 
@@ -104,7 +104,7 @@ void Lights::remove_point_light(const int ge_ref_id) {
 
 bool Lights::add_directional_light(const int ge_ref_id) {
     if (light_overflow_action == CANCEL_NEW and directional_lights.size() >= MAX_NR_DIRECTIONAL_LIGHTS) {
-        std::cerr << "Failed to add point light, LIMIT REACHED" << std::endl;
+        std::cerr << "ENGINE WARNING: Failed to add point light, LIMIT REACHED. Returning null geRef." << std::endl;
         return false;
     }
 

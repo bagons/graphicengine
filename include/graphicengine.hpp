@@ -95,6 +95,13 @@ public:
     /// Render layer container getter, the propper way of getting a RenderLayer* if you are not using a geRendRef
     RenderLayer* get_render_layer(int id);
 
+    /// Central Engine Message Method
+    static void debug_message(const std::string &message);
+    /// Central Engine Error Method
+    static void debug_error(const std::string &message);
+    /// Central Engine Warning Method
+    static void debug_warning(const std::string &message);
+
     /// Spawns an entity in the engine.
     /// @tparam T any class base of Thing, because it's saved in the things_container
     /// @param args a list of arguments passed to the constructor of templated class

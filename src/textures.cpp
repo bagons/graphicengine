@@ -14,7 +14,7 @@ unsigned int setup_texture_from_file(const char* file_path, bool generate_minima
     unsigned char* data = stbi_load(file_path, &width, &height, &channel_count, 0);
 
     if (data == nullptr) {
-        std::cout << "Failed to load texture from file: " << file_path << std::endl;
+        Engine::debug_error("Failed to load texture from file: " + std::string(file_path));
     }
 
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -24,7 +24,7 @@ unsigned int setup_texture_from_file(const char* file_path, bool generate_minima
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     if (channel_count < 3) {
-        std::cerr << "LESS THEN 3 CHANNELS (" << channel_count << ")" << " in texture, WTF? -> continuing as RGB format, may lead to crashes, beware"<< std::endl;
+        std::cerr << "ENGINE ERROR: Less then 3 channels (" << channel_count << ")" << " in texture, WTF? -> continuing as RGB format, may lead to crashes, beware"<< std::endl;
     }
 
     const auto format = channel_count == 4 ? GL_RGBA : GL_RGB;
@@ -47,7 +47,7 @@ Texture::Texture(const char* file_path, bool generate_minimap) {
         glMakeTextureHandleResidentARB(handle);
 
         if (!glIsTextureHandleResidentARB(handle)) {
-            std::cerr << "Texture handle is NOT resident!" << std::endl;
+            std::cerr << "ENGINE ERROR: Texture handle is NOT resident!" << std::endl;
         }
     }
 }
@@ -57,6 +57,6 @@ Texture::~Texture() {
         glMakeTextureHandleNonResidentARB(handle);
     }
     glDeleteTextures(1, &id);
-    std::cout << "deleting texture " << id << " " << handle << std::endl;
+    std::cout << "ENGINE MESSAGE: Deleting texture " << id << "/" << handle << std::endl;
 }
 
