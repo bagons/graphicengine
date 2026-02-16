@@ -16,7 +16,9 @@ public:
 class ForwardOpaque3DPass : public RenderPass {
 public:
     geRef<Camera> camera;
-    explicit ForwardOpaque3DPass(geRef<Camera> camera);
+    unsigned int render_layer;
+
+    explicit ForwardOpaque3DPass(geRef<Camera> camera, unsigned int _render_layer = 1);
 
     void render();
     void change_resolution(int width, int height) override;

@@ -3,7 +3,8 @@
 #include "graphicengine.hpp"
 #include "gtc/type_ptr.inl"
 
-ForwardOpaque3DPass::ForwardOpaque3DPass(const geRef<Camera> _camera) {
+ForwardOpaque3DPass::ForwardOpaque3DPass(const geRef<Camera> _camera, const unsigned int _render_layer) {
+    render_layer = _render_layer;
     camera = _camera;
 }
 
@@ -23,8 +24,8 @@ void ForwardOpaque3DPass::render() {
     uint64_t current_mat_id = -1;
     //ge.base_material->shader_program.use();
     for (const auto& [mat, id] : ge.thing_ids_by_shader_program) {
-        // skip not renderable entities
-        if (!ge.get_thing(id)->visible)
+        // skip not renderable entities || or || an entity that does bitwise match by render layer
+        if (!ge.get_thing(id)->visible or !(ge.get_thing(id)->render_layer & render_layer))
             continue;
         // switch shader program if need be
         if (mat->shader_program.get_id() != current_sp) {
