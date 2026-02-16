@@ -13,19 +13,21 @@
 /// @ingroup Things
 class Thing {
 public:
-    /// Bool whether entity is going to be rendered
-    bool renderable;
-    /// Bool whether entity is going to be updated
-    bool updatable;
+    /// Whether entity is going to be updated. If paused, entity doesn't update. If not entity continues
+    bool paused;
+    /// Whether entity is visible right now.
+    bool visible;
+    /// RenderLayer
+    unsigned int render_layer;
 
-    Thing (bool is_renderable, bool is_updatable);
+    Thing () = default;
 
-    /// Called by RenderLayers
-    virtual void render();
     /// Called by Engine.update() method
     virtual void update();
+    /// Called by RenderPass.
+    virtual void render();
 
-    virtual ~Thing();
+    virtual ~Thing() = default;
 };
 
 /// Entity with a Transform
@@ -34,7 +36,7 @@ class SpatialThing : public Thing {
 public:
     /// describes the position, rotation, and scale
     Transform transform;
-    SpatialThing(bool is_renderable, bool is_updatable);
+    SpatialThing();
 };
 
 /// Represents camera, acts as a normal entity. Many instances may be spawned. But ForwardRenderer3DLayer takes only one as a param in the render method.
@@ -97,10 +99,10 @@ public:
     /// Constructs a MeshThing using a Mesh resource and Material resource
     /// @param _mesh the mesh that's going to be rendered
     /// @param _material the material that the mesh is going to be rendered with
-    MeshThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material);
+    MeshThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material, unsigned int _render_layer = 1);
 
-    /// Submits the mesh to the GPU for rendering
-    void render() override;
+    /// Submits the mesh to the GPU for rendering. Called by RenderPass.
+    void render();
 };
 
 
@@ -118,7 +120,7 @@ public:
     /// Constructs a ModelThing
     /// @param _model model resource used
     /// @param _materials list of materials that override model materials. Works on a per-material basis, meaning: [Mat1, nullptr, Mat2, Mat3] -> 1st, 3rd, and 4th overwritten. If the list is shorter: [Mat1, Mat2] the rest is considered as nullptr, thus no override.
-    explicit ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_ptr<Material>> _materials = {});
+    explicit ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_ptr<Material>> _materials = {}, unsigned int _render_layer = 1);
 };
 
 

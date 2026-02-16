@@ -3,20 +3,20 @@
 #include "graphicengine.hpp"
 #include "gtc/type_ptr.inl"
 
-ForwardRenderer3DLayer::ForwardRenderer3DLayer(const geRef<Camera> camera) {
-    cam = camera;
+ForwardOpaque3DPass::ForwardOpaque3DPass(const geRef<Camera> _camera) {
+    camera = _camera;
 }
 
 
-void ForwardRenderer3DLayer::render() {
-    cam->transform_to_view_matrix();
+void ForwardOpaque3DPass::render() {
+    camera->transform_to_view_matrix();
 
-    ge.lights.update(cam->transform.position);
+    ge.lights.update(camera->transform.position);
 
     // update Camera Data Uniform Buffer
     glBindBuffer(GL_UNIFORM_BUFFER, ge.camera_matrix_ubo);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(cam->projection));
-    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(cam->view));
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(camera->projection));
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera->view));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     unsigned int current_sp = -1;
@@ -24,7 +24,7 @@ void ForwardRenderer3DLayer::render() {
     //ge.base_material->shader_program.use();
     for (const auto& [mat, id] : ge.thing_ids_by_shader_program) {
         // skip not renderable entities
-        if (!ge.get_thing(id)->renderable)
+        if (!ge.get_thing(id)->visible)
             continue;
         // switch shader program if need be
         if (mat->shader_program.get_id() != current_sp) {
@@ -42,6 +42,6 @@ void ForwardRenderer3DLayer::render() {
     }
 }
 
-void ForwardRenderer3DLayer::change_resolution(const int width, const int height) {
-    cam->change_resolution(width, height);
+void ForwardOpaque3DPass::change_resolution(const int width, const int height) {
+    camera->change_resolution(width, height);
 }

@@ -14,12 +14,12 @@
 
 
 
-Camera::Camera(const glm::mat4 &projection_matrix) : SpatialThing(false, true){
+Camera::Camera(const glm::mat4 &projection_matrix) {
     projection = projection_matrix;
     view = glm::mat4(1.0);
 }
 
-Camera::Camera(float _fov, float _near_plane, float _far_plane) : SpatialThing(false, true) {
+Camera::Camera(float _fov, float _near_plane, float _far_plane) {
     fov = _fov;
     near_plane = _near_plane;
     far_plane = _far_plane;
@@ -27,7 +27,7 @@ Camera::Camera(float _fov, float _near_plane, float _far_plane) : SpatialThing(f
     view = glm::mat4(1.0);
 }
 
-Camera::Camera(float _near_plane, float _far_plane) : SpatialThing(false, true) {
+Camera::Camera(float _near_plane, float _far_plane) {
     near_plane = _near_plane;
     far_plane = _far_plane;
     projection = glm::ortho(0.0f, static_cast<float>(ge.window.width), 0.0f, static_cast<float>(ge.window.height), near_plane, far_plane);
@@ -85,24 +85,18 @@ void Camera::transform_to_view_matrix() {
 // THINGS:
 //
 
-Thing::Thing (const bool is_renderable, const bool is_updatable) {
-    renderable = is_renderable;
-    updatable = is_updatable;
-};
-
-Thing::~Thing() {};
-
 void Thing::render() {};
 void Thing::update() {};
 
 
-SpatialThing::SpatialThing(const bool is_renderable, const bool is_updatable) : Thing(is_renderable, is_updatable) {
+SpatialThing::SpatialThing() {
     transform = Transform{};
 }
 
 
 
-MeshThing::MeshThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material) : SpatialThing(true, true) {
+MeshThing::MeshThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material, unsigned int _render_layer) {
+    render_layer = _render_layer;
     // mesh setup
     mesh = std::move(_mesh);
     material = std::move(_material);
@@ -128,7 +122,7 @@ void MeshThing::render() {
 }
 
 
-ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_ptr<Material>> _materials) : SpatialThing(false, true) {
+ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_ptr<Material>> _materials, unsigned int _render_layer) {
     model = std::move(_model);
     materials = std::move(_materials);
     const int model_geref_id = ge.next_thing_id - 1;
@@ -147,7 +141,8 @@ ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_pt
             mat = ge.shaders.get_base_material(model->get_has_uvs(), model->get_has_normals());
 
         // spawn slave
-        ge.add<ModelSlaveThing>(model->get_mesh(i), mat, geRef<ModelThing>(model_geref_id, &ge));
+        auto slave = ge.add<ModelSlaveThing>(model->get_mesh(i), mat, geRef<ModelThing>(model_geref_id, &ge));
+        slave->render_layer = _render_layer;
     }
 }
 

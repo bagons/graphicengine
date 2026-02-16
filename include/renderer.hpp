@@ -5,21 +5,20 @@
 
 class Camera;
 
-class RenderLayer {
+class RenderPass {
 public:
-    virtual void render() {};
     virtual void change_resolution(int width, int height){};
 
-    virtual ~RenderLayer() = default;
+    virtual ~RenderPass() = default;
 };
 
 
-class ForwardRenderer3DLayer : public RenderLayer {
+class ForwardOpaque3DPass : public RenderPass {
 public:
-    geRef<Camera> cam;
-    ForwardRenderer3DLayer(geRef<Camera> camera);
+    geRef<Camera> camera;
+    explicit ForwardOpaque3DPass(geRef<Camera> camera);
 
-    void render() override;
+    void render();
     void change_resolution(int width, int height) override;
 };
 

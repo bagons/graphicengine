@@ -56,7 +56,7 @@ Thing *Engine::get_thing(const int id) {
     return things[id].get();
 }
 
-RenderLayer *Engine::get_render_layer(const int id) {
+RenderPass *Engine::get_render_layer(const int id) {
     return render_layers[id].get();
 }
 
@@ -78,7 +78,7 @@ void Engine::update() {
     things_container::const_iterator it;
 
     for (it = things.begin(); it != things.end(); it++) {
-        if (it->second->updatable) {
+        if (it->second->paused) {
             it->second->update();
         }
     }

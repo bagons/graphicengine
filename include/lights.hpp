@@ -18,7 +18,7 @@ public:
     /// @param color light color
     /// @param intensity light intesity
     /// @param is_updatable does the need updating
-    PointLight(glm::vec3 color, float intensity, bool is_updatable = false);
+    PointLight(glm::vec3 color, float intensity);
 };
 
 /// A Directional (Sun) Light
@@ -36,7 +36,7 @@ public:
     /// @param intensity light intesity
     /// @param direction Direction of the incoming light
     /// @param is_updatable does the need updating
-    DirectionalLight(glm::vec3 color, float intensity, const Vector3 &direction, bool is_updatable = false);
+    DirectionalLight(glm::vec3 color, float intensity, const Vector3 &direction);
 };
 
 /// Central Light System Manager

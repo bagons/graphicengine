@@ -17,7 +17,7 @@
 #include <GLFW/glfw3.h>
 
 typedef std::unordered_map<int, std::unique_ptr<Thing>> things_container;
-typedef std::unordered_map<int, std::unique_ptr<RenderLayer>> render_layer_container;
+typedef std::unordered_map<int, std::unique_ptr<RenderPass>> render_layer_container;
 
 
 /// Wrapper for a GLFWwindow. Only one window allowed.
@@ -92,8 +92,8 @@ public:
     /// Things container getter, the propper way of getting a Thing* if you are not using a geRef
     Thing* get_thing(int id);
 
-    /// Render layer container getter, the propper way of getting a RenderLayer* if you are not using a geRendRef
-    RenderLayer* get_render_layer(int id);
+    /// Render layer container getter, the propper way of getting a RenderPass* if you are not using a geRendRef
+    RenderPass* get_render_layer(int id);
 
     /// Central Engine Message Method
     static void debug_message(const std::string &message);
@@ -136,11 +136,11 @@ public:
     };
 
     /// Spawns a render layer
-    /// @tparam T any class base of RenderLayer
+    /// @tparam T any class base of RenderPass
     /// @param args a list of arguments passed to the constructor of templated class
     /// @return a geRendRef<T> object, by which you can reference the render layer
     template<typename T, typename... Args>
-    requires std::is_base_of_v<RenderLayer, T>
+    requires std::is_base_of_v<RenderPass, T>
     geRendRef<T> add_render_layer(Args&&... args) {
         geRendRef<T> ref(next_render_layer_id, this);
 
