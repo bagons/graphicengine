@@ -6,14 +6,16 @@
 /// @ingroup Coordinates
 class Vector3 {
 public:
-    float x;
-    float y;
-    float z;
+    float x = 0;
+    float y = 0;
+    float z = 0;
 
     /// Constructs a vector from raw coordinates
     Vector3(float _x, float _y, float _z);
     /// Constructs a vector from a GLM vector type
-    explicit Vector3(glm::vec3 position);
+    Vector3(glm::vec3 position);
+
+    Vector3() = default;
 
     Vector3& operator= (const glm::vec3& position);
     Vector3& operator= (const Vector3& position);
@@ -21,6 +23,8 @@ public:
     Vector3& operator+ (const glm::vec3& position);
     Vector3& operator- (const Vector3& position);
     Vector3& operator- (const glm::vec3& position);
+    Vector3 operator* (float scalar);
+    Vector3& operator*= (float scalar);
 
     /// Calculates the Euclidean distance to another Vector3
     /// @param other The target vector
@@ -102,7 +106,7 @@ public:
     /// @param _y Euler Y rotation
     /// @param _z Euler Z rotation
     /// @param point The point to be modified
-    static void rotate_point(float _x, float _y, float _z, glm::vec3& point);
+    static void rotate_point(float _x, float _y, float _z, Vector3& point);
 };
 
 /// Container class combining Position, Rotation, and Scale, used by all SpatialThing(s)
@@ -116,5 +120,33 @@ public:
     /// Global scale
     Scale scale{1, 1, 1};
 };
+
+
+class Color {
+public:
+    float r;
+    float g;
+    float b;
+    float a;
+
+    Color(float _r, float _g, float _b, float _a = 1.0f);
+    Color(glm::vec3 color);
+
+    static const Color RED;
+    static const Color GREEN;
+    static const Color BLUE;
+    static const Color WHITE;
+    static const Color BLACK;
+    static const Color ORANGE;
+    static const Color TEAL;
+};
+
+inline const Color Color::RED   {1.0f, 0.0f, 0.0f};
+inline const Color Color::GREEN {0.0f, 1.0f, 0.0f};
+inline const Color Color::BLUE  {0.0f, 0.0f, 1.0f};
+inline const Color Color::WHITE {1.0f, 1.0f, 1.0f};
+inline const Color Color::BLACK {0.0f, 0.0f, 0.0f};
+inline const Color Color::ORANGE {1.0f, 0.6f, 0.3f};
+inline const Color Color::TEAL {0.3f, 0.6f, 1.0f};
 
 #endif //COORDINATES_H

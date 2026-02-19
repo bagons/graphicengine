@@ -130,7 +130,7 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
             const char * l = line.c_str() + 2 + char_offset;
             if (line[char_offset] == 'K') {
                 char * end;
-                auto v3 = glm::vec3{};
+                auto v3 = Vector3{};
                 v3.x = std::strtof(l, &end);
                 v3.y = std::strtof(end, &end);
                 v3.z = std::strtof(end, nullptr);

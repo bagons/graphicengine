@@ -11,14 +11,14 @@ public:
     /// The size of the PointLight struct on the GPU
     static constexpr unsigned int STRUCT_BYTE_SIZE = 32;
     /// Light color
-    glm::vec3 color;
+    Color color;
     /// Light intensity
     float intensity;
     /// PointLight constructor
     /// @param color light color
     /// @param intensity light intesity
     /// @param is_updatable does the need updating
-    PointLight(glm::vec3 color, float intensity);
+    PointLight(Color color, float intensity);
 };
 
 /// A Directional (Sun) Light
@@ -27,7 +27,7 @@ public:
     /// The size of the DirectionalLight struct on the GPU
     static constexpr unsigned int STRUCT_BYTE_SIZE = 32;
     /// Light color
-    glm::vec3 color;
+    Color color;
     /// Light intensity
     float intensity;
     Vector3 direction;
@@ -36,7 +36,7 @@ public:
     /// @param intensity light intesity
     /// @param direction Direction of the incoming light
     /// @param is_updatable does the need updating
-    DirectionalLight(glm::vec3 color, float intensity, const Vector3 &direction);
+    DirectionalLight(Color color, float intensity, const Vector3 &direction);
 };
 
 /// Central Light System Manager

@@ -10,8 +10,9 @@
 #include <map>
 #include <array>
 #include "textures.hpp"
+#include "coordinates.h"
 
-typedef std::variant<float, glm::vec3, std::shared_ptr<Texture>, bool>  uniform_variant;
+typedef std::variant<float, Vector3, std::shared_ptr<Texture>, bool>  uniform_variant;
 typedef std::map<int, uniform_variant> uniform_map;
 
 /// Shader creator tool. Loads and compiles a shader, either from a file or from code directly. After compilation holds OpenGL id. Is used to create a ShaderProgram.

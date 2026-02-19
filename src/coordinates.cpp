@@ -52,6 +52,21 @@ Vector3& Vector3::operator- (const glm::vec3& position) {
     return *this;
 }
 
+Vector3 Vector3::operator* (const float scalar) {
+    Vector3 v {x, y, z};
+    v.x *= scalar;
+    v.y *= scalar;
+    v.z *= scalar;
+    return v;
+}
+
+Vector3& Vector3::operator*= (const float scalar) {
+    x *= scalar;
+    y *= scalar;
+    z *= scalar;
+    return *this;
+}
+
 float Vector3::distance_to(Vector3& other) const {
     const Vector3 diff = other - *this;
     return sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
@@ -174,7 +189,7 @@ Rotation Rotation::conjugate() const {
     return {r, -i, -j, -k};
 }
 
-void Rotation::rotate_point(float _x, float _y, float _z, glm::vec3& point) {
+void Rotation::rotate_point(float _x, float _y, float _z, Vector3& point) {
     Rotation rot{_x, _y, _z};
     const Rotation rot_c = rot.conjugate();
 
@@ -185,3 +200,20 @@ void Rotation::rotate_point(float _x, float _y, float _z, glm::vec3& point) {
     point.y = rot.j;
     point.z = rot.k;
 }
+
+
+Color::Color(float _r, float _g, float _b, float _a) {
+    r = _r;
+    g = _g;
+    b = _b;
+    a = _a;
+}
+
+Color::Color(const glm::vec3 color) {
+    r = color.x;
+    g = color.y;
+    b = color.z;
+    a = 1.0f;
+}
+
+

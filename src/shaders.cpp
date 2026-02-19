@@ -3,6 +3,7 @@
 #include <fstream>
 #include <utility>
 #include "graphicengine.hpp"
+#include "gtc/type_ptr.hpp"
 
 
 Shader::Shader(const char *file_path, const ShaderType shader_type, const std::string &define_header) {
@@ -173,8 +174,9 @@ void Material::set_uniform_values() const {
         if (std::holds_alternative<float>(it->second)) {
             glUniform1f(it->first, std::get<float>(it->second));
         }
-        else if (std::holds_alternative<glm::vec3>(it->second)) {
-            glUniform3fv(it->first, 1, &std::get<glm::vec3>(it->second)[0]);
+        else if (std::holds_alternative<Vector3>(it->second)) {
+            const auto vec = std::get<Vector3>(it->second);
+            glUniform3f(it->first, vec.x, vec.y, vec.z);
         }
         else if (std::holds_alternative<std::shared_ptr<Texture>>(it->second)) {
             if (ge.are_bindless_textures_supported()) {
@@ -230,25 +232,25 @@ void Shaders::debug_show_shader_program_use() {
 
 void Shaders::setup_base_materials() {
     base_materials[0] = std::make_shared<Material>(phong_shader_program_gen(true));
-    base_materials[0]->save_uniform_value("material.ambient", glm::vec3(0.2, 0.2, 0.2));
-    base_materials[0]->save_uniform_value("material.diffuse", glm::vec3(1.0, 1.0, 1.0));
-    base_materials[0]->save_uniform_value("material.specular", glm::vec3(1.0, 1.0, 1.0));
+    base_materials[0]->save_uniform_value("material.ambient", Vector3(0.2, 0.2, 0.2));
+    base_materials[0]->save_uniform_value("material.diffuse", Vector3(1.0, 1.0, 1.0));
+    base_materials[0]->save_uniform_value("material.specular", Vector3(1.0, 1.0, 1.0));
     base_materials[0]->save_uniform_value("material.shininess", 32.0f);
     base_materials[0]->save_uniform_value("material.has_albedo", false);
 
     base_materials[1] = std::make_shared<Material>(phong_shader_program_gen(false));
-    base_materials[1]->save_uniform_value("material.ambient", glm::vec3(0.2, 0.2, 0.2));
-    base_materials[1]->save_uniform_value("material.diffuse", glm::vec3(1.0, 1.0, 1.0));
-    base_materials[1]->save_uniform_value("material.specular", glm::vec3(1.0, 1.0, 1.0));
+    base_materials[1]->save_uniform_value("material.ambient", Vector3(0.2, 0.2, 0.2));
+    base_materials[1]->save_uniform_value("material.diffuse", Vector3(1.0, 1.0, 1.0));
+    base_materials[1]->save_uniform_value("material.specular", Vector3(1.0, 1.0, 1.0));
     base_materials[1]->save_uniform_value("material.shininess", 32.0f);
     base_materials[1]->save_uniform_value("material.has_albedo", false);
 
     base_materials[2] = std::make_shared<Material>(no_normal_program_gen(true));
-    base_materials[2]->save_uniform_value("material.diffuse", glm::vec3(1.0, 1.0, 1.0));
+    base_materials[2]->save_uniform_value("material.diffuse", Vector3(1.0, 1.0, 1.0));
     base_materials[2]->save_uniform_value("material.has_albedo", false);
 
     base_materials[3] = std::make_shared<Material>(no_normal_program_gen(false));
-    base_materials[3]->save_uniform_value("material.diffuse", glm::vec3(1.0, 1.0, 1.0));
+    base_materials[3]->save_uniform_value("material.diffuse", Vector3(1.0, 1.0, 1.0));
     base_materials[3]->save_uniform_value("material.has_albedo", false);
 }
 

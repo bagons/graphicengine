@@ -6,11 +6,11 @@
 #include <iostream>
 
 
-PointLight::PointLight(const glm::vec3 color, const float intensity) : color(color), intensity(intensity) {
+PointLight::PointLight(const Color color, const float intensity) : color(color), intensity(intensity) {
 
 }
 
-DirectionalLight::DirectionalLight(const glm::vec3 color, const float intensity, const Vector3 &direction) :
+DirectionalLight::DirectionalLight(const Color color, const float intensity, const Vector3 &direction) :
 color(color), intensity(intensity), direction(direction) {
 
 }
