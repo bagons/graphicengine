@@ -26,6 +26,9 @@ public:
     /// Called by RenderPass.
     virtual void render();
 
+    /// Called when geRef.free(), thus Engine.remove_thing() is called, so that entities can have custom deletion behaviour, that's unique from the deconstructor which is called when the program ends, which could lead to unsafe behaviour
+    virtual void on_remove();
+
     virtual ~Thing() = default;
 };
 
@@ -101,7 +104,7 @@ public:
     MeshThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material, unsigned int _render_layer = 1);
 
     /// Submits the mesh to the GPU for rendering. Called by RenderPass.
-    void render();
+    void render() override;
 };
 
 
@@ -111,6 +114,7 @@ class ModelThing : public SpatialThing {
 protected:
     std::shared_ptr<Model> model;
     std::vector<std::shared_ptr<Material>> materials;
+    std::vector<unsigned int> slave_ids;
 public:
     /// read-only Model shared_ptr
     [[nodiscard]] std::shared_ptr<Model> get_model();
@@ -120,6 +124,7 @@ public:
     /// @param _model model resource used
     /// @param _materials list of materials that override model materials. Works on a per-material basis, meaning: [Mat1, nullptr, Mat2, Mat3] -> 1st, 3rd, and 4th overwritten. If the list is shorter: [Mat1, Mat2] the rest is considered as nullptr, thus no override.
     explicit ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_ptr<Material>> _materials = {}, unsigned int _render_layer = 1);
+    void on_remove() override;
 };
 
 

@@ -85,6 +85,11 @@ void Engine::update() {
 
     // input update to correctly adjust just pressed keys
     input.update();
+    // remove queued entities
+    for (auto id : queued_things_to_be_removed) {
+        remove_thing(id);
+    }
+    queued_things_to_be_removed.clear();
 }
 
 void Engine::send_it_to_window() {
@@ -127,8 +132,14 @@ unsigned int Engine::get_last_used_geRef_id() const {
     return last_used_thing_id;
 }
 
+void Engine::queue_remove_thing(unsigned int id) {
+    queued_things_to_be_removed.push_back(id);
+}
+
+
 void Engine::remove_thing(const unsigned int id) {
     const auto thing = get_thing(id);
+    thing->on_remove();
     // delete from material : id structure
     if (const auto d = dynamic_cast<MeshThing*>(thing)) {
         const auto [fst, snd] = thing_ids_by_shader_program.equal_range(d->get_material());

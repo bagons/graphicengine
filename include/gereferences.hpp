@@ -1,5 +1,6 @@
 #ifndef GEREFERENCES_HPP
 #define GEREFERENCES_HPP
+#include "graphicengine.hpp"
 
 class Engine;
 
@@ -25,6 +26,12 @@ public:
     T* operator->() {
         return get();
     };
+
+    void free() {
+        ge->remove_thing(id);
+        id = -1;
+        ge = nullptr;
+    }
 };
 
 

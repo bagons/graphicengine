@@ -50,6 +50,8 @@ class Engine {
     unsigned int last_used_thing_id = -1;
     /// Deleted geRef IDs, which can be used
     std::deque<unsigned int> deleted_geRef_ids{};
+
+    std::vector<unsigned int> queued_things_to_be_removed{};
 public:
     /// The main window in which the engine draws images (the only window)
     Window window;
@@ -159,6 +161,8 @@ public:
         next_render_layer_id++;
         return ref;
     };
+
+    void queue_remove_thing(unsigned int id);
 
     /// Removes a spawned entity
     /// @param id the ID in the geRef.

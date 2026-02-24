@@ -8,6 +8,8 @@
 #include <glm/ext.hpp>
 
 // engine
+#include <iostream>
+
 #include "graphicengine.hpp"
 
 
@@ -86,6 +88,7 @@ void Camera::transform_to_view_matrix() {
 
 void Thing::render() {};
 void Thing::update() {};
+void Thing::on_remove() {};
 
 
 SpatialThing::SpatialThing() {
@@ -125,6 +128,7 @@ ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_pt
     model = std::move(_model);
     materials = std::move(_materials);
     const unsigned int model_geref_id = ge.get_last_used_geRef_id();
+    std::cout << "model thing id: " << model_geref_id << std::endl;
     for (size_t i = 0; i < model->get_mesh_count(); i++) {
         std::shared_ptr<Material> mat;
         // if no custom material load model material
@@ -141,6 +145,7 @@ ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_pt
 
         // spawn slave
         auto slave = ge.add<ModelSlaveThing>(model->get_mesh(i), mat, geRef<ModelThing>(model_geref_id, &ge));
+        slave_ids.push_back(slave.id);
         slave->render_layer = _render_layer;
     }
 }
@@ -151,6 +156,12 @@ std::shared_ptr<Model> ModelThing::get_model() {
 
 std::shared_ptr<Material> ModelThing::get_material(const size_t index) {
     return materials[index];
+}
+
+void ModelThing::on_remove() {
+    for (const auto slave : slave_ids) {
+        ge.remove_thing(slave);
+    }
 }
 
 
