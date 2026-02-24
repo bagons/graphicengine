@@ -2,7 +2,6 @@
 #include <iostream>
 #include <graphicengine.hpp>
 
-#pragma once
 #define STB_IMAGE_IMPLEMENTATION
 #include "../utils/stb_image.h"
 

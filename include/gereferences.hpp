@@ -1,7 +1,5 @@
 #ifndef GEREFERENCES_HPP
 #define GEREFERENCES_HPP
-#include "graphicengine.hpp"
-
 class Engine;
 
 template<typename T>
@@ -10,28 +8,14 @@ public:
     unsigned int id;
     Engine* ge;
 
-    geRef() {
-        id = -1;
-        ge = nullptr;
-    }
+    geRef();
 
-    geRef(const unsigned int _id, Engine* _ge) {
-        id = _id;
-        ge = _ge;
-    }
+    geRef(unsigned int _id, Engine* _ge);
 
-    T* get() {
-        return static_cast<T*>(ge->get_thing(id));
-    };
-    T* operator->() {
-        return get();
-    };
+    T* get();
+    T* operator->();
 
-    void free() {
-        ge->remove_thing(id);
-        id = -1;
-        ge = nullptr;
-    }
+    void free();
 };
 
 
@@ -41,22 +25,12 @@ public:
     int id;
     Engine* ge;
 
-    geRendRef() {
-        id = -1;
-        ge = nullptr;
-    };
+    geRendRef();
 
-    geRendRef(const int _id, Engine* _ge) {
-        id = _id;
-        ge = _ge;
-    };
+    geRendRef(int _id, Engine* _ge);
 
-    T* get() {
-        return static_cast<T*>(ge->get_render_layer(id));
-    };
-    T* operator->() {
-        return get();
-    };
+    T* get();
+    T* operator->();
 };
 
 #endif //GEREFERENCES_HPP

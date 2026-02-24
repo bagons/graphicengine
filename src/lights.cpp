@@ -75,7 +75,7 @@ void Lights::update(Position& camera_pos) {
     }
     // directional lights
     for (size_t i = 0; i < std::min(directional_lights.size(), static_cast<size_t>(MAX_NR_DIRECTIONAL_LIGHTS)); i++) {
-        const auto dl = dynamic_cast<DirectionalLight*>(ge.get_thing(directional_lights[i]));
+        auto dl = dynamic_cast<DirectionalLight*>(ge.get_thing(directional_lights[i]));
 
         unsigned int byte_offset = static_cast<unsigned int>(i) * DirectionalLight::STRUCT_BYTE_SIZE + MAX_NR_POINT_LIGHTS * PointLight::STRUCT_BYTE_SIZE;
 

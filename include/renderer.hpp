@@ -7,7 +7,7 @@ class Camera;
 
 class RenderPass {
 public:
-    virtual void change_resolution(int width, int height){};
+    virtual void change_resolution(const int _width, const int _height){};
 
     virtual ~RenderPass() = default;
 };

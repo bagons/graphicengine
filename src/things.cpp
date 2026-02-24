@@ -14,7 +14,6 @@
 
 
 
-
 Camera::Camera(const glm::mat4 &projection_matrix) {
     projection = projection_matrix;
     view = glm::mat4(1.0);

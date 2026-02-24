@@ -186,4 +186,6 @@ extern Engine ge;
 /// All entities in this graphics engine are called Things. Based on a OOP model. Created using Engine.add method. Accessed through geRef which the engine gives.
 /// @defgroup Coordinates
 /// A set of classes that serve as data types for Postion, Scale, Color and Rotation etc. with some useful functions. Connected with types from the GLM library.
+
+#include "../src/gereferences.cpp"
 #endif //MAIN_H
