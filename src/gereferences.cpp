@@ -30,6 +30,13 @@ void geRef<T>::free() {
 }
 
 template<typename T>
+void geRef<T>::queue_free() {
+  ge->queue_remove_thing(id);
+  id = -1;
+  ge = nullptr;
+}
+
+template<typename T>
 geRendRef<T>::geRendRef() {
   id = -1;
   ge = nullptr;

@@ -16,6 +16,7 @@ public:
     T* operator->();
 
     void free();
+    void queue_free();
 };
 
 
