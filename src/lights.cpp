@@ -86,7 +86,7 @@ void Lights::update(Position& camera_pos) {
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-bool Lights::add_point_light(const int ge_ref_id) {
+bool Lights::add_point_light(const unsigned int ge_ref_id) {
     if (light_overflow_action == CANCEL_NEW and point_lights.size() >= MAX_NR_POINT_LIGHTS) {
         std::cerr << "ENGINE WARNING: Failed to add point light, LIMIT REACHED. Returning null geRef." << std::endl;
         return false;
@@ -96,12 +96,12 @@ bool Lights::add_point_light(const int ge_ref_id) {
     return true;
 }
 
-void Lights::remove_point_light(const int ge_ref_id) {
+void Lights::remove_point_light(const unsigned int ge_ref_id) {
     point_lights[std::ranges::find(point_lights, ge_ref_id) - point_lights.begin()] = point_lights.back();
     point_lights.pop_back();
 }
 
-bool Lights::add_directional_light(const int ge_ref_id) {
+bool Lights::add_directional_light(const unsigned int ge_ref_id) {
     if (light_overflow_action == CANCEL_NEW and directional_lights.size() >= MAX_NR_DIRECTIONAL_LIGHTS) {
         std::cerr << "ENGINE WARNING: Failed to add point light, LIMIT REACHED. Returning null geRef." << std::endl;
         return false;
@@ -112,7 +112,7 @@ bool Lights::add_directional_light(const int ge_ref_id) {
 }
 
 
-void Lights::remove_directional_light(const int ge_ref_id) {
+void Lights::remove_directional_light(const unsigned int ge_ref_id) {
     directional_lights[std::ranges::find(directional_lights, ge_ref_id) - directional_lights.begin()] = directional_lights.back();
     directional_lights.pop_back();
 }

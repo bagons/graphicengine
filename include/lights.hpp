@@ -42,9 +42,9 @@ public:
 /// Central Light System Manager
 class Lights {
     /// List of geRef ids of all PointLights
-    std::vector<int> point_lights;
+    std::vector<unsigned int> point_lights;
     /// List of geRef ids for all DirectionalLights
-    std::vector<int> directional_lights;
+    std::vector<unsigned int> directional_lights;
     /// OpenGL ID of the Uniform Buffer Object
     unsigned int lights_ubo = -1;
 public:
@@ -79,22 +79,22 @@ public:
     /// Add a PointLight to the Central Light System
     /// @note Engine does this automatically, no need to do so for the user
     /// @param ge_ref_id geRef ID of the PointLight entity
-    bool add_point_light(int ge_ref_id);
+    bool add_point_light(unsigned int ge_ref_id);
 
     /// Remove a PointLight from the Central Light System
     /// @note Engine does this automatically, no need to do so for the user
     /// @param ge_ref_id geRef ID of the PointLight entity
-    void remove_point_light(int ge_ref_id);
+    void remove_point_light(unsigned int ge_ref_id);
 
     /// Add a DirectionalLight to the Central Light System
     /// @note Engine does this automatically, no need to do so for the user
     /// @param ge_ref_id geRef ID of the DirectionalLight entity
-    bool add_directional_light(int ge_ref_id);
+    bool add_directional_light(unsigned int ge_ref_id);
 
     /// Remove a DirectionalLight to the Central Light System
     /// @note Engine does this automatically, no need to do so for the user
     /// @param ge_ref_id geRef ID of the DirectionalLight entity
-    void remove_directional_light(int ge_ref_id);
+    void remove_directional_light(unsigned int ge_ref_id);
 };
 
 #endif //LIGHTS_H

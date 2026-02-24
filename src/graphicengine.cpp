@@ -52,7 +52,7 @@ void Window::set_vsync(const bool _vsync) const {
     glfwSwapInterval(_vsync ? 1 : 0);
 }
 
-Thing *Engine::get_thing(const int id) {
+Thing *Engine::get_thing(const unsigned int id) {
     return things[id].get();
 }
 
@@ -108,6 +108,43 @@ void Engine::set_bindless_texture_support(const bool support_bindless_textures) 
 
 bool Engine::are_bindless_textures_supported() const {
     return bindless_texture_supported;
+}
+
+unsigned int Engine::get_next_geRef_id() {
+    if (deleted_geRef_ids.size() > 0) {
+        const auto id = deleted_geRef_ids.front();
+        deleted_geRef_ids.pop_front();
+        last_used_thing_id = id;
+        return id;
+    }
+
+    next_thing_id += 1;
+    last_used_thing_id = next_thing_id;
+    return next_thing_id;
+}
+
+unsigned int Engine::get_last_used_geRef_id() const {
+    return last_used_thing_id;
+}
+
+void Engine::remove_thing(const unsigned int id) {
+    const auto thing = get_thing(id);
+    // delete from material : id structure
+    if (const auto d = dynamic_cast<MeshThing*>(thing)) {
+        const auto [fst, snd] = thing_ids_by_shader_program.equal_range(d->get_material());
+
+        // delete specific key value pair
+        for (auto it = fst; it != snd; ++it) {
+            if (it->second == id) {
+                thing_ids_by_shader_program.erase(it);
+                break;
+            }
+        }
+    }
+
+    deleted_geRef_ids.push_back(id);
+
+    things.erase(id);
 }
 
 // run to start engine

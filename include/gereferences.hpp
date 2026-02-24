@@ -1,19 +1,20 @@
 #ifndef GEREFERENCES_HPP
 #define GEREFERENCES_HPP
 
+class Engine;
 
 template<typename T>
 class geRef {
 public:
-    int id;
-    class Engine* ge;
+    unsigned int id;
+    Engine* ge;
 
     geRef() {
         id = -1;
         ge = nullptr;
     }
 
-    geRef(const int _id, Engine* _ge) {
+    geRef(const unsigned int _id, Engine* _ge) {
         id = _id;
         ge = _ge;
     }

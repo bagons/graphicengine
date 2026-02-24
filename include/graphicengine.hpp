@@ -3,6 +3,7 @@
 #include <map>
 #include <unordered_map>
 #include <memory>
+#include <deque>
 
 #pragma once
 #include <glad/glad.h>
@@ -16,7 +17,7 @@
 
 #include <GLFW/glfw3.h>
 
-typedef std::unordered_map<int, std::unique_ptr<Thing>> things_container;
+typedef std::unordered_map<unsigned int, std::unique_ptr<Thing>> things_container;
 typedef std::unordered_map<int, std::unique_ptr<RenderPass>> render_layer_container;
 
 
@@ -44,6 +45,12 @@ class Engine {
 
     /// Inits render pipeline using OpenGL functions, called in the constructor
     void init_render_pipeline();
+    /// Auto increment ID counter for entities
+    unsigned int next_thing_id = 0;
+    /// The last geRef ID that was used
+    unsigned int last_used_thing_id = -1;
+    /// Deleted geRef IDs, which can be used
+    std::deque<unsigned int> deleted_geRef_ids{};
 public:
     /// The main window in which the engine draws images (the only window)
     Window window;
@@ -56,8 +63,11 @@ public:
     /// Light system manager
     Lights lights;
 
-    /// Auto increment ID counter for entities
-    int next_thing_id = 0;
+    /// Get the lowest unused ID for a geRef
+    /// @note By getting it, the id is considered to be in use. This method is mainly intended for the Engine.
+    [[nodiscard]] unsigned int get_next_geRef_id();
+    [[nodiscard]] unsigned int get_last_used_geRef_id() const;
+
     /// Camera Matrices Uniform Buffer Object ID.
     unsigned int camera_matrix_ubo = -1;
     /// Time elapsed between the last 2 frames. Used as a normalizer so that movement can occur approximately the same speed regardless of the frame rate.
@@ -65,7 +75,7 @@ public:
     /// Container that hold all the std::unique_ptr of all spawned entities. You can receive a pointer through the entity ID.
     things_container things{};
     /// Data structure that holds entity ids sorted by Materials, so that entities can be rendered in an optimized order.
-    std::multimap<std::shared_ptr<Material>, int, MaterialSorter> thing_ids_by_shader_program;
+    std::multimap<std::shared_ptr<Material>, unsigned int, MaterialSorter> thing_ids_by_shader_program;
     /// Container holding all the render layers, at this point in time usually only one, but serves as a scalable infrastructure
     render_layer_container render_layers{};
 
@@ -90,7 +100,7 @@ public:
     [[nodiscard]] bool is_running() const;
 
     /// Things container getter, the propper way of getting a Thing* if you are not using a geRef
-    Thing* get_thing(int id);
+    Thing* get_thing(unsigned int id);
 
     /// Render layer container getter, the propper way of getting a RenderPass* if you are not using a geRendRef
     RenderPass* get_render_layer(int id);
@@ -109,8 +119,7 @@ public:
     template<typename T, typename... Args>
     requires std::is_base_of_v<Thing, T>
     geRef<T> add(Args&&... args) {
-        geRef<T> ref{next_thing_id, this};
-        next_thing_id++;
+        geRef<T> ref{get_next_geRef_id(), this};
 
         auto thing = std::make_unique<T>(std::forward<Args>(args)...);
 
@@ -151,6 +160,10 @@ public:
         next_render_layer_id++;
         return ref;
     };
+
+    /// Removes a spawned entity
+    /// @param id the ID in the geRef.
+    void remove_thing(unsigned int id);
 
     /// Bindless Texture Support Setter
     /// @warning Do not touch this
