@@ -232,25 +232,25 @@ void Shaders::debug_show_shader_program_use() {
 
 void Shaders::setup_base_materials() {
     base_materials[0] = std::make_shared<Material>(phong_shader_program_gen(true));
-    base_materials[0]->save_uniform_value("material.ambient", Vector3(0.2, 0.2, 0.2));
-    base_materials[0]->save_uniform_value("material.diffuse", Vector3(1.0, 1.0, 1.0));
-    base_materials[0]->save_uniform_value("material.specular", Vector3(1.0, 1.0, 1.0));
+    base_materials[0]->save_uniform_value("material.ambient", Vector3(0.2f, 0.2f, 0.2f));
+    base_materials[0]->save_uniform_value("material.diffuse", Vector3(1.0f, 1.0f, 1.0f));
+    base_materials[0]->save_uniform_value("material.specular", Vector3(1.0f, 1.0f, 1.0f));
     base_materials[0]->save_uniform_value("material.shininess", 32.0f);
     base_materials[0]->save_uniform_value("material.has_albedo", false);
 
     base_materials[1] = std::make_shared<Material>(phong_shader_program_gen(false));
-    base_materials[1]->save_uniform_value("material.ambient", Vector3(0.2, 0.2, 0.2));
-    base_materials[1]->save_uniform_value("material.diffuse", Vector3(1.0, 1.0, 1.0));
-    base_materials[1]->save_uniform_value("material.specular", Vector3(1.0, 1.0, 1.0));
+    base_materials[1]->save_uniform_value("material.ambient", Vector3(0.2f, 0.2f, 0.2f));
+    base_materials[1]->save_uniform_value("material.diffuse", Vector3(1.0f, 1.0f, 1.0f));
+    base_materials[1]->save_uniform_value("material.specular", Vector3(1.0f, 1.0f, 1.0f));
     base_materials[1]->save_uniform_value("material.shininess", 32.0f);
     base_materials[1]->save_uniform_value("material.has_albedo", false);
 
     base_materials[2] = std::make_shared<Material>(no_normal_program_gen(true));
-    base_materials[2]->save_uniform_value("material.diffuse", Vector3(1.0, 1.0, 1.0));
+    base_materials[2]->save_uniform_value("material.diffuse", Vector3(1.0f, 1.0f, 1.0f));
     base_materials[2]->save_uniform_value("material.has_albedo", false);
 
     base_materials[3] = std::make_shared<Material>(no_normal_program_gen(false));
-    base_materials[3]->save_uniform_value("material.diffuse", Vector3(1.0, 1.0, 1.0));
+    base_materials[3]->save_uniform_value("material.diffuse", Vector3(1.0f, 1.0f, 1.0f));
     base_materials[3]->save_uniform_value("material.has_albedo", false);
 }
 

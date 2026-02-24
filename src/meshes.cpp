@@ -17,34 +17,35 @@ void Mesh::load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::ve
     glGenVertexArrays(1, &vertex_array_object);
     glBindVertexArray(vertex_array_object);
 
+    vertex_count = static_cast<int>(indices->size());
+
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object);
-    glBufferData(GL_ARRAY_BUFFER, vertex_data->size() * sizeof(float), vertex_data->data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, static_cast<int>(vertex_data->size()) * static_cast<int>(sizeof(float)), vertex_data->data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_object);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->size() * sizeof(unsigned int), indices->data(), GL_STATIC_DRAW);
-    vertex_count = indices->size();
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertex_count * static_cast<int>(sizeof(unsigned int)), indices->data(), GL_STATIC_DRAW);
 
-    int stride = (3 + 3 * has_normals + 2 * has_uvs + 3 * has_vertex_colors) * sizeof(float);
+    const int stride = (3 + (has_normals ? 3 : 0) + (has_uvs ? 2 : 0) + (has_vertex_colors ? 3 : 0)) * static_cast<int>(sizeof(float));
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, nullptr);
     glEnableVertexAttribArray(0);
 
     if (has_uvs) {
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3*sizeof(float)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void *>(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
     }
 
     if (has_normals) {
-        glVertexAttribPointer(1 + has_uvs, 3, GL_FLOAT, GL_FALSE, stride, (void*)((3 + 2* has_uvs)*sizeof(float)));
+        glVertexAttribPointer(1 + has_uvs, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void *>((3 + 2 * has_uvs) * sizeof(float)));
         glEnableVertexAttribArray(1 + has_uvs);
     }
 
     if (has_vertex_colors) {
-        glVertexAttribPointer(1 + has_normals + has_uvs, 3, GL_FLOAT, GL_FALSE, stride, (void*)((3 + 3 * has_normals + 2 * has_uvs)*sizeof(float)));
+        glVertexAttribPointer(1 + has_normals + has_uvs, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void *>((3 + 3 * has_normals + 2 * has_uvs) * sizeof(float)));
         glEnableVertexAttribArray(1 + has_normals + has_uvs);
     }
 
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterward we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 };

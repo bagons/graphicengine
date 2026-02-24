@@ -6,7 +6,6 @@
 #include <deque>
 
 #pragma once
-#include <glad/glad.h>
 #include "gereferences.hpp"
 #include "input.hpp"
 #include "meshes.hpp"
