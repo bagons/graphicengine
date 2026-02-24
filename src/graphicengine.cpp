@@ -111,7 +111,7 @@ bool Engine::are_bindless_textures_supported() const {
 }
 
 unsigned int Engine::get_next_geRef_id() {
-    if (deleted_geRef_ids.size() > 0) {
+    if (!deleted_geRef_ids.empty()) {
         const auto id = deleted_geRef_ids.front();
         deleted_geRef_ids.pop_front();
         last_used_thing_id = id;

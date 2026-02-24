@@ -17,7 +17,6 @@ public:
     /// PointLight constructor
     /// @param color light color
     /// @param intensity light intesity
-    /// @param is_updatable does the need updating
     PointLight(Color color, float intensity);
 };
 
@@ -35,7 +34,6 @@ public:
     /// @param color light color
     /// @param intensity light intesity
     /// @param direction Direction of the incoming light
-    /// @param is_updatable does the need updating
     DirectionalLight(Color color, float intensity, const Vector3 &direction);
 };
 

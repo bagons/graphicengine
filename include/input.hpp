@@ -21,11 +21,11 @@ public:
     glm::dvec2 mouse_position;
     glm::dvec2 mouse_move_delta;
 
-    bool is_pressed(int action_idx);
+    bool is_pressed(int action_idx) const;
 
-    bool just_pressed(int action_idx);
+    bool just_pressed(int action_idx) const;
 
-    bool just_released(int action_idx);
+    bool just_released(int action_idx) const;
 
     void set_action_list(const std::vector<int> &action_keys);
 

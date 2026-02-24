@@ -2,7 +2,6 @@
 #define THINGS_H
 
 #include <glm/glm.hpp>
-#include <utility>
 #include <memory>
 #include "coordinates.h"
 #include "shaders.hpp"

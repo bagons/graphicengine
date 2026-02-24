@@ -59,7 +59,7 @@ unsigned int Mesh::get_vertex_array_object() const {
     return vertex_array_object;
 }
 
-unsigned int Mesh::get_vertex_count() const {
+int Mesh::get_vertex_count() const {
     return vertex_count;
 }
 

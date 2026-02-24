@@ -9,18 +9,18 @@ void Input::set_action_list(const std::vector<int> &action_keys) {
     }
 }
 
-bool Input::is_pressed(int action_idx) {
+bool Input::is_pressed(int action_idx) const {
     // pressed state == 1 or + 2 (value: 3) if just happened
     return all_key_states[actions[action_idx].key] % 2 == 1;
 }
 
-bool Input::just_pressed(int action_idx) {
+bool Input::just_pressed(int action_idx) const {
     // pressed state == 1 (+ 2 if just happened)
     return all_key_states[actions[action_idx].key] == 3;
 }
 
 
-bool Input::just_released(int action_idx) {
+bool Input::just_released(int action_idx) const {
     // released state == 0 (+ 2 if just happened)
     return all_key_states[actions[action_idx].key] == 2;
 }

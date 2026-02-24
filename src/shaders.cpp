@@ -46,7 +46,7 @@ Shader::Shader(const char *file_path, const ShaderType shader_type, const std::s
     glGetShaderiv(id, GL_COMPILE_STATUS, &success);
     if (!success)
     {
-        glGetShaderInfoLog(id, 512, NULL, infoLog);
+        glGetShaderInfoLog(id, 512, nullptr, infoLog);
         Engine::debug_error("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" + std::string(infoLog));
     } else {
         Engine::debug_message("Shader successfully compiled!");
@@ -67,7 +67,7 @@ Shader::Shader(const std::string &shader_code, const ShaderType shader_type) {
     glGetShaderiv(id, GL_COMPILE_STATUS, &success);
     if (!success)
     {
-        glGetShaderInfoLog(id, 512, NULL, infoLog);
+        glGetShaderInfoLog(id, 512, nullptr, infoLog);
         Engine::debug_error("ERROR::SHADER::COMPILATION_FAILED\n" + std::string(infoLog));
     } else {
         Engine::debug_message("Shader successfully compiled from std::string");
@@ -107,7 +107,7 @@ ShaderProgram::ShaderProgram(const Shader &vertex_shader, const Shader &fragment
     glGetProgramiv(id, GL_LINK_STATUS, &success);
     if (!success)
     {
-        glGetProgramInfoLog(id, 512, NULL, infoLog);
+        glGetProgramInfoLog(id, 512, nullptr, infoLog);
         Engine::debug_error("Program link error:\n" + std::string(infoLog));
     }
 

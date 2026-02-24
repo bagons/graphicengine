@@ -1,7 +1,6 @@
 #ifndef TEXTURES_HPP
 #define TEXTURES_HPP
 #pragma once
-#include <unordered_map>
 #include <glad/glad.h>
 
 /// A texture GPU resource a wrapper around OpenGL texture ID system, supports normal and also bindless textures

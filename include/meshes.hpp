@@ -30,7 +30,7 @@ public:
     /// getter for read-only vertex_buffer_object variable
     [[nodiscard]] unsigned int get_vertex_array_object() const;
     /// getter for read-only vertex count variable
-    [[nodiscard]] unsigned int get_vertex_count() const;
+    [[nodiscard]] int get_vertex_count() const;
 
     /// Allocates Mesh to GPU based on mesh data
     /// @param vertices list of floats containing all the vertice data by N float

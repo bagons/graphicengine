@@ -23,7 +23,7 @@ public:
     Vector3& operator+ (const glm::vec3& position);
     Vector3& operator- (const Vector3& position);
     Vector3& operator- (const glm::vec3& position);
-    Vector3 operator* (float scalar);
+    Vector3 operator* (float scalar) const;
     Vector3& operator*= (float scalar);
 
     /// Calculates the Euclidean distance to another Vector3

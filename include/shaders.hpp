@@ -1,8 +1,5 @@
 #ifndef SHADERS_HPP
 #define SHADERS_HPP
-#pragma once
-#include <span>
-#include <vector>
 #include <glm/glm.hpp>
 #include <string>
 #include <variant>
@@ -109,8 +106,8 @@ public:
     ShaderProgram shader_program;
     /// Container for the shader values
     uniform_map shader_values = {};
-    /// Construction from a shader program
-    /// @param ShaderProgram
+    /// You create a material by supplying a shader program to be used
+    /// @param _shader_program the shader program that is used
     explicit Material(const ShaderProgram &_shader_program);
 
     /// ONE TIME sets all uniform values saved by the material

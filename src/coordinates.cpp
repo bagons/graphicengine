@@ -52,7 +52,7 @@ Vector3& Vector3::operator- (const glm::vec3& position) {
     return *this;
 }
 
-Vector3 Vector3::operator* (const float scalar) {
+Vector3 Vector3::operator* (const float scalar) const {
     Vector3 v {x, y, z};
     v.x *= scalar;
     v.y *= scalar;
@@ -152,6 +152,14 @@ Rotation Rotation::operator* (const Rotation& rot) const {
     multiplied_rot.k = r * rot.k + rot.r * k + i * rot.j - j * rot.i;
 
     return multiplied_rot;
+}
+
+Rotation& Rotation::operator= (const glm::vec3& rotation) {
+    x = rotation.x;
+    y = rotation.y;
+    z = rotation.z;
+    euler_2_quat();
+    return *this;
 }
 
 void Rotation::euler_2_quat() {
