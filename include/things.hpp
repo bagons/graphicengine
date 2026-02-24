@@ -135,10 +135,7 @@ public:
     /// @param _mesh Forwards parameter to MeshThing constructor
     /// @param _material Forwards parameter to MeshThing constructor
     /// @param _manager Reference to the owner ModelThing
-    ModelSlaveThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material, const geRef<ModelThing> _manager) :
-    MeshThing(std::move(_mesh), std::move(_material)) {
-        manager = _manager;
-    };
+    ModelSlaveThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material, geRef<ModelThing> _manager);
 
     /// Inherits transform from manager and submits mesh to GPU for rendering.
     void render() override;

@@ -125,7 +125,7 @@ void MeshThing::render() {
 ModelThing::ModelThing(std::shared_ptr<Model> _model, std::vector<std::shared_ptr<Material>> _materials, unsigned int _render_layer) {
     model = std::move(_model);
     materials = std::move(_materials);
-    const int model_geref_id = ge.next_thing_id - 1;
+    const unsigned int model_geref_id = ge.get_last_used_geRef_id();
     for (size_t i = 0; i < model->get_mesh_count(); i++) {
         std::shared_ptr<Material> mat;
         // if no custom material load model material
@@ -153,6 +153,12 @@ std::shared_ptr<Model> ModelThing::get_model() {
 std::shared_ptr<Material> ModelThing::get_material(const size_t index) {
     return materials[index];
 }
+
+
+ModelSlaveThing::ModelSlaveThing(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material, const geRef<ModelThing> _manager):
+MeshThing(std::move(_mesh), std::move(_material)) {
+    manager = _manager;
+};
 
 
 
