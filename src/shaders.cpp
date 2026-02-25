@@ -182,8 +182,7 @@ void Material::set_uniform_values() const {
     // (only used when bindless textures are NOT supported)
     int bind_texture_slot = 0;
 
-    for (it = shader_values.begin(); it != shader_values.end(); it++)
-    {
+    for (it = shader_values.begin(); it != shader_values.end(); it++) {
         if (std::holds_alternative<float>(it->second)) {
             glUniform1f(it->first, std::get<float>(it->second));
         }
@@ -202,6 +201,11 @@ void Material::set_uniform_values() const {
             }
         } else if (std::holds_alternative<bool>(it->second)) {
             glUniform1i(it->first, std::get<bool>(it->second));
+        } else if (std::holds_alternative<int>(it->second)) {
+            glUniform1i(it->first, std::get<int>(it->second));
+        } else if (std::holds_alternative<Color>(it->second)) {
+            const auto color = std::get<Color>(it->second);
+            glUniform4f(it->first, color.r, color.g, color.b, color.a);
         }
     }
 }
@@ -257,26 +261,28 @@ void Shaders::debug_show_shader_program_use() {
 
 void Shaders::setup_base_materials() {
     base_materials[0] = std::make_shared<Material>(phong_shader_program_gen(true));
-    base_materials[0]->save_uniform_value("material.ambient", Vector3(0.2f, 0.2f, 0.2f));
-    base_materials[0]->save_uniform_value("material.diffuse", Vector3(1.0f, 1.0f, 1.0f));
-    base_materials[0]->save_uniform_value("material.specular", Vector3(1.0f, 1.0f, 1.0f));
+    base_materials[0]->save_uniform_value("material.ambient", Vector3(0.2f));
+    base_materials[0]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[0]->save_uniform_value("material.specular", Color::WHITE.no_alpha());
     base_materials[0]->save_uniform_value("material.shininess", 32.0f);
-    base_materials[0]->save_uniform_value("material.has_albedo", false);
+    base_materials[0]->save_uniform_value("material.has_albedo_texture", false);
+    base_materials[0]->save_uniform_value("material.albedo_color", Color::WHITE.no_alpha());
 
     base_materials[1] = std::make_shared<Material>(phong_shader_program_gen(false));
-    base_materials[1]->save_uniform_value("material.ambient", Vector3(0.2f, 0.2f, 0.2f));
-    base_materials[1]->save_uniform_value("material.diffuse", Vector3(1.0f, 1.0f, 1.0f));
-    base_materials[1]->save_uniform_value("material.specular", Vector3(1.0f, 1.0f, 1.0f));
+    base_materials[1]->save_uniform_value("material.ambient", Vector3(0.2f));
+    base_materials[0]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[0]->save_uniform_value("material.specular", Color::WHITE.no_alpha());
     base_materials[1]->save_uniform_value("material.shininess", 32.0f);
-    base_materials[1]->save_uniform_value("material.has_albedo", false);
+    base_materials[1]->save_uniform_value("material.has_albedo_texture", false);
+    base_materials[1]->save_uniform_value("material.albedo_color", Color::WHITE.no_alpha());
 
     base_materials[2] = std::make_shared<Material>(no_normal_program_gen(true));
-    base_materials[2]->save_uniform_value("material.diffuse", Vector3(1.0f, 1.0f, 1.0f));
-    base_materials[2]->save_uniform_value("material.has_albedo", false);
+    base_materials[2]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[2]->save_uniform_value("material.has_albedo_texture", false);
 
     base_materials[3] = std::make_shared<Material>(no_normal_program_gen(false));
-    base_materials[3]->save_uniform_value("material.diffuse", Vector3(1.0f, 1.0f, 1.0f));
-    base_materials[3]->save_uniform_value("material.has_albedo", false);
+    base_materials[3]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[3]->save_uniform_value("material.has_albedo_texture", false);
 }
 
 std::shared_ptr<Material> Shaders::get_base_material(const bool with_uvs, const bool with_normals) {
