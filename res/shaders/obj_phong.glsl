@@ -60,15 +60,21 @@ mat3 light() {
     // point lights
     for(int i = 0; i < NR_POINT_LIGHTS; i++){
         vec4 light_data = point_lights[i].light_data;
+        vec3 dir_to_light = point_lights[i].position - FRAG_GLOBAL_POS;
+
+        // intensity
+        float dist_to_light = dir_to_light.length();
+        float attenuation = light_data.w == 0 ? 0 : 1/(min(1/log(light_data.w*10), 1.0) + (1.2/light_data.w) * dist_to_light + (30.0 / pow(light_data.w, 2)) * pow(dist_to_light, 2));
+
         // Diffuse
-        vec3 dir = normalize(point_lights[i].position - FRAG_GLOBAL_POS);
+        vec3 dir = normalize(dir_to_light);
         float diff = max(dot(norm, dir), 0.0);
-        out_lights[1] += light_data.rgb * diff;
+        out_lights[1] += light_data.rgb * diff * attenuation;
 
         // Blinn-Phong specular
         vec3 halfway_dir = normalize(dir + view_dir);
         float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess);
-        out_lights[2] += light_data.rgb * spec;
+        out_lights[2] += light_data.rgb * spec * attenuation;
     }
     // directional lights
     for(int i = 0; i < NR_DIRECTIONAL_LIGHTS; i++){

@@ -106,6 +106,10 @@ bool Engine::is_running() const {
     return !glfwWindowShouldClose(window.glfwwindow);
 }
 
+double Engine::get_game_time() const {
+    return glfwGetTime();
+}
+
 void Engine::set_bindless_texture_support(const bool support_bindless_textures) {
     bindless_texture_supported = support_bindless_textures;
     shaders.bindless_textures_supported = support_bindless_textures;

@@ -162,11 +162,14 @@ public:
         return ref;
     };
 
+    /// Queues the removal of an entity to the time after all entities were updated
     void queue_remove_thing(unsigned int id);
 
     /// Removes a spawned entity
     /// @param id the ID in the geRef.
     void remove_thing(unsigned int id);
+
+    [[nodiscard]] double get_game_time() const;
 
     /// Bindless Texture Support Setter
     /// @warning Do not touch this
