@@ -84,7 +84,6 @@ Shader::~Shader() {
 }
 
 
-
 ShaderProgram::ShaderProgram(unsigned int _id) {
     id = _id;
     ge.shaders.add_shader_id_use(id);
@@ -93,6 +92,34 @@ ShaderProgram::ShaderProgram(unsigned int _id) {
 ShaderProgram::ShaderProgram(const ShaderProgram &sp) {
     id = sp.id;
     ge.shaders.add_shader_id_use(id);
+}
+
+ShaderProgram::ShaderProgram(ShaderProgram &&other) noexcept {
+    id = other.id;
+    other.id = -1;
+}
+
+ShaderProgram& ShaderProgram::operator=(const ShaderProgram &other) {
+    ge.shaders.remove_shader_id_use(id);
+    id = other.id;
+    ge.shaders.add_shader_id_use(id);
+    return *this;
+}
+
+
+ShaderProgram& ShaderProgram::operator=(ShaderProgram &&other) noexcept {
+    if (this == &other)
+        return *this;
+
+    ge.shaders.remove_shader_id_use(id);
+    id = other.id;
+    other.id = -1;
+
+    return *this;
+}
+
+ShaderProgram::~ShaderProgram() { // DESTRUCTOR WARNING !!
+    ge.shaders.remove_shader_id_use(id);
 }
 
 
@@ -125,13 +152,6 @@ unsigned int ShaderProgram::get_id() const {
     return id;
 }
 
-
-ShaderProgram::~ShaderProgram() { // DESTRUCTOR WARNING !!
-    ge.shaders.remove_shader_id_use(id);
-}
-
-
-
 void ShaderProgram::use() const {
     glUseProgram(id);
 }
@@ -151,13 +171,6 @@ void ShaderProgram::set_uniform(const char* uniform_name, glm::vec3 val) const {
 unsigned int ShaderProgram::get_uniform_location(const char *uniform_name) const {
     return glGetUniformLocation(id, uniform_name);
 }
-
-ShaderProgram& ShaderProgram::operator=(const ShaderProgram &other) {
-    id = other.id;
-    ge.shaders.add_shader_id_use(id);
-    return *this;
-}
-
 
 Material::Material(const ShaderProgram &_shader_program) : shader_program(_shader_program) {
     id = ge.shaders.get_material_identificator();
@@ -209,6 +222,9 @@ void Shaders::add_shader_id_use(const unsigned int sp_id) {
 }
 
 void Shaders::remove_shader_id_use(const unsigned int sp_id) {
+    if (sp_id == -1) {
+        return;
+    }
     if (!shader_programs_id_used.contains(sp_id)) {
         Engine::debug_error("sp_id: " + std::to_string(sp_id) + " NOT FOUND !! ");
         return;
@@ -216,10 +232,19 @@ void Shaders::remove_shader_id_use(const unsigned int sp_id) {
     shader_programs_id_used[sp_id] -= 1;
 
     if (shader_programs_id_used[sp_id] == 0) {
-        //glDeleteProgram(sp_id);
+        glDeleteProgram(sp_id);
+        shader_programs_id_used.erase(sp_id);
         Engine::debug_message("deleting shader program " + std::to_string(sp_id));
     }
 }
+
+unsigned int Shaders::get_shader_use_by_id(unsigned int sp_id) {
+    auto it = shader_programs_id_used.find(sp_id);
+    if (it != shader_programs_id_used.end())
+        return it->second;
+    return -1;
+}
+
 
 void Shaders::debug_show_shader_program_use() {
     std::cout << "ENGINE MESSAGE: SHADER PROGRAM USE DEBUG" << std::endl;

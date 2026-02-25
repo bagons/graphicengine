@@ -58,8 +58,16 @@ public:
     ShaderProgram(const Shader &vertex_shader, const Shader &fragment_shader);
     /// ShaderProgram creator based on an already existing ShaderProgram ID (basically for copying)
     explicit ShaderProgram(unsigned int _id);
-    /// ShaderProgram creator based on an already existing ShaderProgram (basically for copying)
+
+    /// ShaderProgram copy constructor
     ShaderProgram(const ShaderProgram& sp);
+    /// ShaderProgram move constructor
+    ShaderProgram(ShaderProgram&& other) noexcept;
+    /// ShaderProgram copy assignment
+    ShaderProgram& operator=(const ShaderProgram& sp);
+    /// ShaderProgram move assignemnt
+    ShaderProgram& operator=(ShaderProgram&& other) noexcept;
+
 
     /// ShaderProgram Deconstrutor
     /// @warning touches the ge global variable, thus it has to exist during deconstruction, in all normal use cases this is ok, but just if you intend on getting intend on doing anything crazy consider yourself to be warned.
@@ -86,8 +94,6 @@ public:
     /// @param val a float
     /// @note use() has to be called for the setting to take effect
     void set_uniform(const char* uniform_name, float val) const;
-
-    ShaderProgram& operator=(const ShaderProgram& sp);
 
     /// return the id of the uniform based on name
     /// @param uniform_name the uniform name
@@ -157,12 +163,20 @@ class Shaders {
 public:
     /// Base material INIT function (called in the Engine constructor)
     void setup_base_materials();
-    /// Shader Program counter use add
+    /// ShaderProgram counter use add
+    /// @param sp_id id of the ShaderProgram
     /// @note Ment for the engine
     void add_shader_id_use(unsigned int sp_id);
-    /// Shader Program counter use remove
+    /// ShaderProgram counter use remove
+    /// @param sp_id id of the ShaderProgram
     /// @note Ment for the engine
     void remove_shader_id_use(unsigned int sp_id);
+
+    /// Return the use of a certain ShaderProgram
+    /// @param sp_id id of the ShaderProgram
+    /// @returns use count, if ShaderProgram ID is invalid returns -1
+    unsigned int get_shader_use_by_id(unsigned int sp_id);
+
     /// Debug output Shader Program use table
     void debug_show_shader_program_use();
     /// Next ID material getter
