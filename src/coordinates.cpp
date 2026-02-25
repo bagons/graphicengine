@@ -7,6 +7,13 @@ Vector3::Vector3(const float _x, const float _y, const float _z) {
     z = _z;
 }
 
+Vector3::Vector3(const float a) {
+    x = a;
+    y = a;
+    z = a;
+}
+
+
 Vector3::Vector3(const glm::vec3 position) {
     x = position.x;
     y = position.y;
@@ -222,6 +229,10 @@ Color::Color(const glm::vec3 color) {
     g = color.y;
     b = color.z;
     a = 1.0f;
+}
+
+Vector3 Color::no_alpha() const {
+    return Vector3{r, g, b};
 }
 
 

@@ -12,6 +12,9 @@ public:
 
     /// Constructs a vector from raw coordinates
     Vector3(float _x, float _y, float _z);
+    /// Constructs a vector from 1 data point (copies it 3x)
+    explicit Vector3(float);
+
     /// Constructs a vector from a GLM vector type
     Vector3(glm::vec3 position);
 
@@ -139,6 +142,8 @@ public:
     static const Color BLACK;
     static const Color ORANGE;
     static const Color TEAL;
+
+    [[nodiscard]] Vector3 no_alpha() const;
 };
 
 inline const Color Color::RED   {1.0f, 0.0f, 0.0f};
