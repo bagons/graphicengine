@@ -5,7 +5,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "../utils/stb_image.h"
 
-unsigned int setup_texture_from_file(const char* file_path, bool generate_minimaps) {
+unsigned int setup_texture_from_file(const char* file_path, const bool sRGB, const bool generate_minimaps) {
     unsigned int texture;
     glGenTextures(1, &texture);
     int width, height, channel_count;
@@ -26,9 +26,11 @@ unsigned int setup_texture_from_file(const char* file_path, bool generate_minima
         std::cerr << "ENGINE ERROR: Less then 3 channels (" << channel_count << ")" << " in texture, WTF? -> continuing as RGB format, may lead to crashes, beware"<< std::endl;
     }
 
-    const auto format = channel_count == 4 ? GL_RGBA : GL_RGB;
 
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    const auto format = channel_count == 4 ? GL_RGBA : GL_RGB;
+    const auto internal_format = channel_count == 4 ? (sRGB ? GL_SRGB_ALPHA : GL_RGBA) : (sRGB ? GL_SRGB : GL_RGB);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 
     if (generate_minimaps) {
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -38,8 +40,8 @@ unsigned int setup_texture_from_file(const char* file_path, bool generate_minima
 }
 
 
-Texture::Texture(const char* file_path, bool generate_minimap) {
-    id = setup_texture_from_file(file_path, generate_minimap);
+Texture::Texture(const char* file_path, bool sRGB, bool generate_minimap) {
+    id = setup_texture_from_file(file_path, sRGB, generate_minimap);
 
     if (ge.are_bindless_textures_supported()) {
         handle = glGetTextureHandleARB(id);

@@ -14,7 +14,7 @@ public:
     /// @note Supports RGB and RGBA formats.
     /// @warning If you construct the same texture twice, there is no checking as of this point, so it'll be allocated twice on the GPU.
     /// @warning If you want to use this texture twice just give the std::shared_ptr to two materials.
-    explicit Texture(const char* file_path, bool generate_minimap = true);
+    explicit Texture(const char* file_path, bool sRGB = false, bool generate_minimap = true);
     /// Deconstructs and removes the texture from GPU.
     ~Texture();
 };

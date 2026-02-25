@@ -151,7 +151,7 @@ inline const Color Color::GREEN {0.0f, 1.0f, 0.0f};
 inline const Color Color::BLUE  {0.0f, 0.0f, 1.0f};
 inline const Color Color::WHITE {1.0f, 1.0f, 1.0f};
 inline const Color Color::BLACK {0.0f, 0.0f, 0.0f};
-inline const Color Color::ORANGE {1.0f, 0.6f, 0.3f};
-inline const Color Color::TEAL {0.3f, 0.6f, 1.0f};
+inline const Color Color::ORANGE {1.0f, 0.77f, 0.54f};
+inline const Color Color::TEAL {0.54f, 0.77f, 1.0f};
 
 #endif //COORDINATES_H

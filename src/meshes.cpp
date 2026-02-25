@@ -115,6 +115,7 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
         if (line[0] == 'n') {
             auto material_name = after_char(line, ' ');
             mat = std::make_shared<Material>(template_shader_program);
+            mat->save_uniform_value("material.has_albedo_texture", false);
             materials[material_name] = mat;
         } else if (line[0] == '\0') {
             mat = nullptr;

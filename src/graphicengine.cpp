@@ -65,6 +65,8 @@ void Engine::init_render_pipeline() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);
 
+    set_gamma_correction(true);
+
     // create a Uniform Buffer for camera data
     glGenBuffers(1, &camera_matrix_ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, camera_matrix_ubo);
@@ -224,6 +226,19 @@ void Engine::debug_error(const std::string &message) {
 
 void Engine::debug_warning(const std::string &message) {
     std::cerr << "ENGINE WARNING: " << message << std::endl;
+}
+
+void Engine::set_gamma_correction(const bool state) {
+    gamma_correction = state;
+    if (state) {
+        glEnable(GL_FRAMEBUFFER_SRGB);
+    } else {
+        glDisable(GL_FRAMEBUFFER_SRGB);
+    }
+}
+
+bool Engine::get_gamma_correction() const {
+    return gamma_correction;
 }
 
 Engine::~Engine() {

@@ -52,6 +52,9 @@ class Engine {
     std::deque<unsigned int> deleted_geRef_ids{};
 
     std::vector<unsigned int> queued_things_to_be_removed{};
+
+    /// Is gamma correction enabled
+    bool gamma_correction = false;
 public:
     /// The main window in which the engine draws images (the only window)
     Window window;
@@ -170,6 +173,11 @@ public:
     void remove_thing(unsigned int id);
 
     [[nodiscard]] double get_game_time() const;
+
+    /// Sets gamma correction on the following
+    void set_gamma_correction(bool gamma_correction);
+    /// Tells if gamma correction is enabled
+    [[nodiscard]] bool get_gamma_correction() const;
 
     /// Bindless Texture Support Setter
     /// @warning Do not touch this
