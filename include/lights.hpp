@@ -56,6 +56,10 @@ public:
     unsigned int MAX_NR_POINT_LIGHTS;
     /// Maximum amount of rendered DirectionalLights
     unsigned int MAX_NR_DIRECTIONAL_LIGHTS;
+
+    /// The base ambient light color used by the "default material"
+    Color ambient_light;
+
     /// Light overflow solution
     LightOverflowAction light_overflow_action;
 

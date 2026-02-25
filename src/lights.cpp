@@ -16,7 +16,7 @@ color(color), intensity(intensity), direction(direction) {
 }
 
 Lights::Lights(unsigned int MAX_NR_POINT_LIGHTS, unsigned int MAX_NR_DIRECTIONAL_LIGHTS, LightOverflowAction light_overflow_action) :
-MAX_NR_POINT_LIGHTS(MAX_NR_POINT_LIGHTS), MAX_NR_DIRECTIONAL_LIGHTS(MAX_NR_DIRECTIONAL_LIGHTS), light_overflow_action(light_overflow_action) { }
+MAX_NR_POINT_LIGHTS(MAX_NR_POINT_LIGHTS), MAX_NR_DIRECTIONAL_LIGHTS(MAX_NR_DIRECTIONAL_LIGHTS), light_overflow_action(light_overflow_action), ambient_light(Color::BLACK) { }
 
 
 Lights::~Lights() {
@@ -61,11 +61,14 @@ void Lights::update(Position& camera_pos) {
 
     // FILL IN BUFFER DATA
     glBindBuffer(GL_UNIFORM_BUFFER, lights_ubo);
+    // ambient light
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, 4 * sizeof(float), &ambient_light);
+    constexpr unsigned int BASE_OFFSET = 4 * sizeof(float);
     // point lights
     for (size_t i = 0; i < std::min(point_lights.size(), static_cast<size_t>(MAX_NR_POINT_LIGHTS)); i++) {
         const auto ptl = dynamic_cast<PointLight*>(ge.get_thing(point_lights[i]));
 
-        unsigned int byte_offset = static_cast<unsigned int>(i) * PointLight::STRUCT_BYTE_SIZE;
+        unsigned int byte_offset = static_cast<unsigned int>(i) * PointLight::STRUCT_BYTE_SIZE + BASE_OFFSET;
 
         glm::vec3 plt_pos = ptl->transform.position.glm_vector();
 
@@ -77,7 +80,7 @@ void Lights::update(Position& camera_pos) {
     for (size_t i = 0; i < std::min(directional_lights.size(), static_cast<size_t>(MAX_NR_DIRECTIONAL_LIGHTS)); i++) {
         auto dl = dynamic_cast<DirectionalLight*>(ge.get_thing(directional_lights[i]));
 
-        unsigned int byte_offset = static_cast<unsigned int>(i) * DirectionalLight::STRUCT_BYTE_SIZE + MAX_NR_POINT_LIGHTS * PointLight::STRUCT_BYTE_SIZE;
+        unsigned int byte_offset = static_cast<unsigned int>(i) * DirectionalLight::STRUCT_BYTE_SIZE + MAX_NR_POINT_LIGHTS * PointLight::STRUCT_BYTE_SIZE + BASE_OFFSET;
 
         glBufferSubData(GL_UNIFORM_BUFFER, byte_offset, sizeof(float) * 3, &dl->color);
         glBufferSubData(GL_UNIFORM_BUFFER, byte_offset +  static_cast<unsigned int>(sizeof(float)) * 3, sizeof(float), &dl->intensity);

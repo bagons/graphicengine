@@ -10,49 +10,6 @@ in vec3 NORMAL;
 in vec3 FRAG_GLOBAL_POS;
 in vec3 CAMERA_GLOBAL_POS;
 
-
-/* <GRAPHIC ENGINE TEMPLATE CODE> */
-struct PointLight{
-  vec4 light_data;
-  vec3 position;
-};
-
-struct DirectionalLight{
-  vec4 light_data;
-  vec3 direction;
-};
-
-layout (std140) uniform LIGHTS
-{
-    PointLight point_lights[NR_POINT_LIGHTS];
-    DirectionalLight directional_lights[NR_DIRECTIONAL_LIGHTS];
-};
-
-/* </GRAPHIC ENGINE TEMPLATE CODE> */
-
-/* <GRAPHIC ENGINE DEFAULT LIGHT FUNCTION> */
-vec3 light() {
-    vec3 out_color = vec3(0.0, 0.0, 0.0);
-
-    vec3 norm = normalize(NORMAL);
-
-    // point lights
-    for(int i = 0; i < NR_POINT_LIGHTS; i++){
-        vec3 dir = normalize(point_lights[i].position - FRAG_GLOBAL_POS);
-        float diff = max(dot(norm, dir), 0.0);
-        out_color += point_lights[i].light_data.xyz * diff;
-    }
-    // directional lights
-    for(int i = 0; i < NR_DIRECTIONAL_LIGHTS; i++){
-        vec3 dir = -normalize(directional_lights[i].direction);
-        float diff = max(dot(norm, dir), 0.0);
-        out_color += directional_lights[i].light_data.xyz * diff;
-    }
-    
-    return out_color;
-}
-/* </GRAPHIC ENGINE DEFAULT LIGHT FUNCTION> */
-
 /* <GRAPHIC ENGINE DEFAULT MATERIAL> */
 struct Material {
     vec3 ambient;
@@ -60,38 +17,97 @@ struct Material {
     vec3 specular;
     float shininess;
 
-    bool has_albedo;
+    bool has_albedo_texture;
+    vec3 albedo_color;
     sampler2D albedo_texture;
 };
 
 uniform Material material;
 /* </GRAPHIC ENGINE DEFAULT MATERIAL> */
 
+/* <GRAPHIC ENGINE TEMPLATE CODE> */
+struct PointLight{
+    vec4 light_data;
+    vec3 position;
+};
+
+struct DirectionalLight{
+    vec4 light_data;
+    vec3 direction;
+};
+
+layout (std140) uniform LIGHTS
+{
+    vec3 BASE_AMBINET_LIGHT;
+    PointLight point_lights[NR_POINT_LIGHTS];
+    DirectionalLight directional_lights[NR_DIRECTIONAL_LIGHTS];
+};
+
+/* </GRAPHIC ENGINE TEMPLATE CODE> */
+
+/* <GRAPHIC ENGINE DEFAULT LIGHT FUNCTION> */
+mat3 light() {
+    mat3 out_lights = mat3(
+    BASE_AMBINET_LIGHT,
+    vec3(0.0f, 0.0f, 0.0f),
+    vec3(0.0f, 0.0f, 0.0f)
+    );
+
+    vec3 norm = normalize(NORMAL);
+
+    vec3 view_dir = normalize(CAMERA_GLOBAL_POS - FRAG_GLOBAL_POS);
+
+    // point lights
+    for(int i = 0; i < NR_POINT_LIGHTS; i++){
+        vec4 light_data = point_lights[i].light_data;
+        // Diffuse
+        vec3 dir = normalize(point_lights[i].position - FRAG_GLOBAL_POS);
+        float diff = max(dot(norm, dir), 0.0);
+        out_lights[1] += light_data.rgb * diff;
+
+        // Blinn-Phong specular
+        vec3 halfway_dir = normalize(dir + view_dir);
+        float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess);
+        out_lights[2] += light_data.rgb * spec;
+    }
+    // directional lights
+    for(int i = 0; i < NR_DIRECTIONAL_LIGHTS; i++){
+        vec4 light_data = directional_lights[i].light_data;
+        /// diffuse
+        vec3 dir = -normalize(directional_lights[i].direction);
+        float diff = max(dot(norm, dir), 0.0);
+        out_lights[1] += light_data.rgb * diff;
+
+        // Blinn-Phong specular
+        vec3 halfway_dir = normalize(dir + view_dir);
+        float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess);
+        out_lights[2] += light_data.rgb * spec;
+    }
+
+    return out_lights;
+}
+/* </GRAPHIC ENGINE DEFAULT LIGHT FUNCTION> */
+
 out vec4 FragColor;
 
 
 void main() {
+    mat3 lighting = light();
     // ambient
-    /*vec3 ambient = light_color * material.ambient;
-  	
-    // diffuse 
-    vec3 norm = normalize(NORMAL);
-    vec3 lightDir = normalize(light_pos - FRAG_GLOBAL_POS);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = light_color * (diff * material.diffuse);
-    
-    // specular
-    vec3 viewDir = normalize(CAMERA_GLOBAL_POS - FRAG_GLOBAL_POS);
-    vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = light_color * (spec * material.specular);  
-    */
-    vec3 result = vec3(0.0,0.0,0.0);
+    vec3 ambient = lighting[0] * material.ambient;
+    // diffuse
+    vec3 diffuse = lighting[1] * material.diffuse;
 
-#ifdef HAS_UV
-    result = material.has_albedo ? texture(material.albedo_texture, UV).xyz : vec3(0.0, 1.0, 0.0);
-    result *= light();
-#endif
+    // specular
+    vec3 specular = lighting[2] * material.specular;
+    //specular = vec3(0.0, 0.0, 0.0);
+
+    vec3 result = ambient + diffuse + specular;
+
+    result *= material.albedo_color;
+    #ifdef HAS_UV
+    result *= material.has_albedo_texture ? texture(material.albedo_texture, UV).xyz : vec3(1.0, 1.0, 1.0);
+    #endif
 
     FragColor = vec4(result, 1.0);
 }
