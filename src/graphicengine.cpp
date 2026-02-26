@@ -79,6 +79,10 @@ void Engine::init_render_pipeline() {
 
 
 void Engine::update() {
+    /* Poll for and process events */
+    glfwPollEvents();
+
+    // update entities
     things_container::const_iterator it;
 
     for (it = things.begin(); it != things.end(); it++) {
@@ -87,8 +91,6 @@ void Engine::update() {
         }
     }
 
-    // input update to correctly adjust just pressed keys
-    input.update();
     // remove queued entities
     for (auto id : queued_things_to_be_removed) {
         remove_thing(id);
@@ -99,8 +101,9 @@ void Engine::update() {
 void Engine::send_it_to_window() {
     /* Swap front and back buffers */
     glfwSwapBuffers(window.glfwwindow);
-    /* Poll for and process events */
-    glfwPollEvents();
+
+    // input update to correctly adjust just pressed keys
+    input.update();
 
     frame_delta = static_cast<float>(glfwGetTime() - last_game_time);
     last_game_time = glfwGetTime();

@@ -3,60 +3,95 @@
 #include "input.hpp"
 
 
-void Input::set_action_list(const std::vector<int> &action_keys) {
+void Input::set_action_list(const std::vector<int>&& action_keys) {
+    actions.clear();
     for (const auto key : action_keys) {
-        actions.push_back(action{key, 0});
+        actions.push_back(key);
     }
 }
 
-bool Input::is_pressed(int action_idx) const {
-    // pressed state == 1 or + 2 (value: 3) if just happened
-    return all_key_states[actions[action_idx].key] % 2 == 1;
+void Input::rebind_action(unsigned int action_idx, int new_key) {
+    if (action_idx >= actions.size()) {
+        Engine::debug_warning("Action '" + std::to_string(action_idx) + "' does not exist. Define it in set action list.");
+        return;
+    }
+    actions[action_idx] = new_key;
 }
 
-bool Input::just_pressed(int action_idx) const {
-    // pressed state == 1 (+ 2 if just happened)
-    return all_key_states[actions[action_idx].key] == 3;
+
+bool Input::is_pressed(const unsigned int action_idx) const {
+    if (action_idx >= actions.size()) {
+        Engine::debug_warning("Action '" + std::to_string(action_idx) + "' does not exist. Define it in set action list.");
+        return false;
+    }
+    KeyState ks = all_key_states[actions[action_idx]];
+    return ks == PRESSED or ks == JUST_PRESSED;
+}
+
+bool Input::just_pressed(const unsigned int action_idx) const {
+    if (action_idx >= actions.size()) {
+        Engine::debug_warning("Action '" + std::to_string(action_idx) + "' does not exist. Define it in set action list.");
+        return false;
+    }
+    return all_key_states[actions[action_idx]] == JUST_PRESSED;
 }
 
 
-bool Input::just_released(int action_idx) const {
-    // released state == 0 (+ 2 if just happened)
-    return all_key_states[actions[action_idx].key] == 2;
+bool Input::just_released(const unsigned int action_idx) const {
+    if (action_idx >= actions.size()) {
+        Engine::debug_warning("Action '" + std::to_string(action_idx) + "' does not exist. Define it in set action list.");
+        return false;
+    }
+    return all_key_states[actions[action_idx]] == JUST_RELEASED;
 }
 
 
 void Input::update() {
     // change states of keys that have been just pressed
-    for (size_t i = 0; i < just_updated_key_states_count; i++) {
-        all_key_states[just_updated_key_states[i]] -= 2;
+    for (size_t i = 0; i < just_updated_key_count; i++) {
+        if (all_key_states[just_updated_keys[i]] == JUST_PRESSED) {
+            all_key_states[just_updated_keys[i]] = PRESSED;
+        } else if (all_key_states[just_updated_keys[i]] == JUST_RELEASED) {
+            all_key_states[just_updated_keys[i]] = RELEASED;
+        }
     }
-    just_updated_key_states_count = 0;
+    just_updated_key_count = 0;
 
-    // update mouse position
-    glfwGetCursorPos(ge.window.glfwwindow, &mouse_position.x, &mouse_position.y);
+    update_mouse_positions();
+}
+
+void Input::update_mouse_positions() {
+    double mouse_x, mouse_y;
+    glfwGetCursorPos(ge.window.glfwwindow, &mouse_x, &mouse_y);
+    mouse_position.x = static_cast<float>(mouse_x);
+    mouse_position.y = static_cast<float>(mouse_y);
 
     // calculate mouse relative position
     mouse_move_delta = last_mouse_position - mouse_position;
-
     last_mouse_position = mouse_position;
 }
 
 void Input::init() {
-    glfwGetCursorPos(ge.window.glfwwindow, &mouse_position.x, &mouse_position.y);
-    last_mouse_position = mouse_position;
+    update_mouse_positions();
+    set_mouse_mode(NORMAL);
 }
 
 
 void Input::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    Input& input_man = static_cast<Engine*>(glfwGetWindowUserPointer(window))->input;
-    if (action == GLFW_PRESS || action == GLFW_RELEASE) {
-        input_man.all_key_states[key] = action + 2;
+    // due to the need for a static callback
+    Input& im = static_cast<Engine*>(glfwGetWindowUserPointer(window))->input;
 
-        // update in order a 64 int long buffer that tells wich keys were just pressed (next part processed in update method)
-        if (input_man.just_updated_key_states_count < 64) {
-            input_man.just_updated_key_states[input_man.just_updated_key_states_count] = key;
-            input_man.just_updated_key_states_count++;
+    if (action == GLFW_PRESS and im.all_key_states[key] != PRESSED) {
+        im.all_key_states[key] = JUST_PRESSED;
+        if (im.just_updated_key_count < im.just_updated_keys.size()) {
+            im.just_updated_keys[im.just_updated_key_count] = key;
+            im.just_updated_key_count++;
+        }
+    } else if (action == GLFW_RELEASE) {
+        im.all_key_states[key] = JUST_RELEASED;
+        if (im.just_updated_key_count < im.just_updated_keys.size()) {
+            im.just_updated_keys[im.just_updated_key_count] = key;
+            im.just_updated_key_count++;
         }
     }
 }
@@ -66,6 +101,6 @@ void Input::connect_callbacks(GLFWwindow *window) {
 }
 
 
-void Input::set_mouse_mode(int mode) {
+void Input::set_mouse_mode(const MouseMode mode) {
     glfwSetInputMode(ge.window.glfwwindow, GLFW_CURSOR, mode);
 }
