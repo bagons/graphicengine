@@ -184,6 +184,8 @@ public:
     void set_bindless_texture_support(bool support_bindless_textures);
     /// Bindless Texture Support Getter
     [[nodiscard]] bool are_bindless_textures_supported() const;
+
+    static constexpr float PI = 3.14159f;
 };
 
 ///  ment to work with a global instance of the Engine class in the main.cpp of the game
