@@ -136,6 +136,11 @@ public:
     /// @param val the value you want to change it to (limited by the uniform variant type)
     void set_uniform(const char* uniform_name, const uniform_variant &val);
 
+    /// Gets the saved uniform, the ShaderProgram can't change the uniforms, but if you don't have the value and suddenly need it you can use this.
+    /// @param uniform_name the uniform you want to get
+    /// @returns uniform_variant, if you actually want to use the value use std::get<TYPE>(uniform_variant), make sure type matches otherwise you get an error
+    uniform_variant get_uniform(const char* uniform_name) const;
+
     /// return the id of the uniform based on name
     /// @param uniform_name the uniform name
     int get_uniform_location(const char *uniform_name) const;

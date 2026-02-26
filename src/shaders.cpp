@@ -284,6 +284,13 @@ void Material::set_uniform(const char *uniform_name, const uniform_variant &val)
     uniforms[loc] = val;
 }
 
+uniform_variant Material::get_uniform(const char *uniform_name) const {
+    auto it = uniforms.find(get_uniform_location(uniform_name));
+    if (it != uniforms.end())
+        return it->second;
+    Engine::debug_error("Get failed " + std::string(uniform_name) + " not found");
+    return false;
+}
 
 void Shaders::add_shader_id_use(const unsigned int sp_id) {
     shader_programs_id_used[sp_id] += 1;
