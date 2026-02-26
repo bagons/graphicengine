@@ -104,40 +104,62 @@ public:
 
 /// Holds uniform values of a ShaderProgram and is responsible for their correct usage.
 /// It's the intended way of adding colors to Meshes.
-class Material {
-public:
+class Material : public std::enable_shared_from_this<Material> {
     /// Unique material id
     uint64_t id = -1;
     /// ShaderProgram that is applied to the geometry
     ShaderProgram shader_program;
+    std::map<std::string, int> uniform_name_to_loc;
+public:
+    /// getter for read-only attribute id
+    [[nodiscard]] uint64_t get_id() const;
+
+    /// getter for read-only shader program attribute
+    [[nodiscard]] const ShaderProgram& get_shader_program() const;
+
+    /// getter for read-only shader program id attribute
+    [[nodiscard]] unsigned int get_shader_program_id() const;
+
+
     /// Container for the shader values
-    uniform_map shader_values = {};
+    uniform_map uniforms = {};
     /// You create a material by supplying a shader program to be used
     /// @param _shader_program the shader program that is used
     explicit Material(const ShaderProgram &_shader_program);
 
-    /// ONE TIME sets all uniform values saved by the material
+    /// ONE TIME applies all uniform values saved by the material
     /// @note used by the renderer to material switch
-    void set_uniform_values() const;
+    void apply_uniform_values() const;
 
     /// Saves a uniform value and holds on this value util it's resaved. Primary way of changing material values.
     /// @param uniform_name name of the uniform you want to change
     /// @param val the value you want to change it to (limited by the uniform variant type)
-    void save_uniform_value(const char* uniform_name, const uniform_variant &val);
+    void set_uniform(const char* uniform_name, const uniform_variant &val);
 
     /// return the id of the uniform based on name
     /// @param uniform_name the uniform name
-    unsigned int get_uniform_location(const char *uniform_name) const;
+    int get_uniform_location(const char *uniform_name) const;
+
+    /// Creates a copy of this material, same shader program, same uniforms, but now they are independent
+    [[nodiscard]] std::shared_ptr<Material> copy() const;
+
+    /// Regenerates uniform location IDs
+    void rebind_uniforms();
+
+    /// Keeps the uniforms same, but changes the underlying shader program
+    /// @param new_sp The new ShaderProgram you are switching to
+    /// @warning Works only on Material that isn't instanced right now on any MeshThing / ModelThing (including derivatives). If it is instanced ShaderProgram becomes read-only because engine structure relies on it.
+    void shader_program_switch(ShaderProgram new_sp);
 };
 
 /// Helper Struct for a std::map in Engine class, that sorts renderable objects by shader_program first, material_id second
 /// Useful for rendering order optimization.
 struct MaterialSorter {
     bool operator()(const std::shared_ptr<Material>& m1, const std::shared_ptr<Material>& m2) const {
-        if (m1->shader_program.get_id() != m2->shader_program.get_id()) {
-            return m1->shader_program.get_id() < m2->shader_program.get_id();
+        if (m1->get_shader_program_id() != m2->get_shader_program_id()) {
+            return m1->get_shader_program_id() < m2->get_shader_program_id();
         }
-        return m1->id < m2->id;
+        return m1->get_id() < m2->get_id();
     }
 };
 

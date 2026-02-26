@@ -176,48 +176,112 @@ Material::Material(const ShaderProgram &_shader_program) : shader_program(_shade
     id = ge.shaders.get_material_identificator();
 }
 
-void Material::set_uniform_values() const {
+void Material::apply_uniform_values() const {
     uniform_map::const_iterator it;
 
     // (only used when bindless textures are NOT supported)
     int bind_texture_slot = 0;
 
-    for (it = shader_values.begin(); it != shader_values.end(); it++) {
-        if (std::holds_alternative<float>(it->second)) {
-            glUniform1f(it->first, std::get<float>(it->second));
+    for (it = uniforms.begin(); it != uniforms.end(); it++) {
+        int uniform_loc = it->first;
+        uniform_variant value = it->second;
+
+        if (std::holds_alternative<float>(value)) {
+            glUniform1f(uniform_loc, std::get<float>(value));
         }
-        else if (std::holds_alternative<Vector3>(it->second)) {
-            const auto vec = std::get<Vector3>(it->second);
-            glUniform3f(it->first, vec.x, vec.y, vec.z);
+        else if (std::holds_alternative<Vector3>(value)) {
+            const auto vec = std::get<Vector3>(value);
+            glUniform3f(uniform_loc, vec.x, vec.y, vec.z);
         }
-        else if (std::holds_alternative<std::shared_ptr<Texture>>(it->second)) {
+        else if (std::holds_alternative<std::shared_ptr<Texture>>(value)) {
             if (ge.are_bindless_textures_supported()) {
-                glProgramUniformHandleui64ARB(shader_program.get_id(), it->first, std::get<std::shared_ptr<Texture>>(it->second)->handle);
+                glProgramUniformHandleui64ARB(shader_program.get_id(), uniform_loc, std::get<std::shared_ptr<Texture>>(value)->handle);
             } else {
                 glActiveTexture(GL_TEXTURE0 + bind_texture_slot);
-                glBindTexture(GL_TEXTURE_2D, std::get<std::shared_ptr<Texture>>(it->second)->id);
-                glUniform1i(it->first, bind_texture_slot);
+                glBindTexture(GL_TEXTURE_2D, std::get<std::shared_ptr<Texture>>(value)->id);
+                glUniform1i(uniform_loc, bind_texture_slot);
                 bind_texture_slot += 1;
             }
-        } else if (std::holds_alternative<bool>(it->second)) {
-            glUniform1i(it->first, std::get<bool>(it->second));
-        } else if (std::holds_alternative<int>(it->second)) {
-            glUniform1i(it->first, std::get<int>(it->second));
-        } else if (std::holds_alternative<Color>(it->second)) {
-            const auto color = std::get<Color>(it->second);
-            glUniform4f(it->first, color.r, color.g, color.b, color.a);
+        } else if (std::holds_alternative<bool>(value)) {
+            glUniform1i(uniform_loc, std::get<bool>(value));
+        } else if (std::holds_alternative<int>(value)) {
+            glUniform1i(uniform_loc, std::get<int>(value));
+        } else if (std::holds_alternative<Color>(value)) {
+            const auto color = std::get<Color>(value);
+            glUniform4f(uniform_loc, color.r, color.g, color.b, color.a);
         }
     }
 }
 
+uint64_t Material::get_id() const {
+    return id;
+}
 
-unsigned int Material::get_uniform_location(const char *uniform_name) const {
+const ShaderProgram& Material::get_shader_program() const {
+    return shader_program;
+}
+
+unsigned int Material::get_shader_program_id() const {
+    return shader_program.get_id();
+}
+
+std::shared_ptr<Material> Material::copy() const {
+    auto mat = std::make_shared<Material>(shader_program);
+    mat->uniforms = uniforms;
+    return mat;
+}
+
+void Material::rebind_uniforms() {
+    for (auto it = uniform_name_to_loc.begin(); it != uniform_name_to_loc.end(); it++) {
+        int new_loc = get_uniform_location(it->first.c_str());
+        // edit key in uniforms map
+        auto nh = uniforms.extract(it->second);
+        nh.key() = new_loc;
+        uniforms.insert(std::move(nh));
+        //
+        uniform_name_to_loc[it->first] = new_loc;
+    }
+}
+
+void Material::shader_program_switch(ShaderProgram new_sp) {
+    // check if Material not in use
+    auto self = shared_from_this();
+    if (ge.thing_ids_by_shader_program.find(self) != ge.thing_ids_by_shader_program.end()) {
+        Engine::debug_error("Material (id " + std::to_string(id) + ") is already in use ShaderProgram can't be changed no longer. Create a new Material and set it's uniforms to the uniforms here and call rebind_uniforms()");
+        return;
+    }
+    shader_program = std::move(new_sp);
+    rebind_uniforms();
+
+    /* THEORETICAL IN ENGINE RESORT, BUT STILL DOESN'T UPDATE ENTITIES THUS (SCRAPED FOR NOW)
+     *if (resort_engine_map) {
+        // find all
+        auto self = shared_from_this();
+        const auto [fst, snd] = ge.thing_ids_by_shader_program.equal_range(self);
+
+        // get iterators
+        std::vector<decltype(ge.thing_ids_by_shader_program)::node_type> nhs;
+        for (auto it = fst; it != snd;) {
+            nhs.push_back(ge.thing_ids_by_shader_program.extract(it++));
+        }
+
+        // extract and re-insert
+        for (auto &nh : nhs) {
+            ge.thing_ids_by_shader_program.insert(std::move(nh));
+        }
+    }*/
+}
+
+
+int Material::get_uniform_location(const char *uniform_name) const {
     shader_program.use();
     return glGetUniformLocation(shader_program.get_id(), uniform_name);
 }
 
-void Material::save_uniform_value(const char *uniform_name, const uniform_variant &val) {
-    shader_values[glGetUniformLocation(shader_program.get_id(), uniform_name)] = val;
+void Material::set_uniform(const char *uniform_name, const uniform_variant &val) {
+    int loc = get_uniform_location(uniform_name);
+    uniform_name_to_loc[uniform_name] = loc;
+    uniforms[loc] = val;
 }
 
 
@@ -261,36 +325,36 @@ void Shaders::debug_show_shader_program_use() {
 
 void Shaders::setup_base_materials() {
     base_materials[0] = std::make_shared<Material>(phong_shader_program_gen(true, false));
-    base_materials[0]->save_uniform_value("material.ambient", Vector3(0.2f));
-    base_materials[0]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
-    base_materials[0]->save_uniform_value("material.specular", Color::WHITE.no_alpha());
-    base_materials[0]->save_uniform_value("material.shininess", 32.0f);
-    base_materials[0]->save_uniform_value("material.has_albedo_texture", false);
-    base_materials[0]->save_uniform_value("material.albedo_color", Color::WHITE.no_alpha());
+    base_materials[0]->set_uniform("material.ambient", Vector3(0.2f));
+    base_materials[0]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[0]->set_uniform("material.specular", Color::WHITE.no_alpha());
+    base_materials[0]->set_uniform("material.shininess", 32.0f);
+    base_materials[0]->set_uniform("material.has_albedo_texture", false);
+    base_materials[0]->set_uniform("material.albedo_color", Color::WHITE.no_alpha());
 
     base_materials[1] = std::make_shared<Material>(phong_shader_program_gen(true, true));
-    base_materials[1]->save_uniform_value("material.ambient", Vector3(0.2f));
-    base_materials[1]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
-    base_materials[1]->save_uniform_value("material.specular", Color::WHITE.no_alpha());
-    base_materials[1]->save_uniform_value("material.shininess", 32.0f);
-    base_materials[1]->save_uniform_value("material.has_albedo_texture", false);
-    base_materials[1]->save_uniform_value("material.albedo_color", Color::WHITE.no_alpha());
+    base_materials[1]->set_uniform("material.ambient", Vector3(0.2f));
+    base_materials[1]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[1]->set_uniform("material.specular", Color::WHITE.no_alpha());
+    base_materials[1]->set_uniform("material.shininess", 32.0f);
+    base_materials[1]->set_uniform("material.has_albedo_texture", false);
+    base_materials[1]->set_uniform("material.albedo_color", Color::WHITE.no_alpha());
 
     base_materials[2] = std::make_shared<Material>(phong_shader_program_gen(false, false));
-    base_materials[2]->save_uniform_value("material.ambient", Vector3(0.2f));
-    base_materials[2]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
-    base_materials[2]->save_uniform_value("material.specular", Color::WHITE.no_alpha());
-    base_materials[2]->save_uniform_value("material.shininess", 32.0f);
-    base_materials[2]->save_uniform_value("material.has_albedo_texture", false);
-    base_materials[2]->save_uniform_value("material.albedo_color", Color::WHITE.no_alpha());
+    base_materials[2]->set_uniform("material.ambient", Vector3(0.2f));
+    base_materials[2]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[2]->set_uniform("material.specular", Color::WHITE.no_alpha());
+    base_materials[2]->set_uniform("material.shininess", 32.0f);
+    base_materials[2]->set_uniform("material.has_albedo_texture", false);
+    base_materials[2]->set_uniform("material.albedo_color", Color::WHITE.no_alpha());
 
     base_materials[3] = std::make_shared<Material>(no_normal_program_gen(true));
-    base_materials[3]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
-    base_materials[3]->save_uniform_value("material.has_albedo_texture", false);
+    base_materials[3]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[3]->set_uniform("material.has_albedo_texture", false);
 
     base_materials[4] = std::make_shared<Material>(no_normal_program_gen(false));
-    base_materials[4]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
-    base_materials[4]->save_uniform_value("material.has_albedo_texture", false);
+    base_materials[4]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[4]->set_uniform("material.has_albedo_texture", false);
 
 }
 

@@ -102,10 +102,10 @@ MeshThing::MeshThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _ma
     mesh = std::move(_mesh);
     material = std::move(_material);
 
-    vs_uniform_transform_loc = glGetUniformLocation(material->shader_program.get_id(), "transform");
+    vs_uniform_transform_loc = glGetUniformLocation(material->get_shader_program_id(), "transform");
 
     if (mesh->does_have_uvs()) {
-        vs_uniform_normal_matrix = glGetUniformLocation(material->shader_program.get_id(), "normal_matrix");
+        vs_uniform_normal_matrix = glGetUniformLocation(material->get_shader_program_id(), "normal_matrix");
     }
 }
 
@@ -177,7 +177,7 @@ MeshThing(std::move(_mesh), std::move(_material)) {
     manager = _manager;
 
     if (mesh->does_have_uvs()) {
-        vs_uniform_normal_matrix = glGetUniformLocation(material->shader_program.get_id(), "normal_matrix");
+        vs_uniform_normal_matrix = glGetUniformLocation(material->get_shader_program_id(), "normal_matrix");
     }
 };
 
