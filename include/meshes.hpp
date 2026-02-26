@@ -16,8 +16,9 @@ class Mesh {
     /// @param indices triangle definition using indexes that reference vertex_data
     /// @param has_uvs data contains uvs
     /// @param has_normals data contains normals
+    /// @param has_tangents data contains tangent data
     /// @param has_vertex_colors data contains vertex colors
-    void load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, bool has_uvs, bool has_normals, bool has_vertex_colors = false);
+    void load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, bool has_uvs, bool has_normals, bool has_tangents, bool has_vertex_colors = false);
     bool has_uvs = false;
     bool has_normals = false;
 
@@ -38,11 +39,12 @@ public:
     /// @param has_uvs has uvs
     /// @param has_normals has normals
     /// @param has_vertex_colors has vertex colors
-    Mesh(const std::vector<float>* vertices, const std::vector<unsigned int>* indices, bool has_uvs = true, bool has_normals = true, bool has_vertex_colors = false);
+    Mesh(const std::vector<float>* vertices, const std::vector<unsigned int>* indices, bool has_uvs = true, bool has_normals = true, bool has_tangents = false, bool has_vertex_colors = false);
     /// Allocates Mesh to GPU from .obj file
     /// @param file_path path to a .obj file relative from .exe
-    /// create empty wrapper
-    Mesh();
+    /// @param generate_tangents if tangents need to be generated and added to mesh data, say yes if you plan on using HEIGHT or NORMAL MAPS in FRAGMENT SHADER.
+    explicit Mesh(const char* file_path, bool generate_tangents = false);
+
     /// getter for read-only has_uvs parameter
     [[nodiscard]] bool does_have_uvs() const;
     /// getter for read-only does_have_normals parameter

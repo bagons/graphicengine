@@ -157,10 +157,18 @@ class Shaders {
     /// 2 -> vu
     /// 3 -> vnu
     /// PS: these sp can be useful if you don't want to use custom shaders
-    std::array<std::shared_ptr<Material>, 4> base_materials{};
+    std::array<std::shared_ptr<Material>, 5> base_materials{};
     /// AUTO increment Shader ID value
     uint64_t next_material_id = 0;
 public:
+    /// Identifiers for Base Materials
+    enum BaseMaterial {
+        VERTEX_UV_NORMAL,
+        VERTEX_UV_NORMAL_TANGENT,
+        VERTEX_NORMAL,
+        VERTEX_UV,
+        VERTEX,
+    };
     /// Base material INIT function (called in the Engine constructor)
     void setup_base_materials();
     /// ShaderProgram counter use add
@@ -185,8 +193,12 @@ public:
     /// Base material getter
     /// @param with_uvs whether you want the Material for a mesh with UVs
     /// @param with_normals whether you want the Material for a mesh with Normals
+    /// @param with_tangents whether you want the Material for a mesh with Tangents (i.e. for Bump and Normal Maps)
     /// @warning it's important that you choose the correct material for the Mesh, but most models are with UVs and NORMALS (usually you enter true, true)
-    std::shared_ptr<Material> get_base_material(bool with_uvs, bool with_normals);
+    [[nodiscard]] std::shared_ptr<Material> get_base_material(bool with_uvs = true, bool with_normals = true, bool with_tangents = false);
+
+    /// Base material getter
+    [[nodiscard]] std::shared_ptr<Material> get_base_material(BaseMaterial identifier);
 
     /// Deletes any base material it truly not needed.
     /// @param index index of the material (0, 1, 2, 3 -> v, vn, vu, vnu)
@@ -198,20 +210,23 @@ public:
     bool bindless_textures_supported = false;
 
     /// Generates a ShaderProgram with a basic phong lighting system
-    /// @param has_uvs Whether you want the shader to be for a model with UVs (usually yes)
-    [[nodiscard]] ShaderProgram phong_shader_program_gen(bool has_uvs) const;
+    /// @param has_uvs Whether you want the shader to be for a mesh with UVs (usually yes)
+    /// @param has_tangents Whether you want the shader to be used for a mesh with tangents (for Normal Maps)
+    [[nodiscard]] ShaderProgram phong_shader_program_gen(bool has_uvs, bool has_tangents) const;
     /// Generates a ShaderProgram with ambient lighting (ment for models with No normals)
     /// @param has_uvs Whether you want the shader to be for a model with UVs (usually yes)
     [[nodiscard]] ShaderProgram no_normal_program_gen(bool has_uvs) const;
 
     /// Generates a Vertex Shader applicable to 90% of situations.
-    /// @param support_uv If it's ment for a model with UV coords
-    /// @param support_normal If it's ment for a model with Normal coords
-    static Shader base_vertex_shader_gen(bool support_uv = true, bool support_normal = true);
+    /// @param support_uv If it's ment for a mesh with UV coords
+    /// @param support_normal If it's ment for a mesh with Normal coords
+    /// @param support_tangents If it's ment for a mesh with Tangents (Usually for Normal Maps) (For this support UV and NORMAL has to be TRUE)
+    static Shader base_vertex_shader_gen(bool support_uv = true, bool support_normal = true, bool support_tangents = false);
 
     /// Generates a basic phong lighting Fragment Shader
-    /// @param support_uv Whether you want the shader to be for a model with UVs (usually yes)
-    [[nodiscard]] Shader base_phong_shader_gen(bool support_uv = true) const;
+    /// @param support_uv Whether you want the shader to be for a mesh with UVs (usually yes)
+    /// @param support_tangents Whether you want the shader to be for a mesh with tangents (i.e. for a mesh with a shader that supports Normal and Bump Maps)
+    [[nodiscard]] Shader base_phong_shader_gen(bool support_uv = true, bool support_tangents = false) const;
     /// Generates a basic ambient lighting Fragment Shader
     /// @param support_uv Whether you want the shader to be for a model with UVs (usually yes)
     [[nodiscard]] Shader base_no_normal_shader_gen(bool support_uv = true) const;

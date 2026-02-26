@@ -10,7 +10,7 @@
 #include <algorithm>
 
 
-void Mesh::load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, const bool has_uvs, const bool has_normals, const bool has_vertex_colors) {
+void Mesh::load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, const bool has_uvs, const bool has_normals, const bool has_tangents, const bool has_vertex_colors) {
     glGenBuffers(1, &vertex_buffer_object);
     glGenBuffers(1, &element_buffer_object);
 
@@ -25,7 +25,7 @@ void Mesh::load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::ve
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_object);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertex_count * static_cast<int>(sizeof(unsigned int)), indices->data(), GL_STATIC_DRAW);
 
-    const int stride = (3 + (has_normals ? 3 : 0) + (has_uvs ? 2 : 0) + (has_vertex_colors ? 3 : 0)) * static_cast<int>(sizeof(float));
+    const int stride = (3 + (has_normals ? 3 : 0) + (has_uvs ? 2 : 0) + (has_tangents ? 3 : 0) + (has_vertex_colors ? 3 : 0)) * static_cast<int>(sizeof(float));
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, nullptr);
     glEnableVertexAttribArray(0);
@@ -40,8 +40,13 @@ void Mesh::load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::ve
         glEnableVertexAttribArray(1 + has_uvs);
     }
 
-    if (has_vertex_colors) {
+    if (has_tangents) {
         glVertexAttribPointer(1 + has_normals + has_uvs, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void *>((3 + 3 * has_normals + 2 * has_uvs) * sizeof(float)));
+        glEnableVertexAttribArray(1 + has_normals + has_uvs);
+    }
+
+    if (has_vertex_colors) {
+        glVertexAttribPointer(1 + has_normals + has_uvs, 3, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<void *>((3 + 3 * has_normals + 3 * has_tangents + 2 * has_uvs) * sizeof(float)));
         glEnableVertexAttribArray(1 + has_normals + has_uvs);
     }
 
@@ -51,8 +56,8 @@ void Mesh::load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::ve
 };
 
 
-Mesh::Mesh(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, const bool has_uvs, const bool has_normals, const bool has_vertex_colors) : has_uvs(has_uvs), has_normals(has_normals) {
-    load_mesh_to_gpu(vertex_data, indices, has_uvs, has_normals, has_vertex_colors);
+Mesh::Mesh(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, const bool has_uvs, const bool has_normals, const bool has_tangents, const bool has_vertex_colors) : has_uvs(has_uvs), has_normals(has_normals) {
+    load_mesh_to_gpu(vertex_data, indices, has_uvs, has_normals, has_tangents, has_vertex_colors);
 }
 
 unsigned int Mesh::get_vertex_array_object() const {
@@ -166,7 +171,7 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
 
 
 // PARSES OBJ FILE AS A MODEL (separating vertex groups, parsing materials from mtllib)
-void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[3], std::vector<std::vector<size_t>>& vertex_groups, std::vector<std::shared_ptr<Material>>& materials, bool &has_uvs, bool &has_normals) {
+void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[4], std::vector<std::vector<size_t>>& vertex_groups, std::vector<std::shared_ptr<Material>>& materials, bool &has_uvs, bool &has_normals) {
     std::ifstream file(file_path);
     if (!file.good()) {
         std::cerr << "ENGINE ERROR: FAILED LOADING .obj file: " << file_path << std::endl;
@@ -314,7 +319,7 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
 
 
 // PARSE OBJ FILE AS A UNIFORM MESH WITH NO MATERIAL
-void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[3], std::vector<size_t>& vertex_group, bool &has_uvs, bool &has_normals) {
+void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[4], std::vector<size_t>& vertex_group, bool &has_uvs, bool &has_normals) {
     std::ifstream file(file_path);
     if (!file.good()) {
         std::cerr << "ENGINE ERROR: FAILED LOADING .obj file: " << file_path << std::endl;
@@ -326,7 +331,7 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
 
     // PARSING OF .OBJ FILE
     // go line by line
-    // TODO seems a bit slow, after parsing unordered map is instant, this will be the constraint
+    // TODO seems a bit slow, after parsing, unordered map is instant, this will be the constraint
     while (std::getline(file, line)) {
         // if v data
         if (line[0] == 'v') {
@@ -421,70 +426,127 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
 }
 
 
-void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_data_vec)[3], const std::vector<size_t>& vertex_triplets, const bool has_normals, const bool has_texture_cords, std::vector<float>& out_vertex_data, std::vector<unsigned int>& out_indices) {
+void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_data_vec)[4], const std::vector<size_t>& vertex_triplets, const bool has_normals, const bool has_texture_cords, std::vector<float>& out_vertex_data, std::vector<unsigned int>& out_indices) {
     std::unordered_map<UniqueVertexDataPoint, unsigned int, UniqueVertexDataPointHash> unique_vertex_data_points;
 
     unsigned int vertex_data_group_size = 1 + has_normals + has_texture_cords;
 
     unsigned int indecy_count = 0;
 
+    const bool needs_tangents = !vertex_data_vec[3].empty();
+
+    size_t face_counter = 0;
+    char vertex_within_face_counter = 0;
+
     for (size_t i = 0; i < (vertex_triplets.size() / vertex_data_group_size); i++) {
-        // create UniqueVertexDataPoint object
-            UniqueVertexDataPoint vdp{};
-
-            vdp.i = vertex_triplets[i * vertex_data_group_size] - 1;
-            vdp.vd[0] = vertex_data_vec[0][vdp.i * 3];
-            vdp.vd[1] = vertex_data_vec[0][vdp.i * 3 + 1];
-            vdp.vd[2] = vertex_data_vec[0][vdp.i * 3 + 2];
-
-
-            // fill in data of if they exist
-            size_t t = 3;
-
-            if (has_texture_cords) {
-                vdp.j = vertex_triplets[i * vertex_data_group_size + 1] - 1;
-
-                vdp.vd[t] = vertex_data_vec[1][vdp.j * 2];
-                vdp.vd[t + 1] = vertex_data_vec[1][vdp.j * 2 + 1];
-                t = 5;
+        if (needs_tangents) {
+            std::cout << i << ", " << vertex_within_face_counter << std::endl;
+            // face counter, by incrementing every 3 vertexes
+            if (vertex_within_face_counter >= 3) {
+                vertex_within_face_counter = 0;
+                face_counter += 1;
             }
-
-            if (has_normals) {
-                vdp.k = vertex_triplets[i * vertex_data_group_size + 1 + has_texture_cords] - 1;
-                vdp.vd[t] = vertex_data_vec[2][vdp.k * 3];
-                vdp.vd[t + 1] = vertex_data_vec[2][vdp.k * 3 + 1];
-                vdp.vd[t + 2] = vertex_data_vec[2][vdp.k * 3 + 2];
-            }
-
-
-            // check if already exists with hashmap
-            auto match = unique_vertex_data_points.find(vdp);
-            if (match == unique_vertex_data_points.end()) {
-                // add new indecy
-                unique_vertex_data_points[vdp] = indecy_count;
-                out_indices.push_back(indecy_count);
-                indecy_count += 1;
-
-                // insert vertex data
-                out_vertex_data.insert(out_vertex_data.end(), vdp.vd.begin(), vdp.vd.begin() + 3 + 3 * has_normals + 2 * has_texture_cords);
-            } else {
-                out_indices.push_back(match->second);
-            }
+            vertex_within_face_counter += 1;
         }
+
+        // create UniqueVertexDataPoint object
+        UniqueVertexDataPoint vdp{};
+
+        vdp.i = vertex_triplets[i * vertex_data_group_size] - 1;
+        vdp.vd[0] = vertex_data_vec[0][vdp.i * 3];
+        vdp.vd[1] = vertex_data_vec[0][vdp.i * 3 + 1];
+        vdp.vd[2] = vertex_data_vec[0][vdp.i * 3 + 2];
+
+
+        // fill in data of if they exist
+        size_t t = 3;
+
+        if (has_texture_cords) {
+            vdp.j = vertex_triplets[i * vertex_data_group_size + 1] - 1;
+
+            vdp.vd[t] = vertex_data_vec[1][vdp.j * 2];
+            vdp.vd[t + 1] = vertex_data_vec[1][vdp.j * 2 + 1];
+            t = 5;
+        }
+
+        if (has_normals) {
+            vdp.k = vertex_triplets[i * vertex_data_group_size + 1 + has_texture_cords] - 1;
+            vdp.vd[t] = vertex_data_vec[2][vdp.k * 3];
+            vdp.vd[t + 1] = vertex_data_vec[2][vdp.k * 3 + 1];
+            vdp.vd[t + 2] = vertex_data_vec[2][vdp.k * 3 + 2];
+        }
+
+
+        // check if already exists with hashmap
+        auto match = unique_vertex_data_points.find(vdp);
+        if (match == unique_vertex_data_points.end()) {
+            // add new indecy
+            unique_vertex_data_points[vdp] = indecy_count;
+            out_indices.push_back(indecy_count);
+            indecy_count += 1;
+
+            // insert vertex data
+            out_vertex_data.insert(out_vertex_data.end(), vdp.vd.begin(), vdp.vd.begin() + 3 + 3 * has_normals + 2 * has_texture_cords);
+            // add tangents if needed
+            if (needs_tangents) {
+                std::cout << "bout to face count: " << face_counter << std::endl;
+                out_vertex_data.push_back(vertex_data_vec[3][face_counter * 3]);
+                out_vertex_data.push_back(vertex_data_vec[3][face_counter * 3 + 1]);
+                out_vertex_data.push_back(vertex_data_vec[3][face_counter * 3 + 2]);
+                std::cout << "finished" << std::endl;
+            }
+        } else {
+            out_indices.push_back(match->second);
+        }
+    }
 }
 
 
-Mesh::Mesh(const char* file_path) {
+void calculate_tangents(std::vector<float> (&vertex_data_vec)[4], const std::vector<size_t>& vertex_group) {
+    std::cout << "Starting tg calcs: " << vertex_group.size() << std::endl;
+    // loop over faces
+    for (size_t i = 0; i < vertex_group.size() / 9; i++) {
+        std::cout << i << std::endl;
+        // positions
+        glm::vec3 point_a(vertex_data_vec[0][(vertex_group[i * 9] - 1) * 3],  vertex_data_vec[0][(vertex_group[i * 9] - 1) * 3 + 1], vertex_data_vec[0][(vertex_group[i * 9] - 1) * 3 + 2]);
+        glm::vec3 point_b(vertex_data_vec[0][(vertex_group[i * 9 + 3] - 1) * 3],  vertex_data_vec[0][(vertex_group[i * 9 + 3] - 1) * 3 + 1], vertex_data_vec[0][(vertex_group[i * 9 + 3] - 1) * 3 + 2]);
+        glm::vec3 point_c(vertex_data_vec[0][(vertex_group[i * 9 + 6] - 1) * 3],  vertex_data_vec[0][(vertex_group[i * 9 + 6] - 1) * 3 + 1], vertex_data_vec[0][(vertex_group[i * 9 + 6] - 1) * 3 + 2]);
+        // texture coordinates
+        glm::vec2 uv1(vertex_data_vec[1][(vertex_group[i * 9 + 1] - 1) * 2], vertex_data_vec[1][(vertex_group[i * 9 + 1] - 1) * 2 + 1]);
+        glm::vec2 uv2(vertex_data_vec[1][(vertex_group[i * 9 + 4] - 1) * 2], vertex_data_vec[1][(vertex_group[i * 9 + 4] - 1) * 2 + 1]);
+        glm::vec2 uv3(vertex_data_vec[1][(vertex_group[i * 9 + 7] - 1) * 2], vertex_data_vec[1][(vertex_group[i * 9 + 7] - 1) * 2 + 1]);
+
+        glm::vec3 edge1 = point_b - point_a;
+        glm::vec3 edge2 = point_c - point_a;
+        glm::vec2 deltaUV1 = uv2 - uv1;
+        glm::vec2 deltaUV2 = uv3 - uv1;
+
+        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+        // save 1 tangent vector per face
+        vertex_data_vec[3].push_back(f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x));
+        vertex_data_vec[3].push_back( f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y));
+        vertex_data_vec[3].push_back(f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z));
+    }
+    std::cout << "Finished tg calcs" << std::endl;
+}
+
+
+Mesh::Mesh(const char* file_path, bool generate_tangents) {
     vertex_buffer_object = -1;
     vertex_array_object = -1;
     element_buffer_object = -1;
 
     // define structures
-    std::vector<float> vertex_data_vec[3];
+    std::vector<float> vertex_data_vec[4];
     std::vector<size_t> vertex_group;
 
     // use structures to parse .obj file
     parse_obj_file(file_path, vertex_data_vec, vertex_group, has_uvs, has_normals);
+
+    // calculate tangents if told so
+    if (generate_tangents)
+        calculate_tangents(vertex_data_vec, vertex_group);
 
     // define new structures, for reordering
     std::vector<float> vertex_data;
@@ -495,12 +557,13 @@ Mesh::Mesh(const char* file_path) {
     // vertex_groups[0], because usually we would loop through all the groups and create the appropriate Mesh
     // but this is just a mesh, so we merged_all_groups, and now we work with only one group
     construct_mesh_data_from_parsed_obj_data(vertex_data_vec, vertex_group, has_normals, has_uvs, vertex_data, indices);
-    load_mesh_to_gpu(&vertex_data, &indices, has_uvs, has_normals, false);
+    std::cout << "constructed mesh data" << std::endl;
+    load_mesh_to_gpu(&vertex_data, &indices, has_uvs, has_normals, generate_tangents);
 }
 
 Model::Model(const char* file_path) {
     // define structures
-    std::vector<float> vertex_data_vec[3];
+    std::vector<float> vertex_data_vec[4];
     std::vector<std::vector<size_t>> vertex_groups;
 
     // use structures to parse .obj file

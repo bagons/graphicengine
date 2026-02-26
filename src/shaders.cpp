@@ -260,7 +260,7 @@ void Shaders::debug_show_shader_program_use() {
 
 
 void Shaders::setup_base_materials() {
-    base_materials[0] = std::make_shared<Material>(phong_shader_program_gen(true));
+    base_materials[0] = std::make_shared<Material>(phong_shader_program_gen(true, false));
     base_materials[0]->save_uniform_value("material.ambient", Vector3(0.2f));
     base_materials[0]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
     base_materials[0]->save_uniform_value("material.specular", Color::WHITE.no_alpha());
@@ -268,31 +268,56 @@ void Shaders::setup_base_materials() {
     base_materials[0]->save_uniform_value("material.has_albedo_texture", false);
     base_materials[0]->save_uniform_value("material.albedo_color", Color::WHITE.no_alpha());
 
-    base_materials[1] = std::make_shared<Material>(phong_shader_program_gen(false));
+    base_materials[1] = std::make_shared<Material>(phong_shader_program_gen(true, true));
     base_materials[1]->save_uniform_value("material.ambient", Vector3(0.2f));
-    base_materials[0]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
-    base_materials[0]->save_uniform_value("material.specular", Color::WHITE.no_alpha());
+    base_materials[1]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[1]->save_uniform_value("material.specular", Color::WHITE.no_alpha());
     base_materials[1]->save_uniform_value("material.shininess", 32.0f);
     base_materials[1]->save_uniform_value("material.has_albedo_texture", false);
     base_materials[1]->save_uniform_value("material.albedo_color", Color::WHITE.no_alpha());
 
-    base_materials[2] = std::make_shared<Material>(no_normal_program_gen(true));
+    base_materials[2] = std::make_shared<Material>(phong_shader_program_gen(false, false));
+    base_materials[2]->save_uniform_value("material.ambient", Vector3(0.2f));
     base_materials[2]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[2]->save_uniform_value("material.specular", Color::WHITE.no_alpha());
+    base_materials[2]->save_uniform_value("material.shininess", 32.0f);
     base_materials[2]->save_uniform_value("material.has_albedo_texture", false);
+    base_materials[2]->save_uniform_value("material.albedo_color", Color::WHITE.no_alpha());
 
-    base_materials[3] = std::make_shared<Material>(no_normal_program_gen(false));
+    base_materials[3] = std::make_shared<Material>(no_normal_program_gen(true));
     base_materials[3]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
     base_materials[3]->save_uniform_value("material.has_albedo_texture", false);
+
+    base_materials[4] = std::make_shared<Material>(no_normal_program_gen(false));
+    base_materials[4]->save_uniform_value("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[4]->save_uniform_value("material.has_albedo_texture", false);
+
 }
 
-std::shared_ptr<Material> Shaders::get_base_material(const bool with_uvs, const bool with_normals) {
-    if (with_uvs and with_normals)
-        return base_materials[0];
-    if (with_normals)
-        return base_materials[1];
-    if (with_uvs)
-        return base_materials[2];
-    return base_materials[3];
+std::shared_ptr<Material> Shaders::get_base_material(const bool with_uvs, const bool with_normals, const bool with_tangents) {
+    if (with_uvs and with_normals) {
+        if (!with_tangents) {
+            return base_materials[VERTEX_UV_NORMAL];
+        } else {
+            return base_materials[VERTEX_UV_NORMAL_TANGENT];
+        }
+    }
+    if (with_tangents) {
+        Engine::debug_error("Material with NO UVs or NO NORMALs makes questionable sense. NOT SUPPORTED. Returning nullptr");
+        return nullptr;
+    }
+    // relying
+    if (with_normals) {
+        return base_materials[VERTEX_NORMAL];
+    }
+    if (with_uvs) {
+        return base_materials[VERTEX_UV];
+    }
+    return base_materials[VERTEX];
+}
+
+std::shared_ptr<Material> Shaders::get_base_material(const BaseMaterial identifier) {
+    return base_materials[identifier];
 }
 
 void Shaders::clear_base_material(const size_t index) {
@@ -307,35 +332,50 @@ uint64_t Shaders::get_material_identificator() {
 
 
 // SHADER GEN
-Shader Shaders::base_vertex_shader_gen(const bool support_uv, const bool support_normal) {
+Shader Shaders::base_vertex_shader_gen(const bool support_uv, const bool support_normal, const bool support_tangents) {
     std::string define_header;
-    if (support_uv)
-        define_header += "#define HAS_UV\n";
-    if (support_normal)
-        define_header += "#define HAS_NORMALS\n";
+    define_header += support_uv ? "#define HAS_UV\n" : "";
+    define_header += support_normal ? "#define HAS_NORMALS\n" : "";
 
+    // tangent logic
+    if (support_tangents) {
+        define_header += "#define HAS_TANGENTS\n";
+        if (!support_uv or !support_normal) {
+            Engine::debug_error("Tangent shader with NO UVs or NO NORMALs makes questionable sense. NOT SUPPORTED. DON'T DO IT");
+        }
+    }
+    // generate shader
     return Shader{"engine/res/shaders/vertex_shader_template.glsl", Shader::VERTEX_SHADER, define_header};
 }
 
 
-Shader Shaders::base_phong_shader_gen(const bool support_uv) const {
-    std::string define_header = support_uv ? "#define HAS_UV\n" : "";
-    if (bindless_textures_supported)
-        define_header += "#define USE_BINDLESS\n";
+Shader Shaders::base_phong_shader_gen(const bool support_uv, const bool support_tangents) const {
+    std::string define_header;
+    define_header += support_uv ? "#define HAS_UV\n" : "";
+    define_header += bindless_textures_supported ? "#define USE_BINDLESS\n" : "";
+
+    // tangent logic
+    if (support_tangents) {
+        define_header += "#define HAS_TANGENTS\n";
+        if (!support_uv) {
+            Engine::debug_error("Tangent shader with is illegal. NOT SUPPORTED. DON'T DO IT");
+        }
+    }
+    // generate shader
     return Shader{"engine/res/shaders/obj_phong.glsl", Shader::FRAGMENT_SHADER, define_header};
 }
 
 
 Shader Shaders::base_no_normal_shader_gen(bool support_uv) const {
-    std::string define_header = support_uv ? "#define HAS_UV\n" : "";
-    if (bindless_textures_supported)
-        define_header += "#define USE_BINDLESS\n";
+    std::string define_header;
+    define_header += support_uv ? "#define HAS_UV\n" : "";
+    define_header += bindless_textures_supported ? "#define USE_BINDLESS\n" : "";
     return Shader{"engine/res/shaders/obj_no_normal.glsl", Shader::FRAGMENT_SHADER, define_header};
 }
 
 
-ShaderProgram Shaders::phong_shader_program_gen(bool has_uvs) const {
-    ShaderProgram sp {base_vertex_shader_gen(has_uvs, true), base_phong_shader_gen(has_uvs)};
+ShaderProgram Shaders::phong_shader_program_gen(bool has_uvs, bool has_tangents) const {
+    ShaderProgram sp {base_vertex_shader_gen(has_uvs, true, has_tangents), base_phong_shader_gen(has_uvs, has_tangents)};
     return sp;
 }
 

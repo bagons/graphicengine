@@ -10,6 +10,10 @@ in vec3 NORMAL;
 in vec3 FRAG_GLOBAL_POS;
 in vec3 CAMERA_GLOBAL_POS;
 
+#ifdef HAS_TANGENTS
+in mat3 TBN;
+#endif
+
 /* <GRAPHIC ENGINE DEFAULT MATERIAL> */
 struct Material {
     vec3 ambient;
@@ -20,6 +24,11 @@ struct Material {
     bool has_albedo_texture;
     vec3 albedo_color;
     sampler2D albedo_texture;
+
+#ifdef HAS_TANGENTS
+    bool has_normal_texture;
+    sampler2D normal_texture;
+#endif
 };
 
 uniform Material material;
@@ -53,7 +62,13 @@ mat3 light() {
     vec3(0.0f, 0.0f, 0.0f)
     );
 
+    #ifdef HAS_TANGENTS
+    vec3 norm = normalize(mix(NORMAL, TBN * (texture(material.normal_texture, UV).rgb * 2.0 - 1.0), float(material.has_normal_texture)));
+    #endif
+
+    #ifndef HAS_TANGENTS
     vec3 norm = normalize(NORMAL);
+    #endif
 
     vec3 view_dir = normalize(CAMERA_GLOBAL_POS - FRAG_GLOBAL_POS);
 
@@ -73,8 +88,8 @@ mat3 light() {
 
         // Blinn-Phong specular
         vec3 halfway_dir = normalize(dir + view_dir);
-        float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess);
-        out_lights[2] += light_data.rgb * spec * attenuation;
+        float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess + 1);
+        out_lights[2] += light_data.rgb * attenuation * spec;
     }
     // directional lights
     for(int i = 0; i < NR_DIRECTIONAL_LIGHTS; i++){
@@ -86,8 +101,8 @@ mat3 light() {
 
         // Blinn-Phong specular
         vec3 halfway_dir = normalize(dir + view_dir);
-        float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess);
-        out_lights[2] += light_data.rgb * spec;
+        float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess + 1);
+        out_lights[2] += light_data.rgb;
     }
 
     return out_lights;
@@ -106,7 +121,6 @@ void main() {
 
     // specular
     vec3 specular = lighting[2] * material.specular;
-    //specular = vec3(0.0, 0.0, 0.0);
 
     vec3 result = ambient + diffuse + specular;
 

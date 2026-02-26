@@ -11,6 +11,10 @@ layout (location = 2) in vec3 NORMALS;
 layout (location = 1) in vec3 NORMALS;
 #endif
 
+#if defined(HAS_NORMALS) && defined(HAS_UV) && defined(HAS_TANGENTS)
+layout (location = 3) in vec3 TANGENT;
+#endif
+
 layout (std140) uniform MATRICES
 {
     mat4 projection;
@@ -31,6 +35,10 @@ uniform mat3 normal_matrix;
 out vec3 NORMAL;
 #endif
 
+#ifdef HAS_TANGENTS
+out mat3 TBN;
+#endif
+
 void main(){
     gl_Position = projection * view * transform * vec4(VERTEX_POS, 1.0);
     FRAG_GLOBAL_POS = vec3(transform * vec4(VERTEX_POS, 1.0));
@@ -40,7 +48,13 @@ void main(){
 #endif
 
 #ifdef HAS_NORMALS
-    NORMAL = NORMALS;
     NORMAL = normal_matrix * NORMALS;
+#endif
+
+#ifdef HAS_TANGENTS
+    vec3 T = normalize(vec3(transform * vec4(TANGENT, 0.0)));
+    vec3 N = normalize(vec3(transform * vec4(NORMALS, 0.0)));
+    vec3 B = cross(N, T);
+    TBN = mat3(T, B, N);
 #endif
 }
