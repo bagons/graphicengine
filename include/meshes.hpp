@@ -21,6 +21,7 @@ class Mesh {
     void load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, bool has_uvs, bool has_normals, bool has_tangents, bool has_vertex_colors = false);
     bool has_uvs = false;
     bool has_normals = false;
+    bool has_tangents = false;
 
     unsigned int vertex_buffer_object = 0;
     unsigned int vertex_array_object = 0;
@@ -64,6 +65,15 @@ class Model {
     bool has_uvs = false;
     bool has_normals = false;
 public:
+    /// @brief 3 ways to deal with Tangents when parsing a model
+    /// AUTO_GENERATE - will handle decisions for you, if tangents are needed the will generated otherwise not
+    /// FORCE_GENERATE_ALL - will generate tangents for all, their usage is optional
+    /// FORCE_NO_GENERATION - will not generate any tangents, but normal and bump maps will be ignored
+    enum TangentAction {
+        AUTO_GENERATE,
+        FORCE_GENERATE_ALL,
+        FORCE_NO_GENERATION
+    };
     /// a material by index getter, because list of pointers is read only
     /// @param index index
     [[nodiscard]] std::shared_ptr<Material> get_material(size_t index) const;
@@ -79,7 +89,7 @@ public:
     /// getter for read-only has_normals
     bool get_has_normals() const;
 
-    explicit Model(const char* file_path);
+    explicit Model(const char* file_path, const TangentAction& action = AUTO_GENERATE);
 };
 
 /// A default Mesh houser

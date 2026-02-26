@@ -56,7 +56,7 @@ void Mesh::load_mesh_to_gpu(const std::vector<float>* vertex_data, const std::ve
 };
 
 
-Mesh::Mesh(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, const bool has_uvs, const bool has_normals, const bool has_tangents, const bool has_vertex_colors) : has_uvs(has_uvs), has_normals(has_normals) {
+Mesh::Mesh(const std::vector<float>* vertex_data, const std::vector<unsigned int>* indices, const bool has_uvs, const bool has_normals, const bool has_tangents, const bool has_vertex_colors) : has_uvs(has_uvs), has_normals(has_normals), has_tangents(has_tangents) {
     load_mesh_to_gpu(vertex_data, indices, has_uvs, has_normals, has_tangents, has_vertex_colors);
 }
 
@@ -184,7 +184,7 @@ TextureParseData parse_mtl_texture_statement(const std::string& statement) {
 /// @param has_uvs -- // -- has uvs data (so appropriate shaders can be chosen)
 /// @param tangent_maps_action what to do with Normal,Bump maps or any other maps that use tangent calculations - Auto - If material need them, have them OR Force ignore the maps OR Force shaders to support tangents, just in case
 /// @returns an unordered map [material name : std::shared_ptr of instanced material]
-std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const char* file_path, bool has_normals, bool has_uvs) {
+std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const char* file_path, bool has_normals, bool has_uvs, const Model::TangentAction& tangent_maps_action) {
     std::unordered_map<std::string, std::shared_ptr<Material>> materials;
 
     std::ifstream file(file_path);
@@ -197,13 +197,16 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
     // parsed values
     std::shared_ptr<Material> mat = nullptr;
 
-    auto template_shader_program = ge.shaders.get_base_material(has_uvs, has_normals)->shader_program;
+    auto template_shader_program = tangent_maps_action != Model::FORCE_GENERATE_ALL ?
+        ge.shaders.get_base_material(has_uvs, has_normals)->get_shader_program()
+            :
+        ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program();
 
     while (std::getline(file, line)) {
         if (line[0] == 'n') {
             auto material_name = after_char(line, ' ');
             mat = std::make_shared<Material>(template_shader_program);
-            mat->save_uniform_value("material.has_albedo_texture", false);
+            mat->set_uniform("material.has_albedo_texture", false);
             materials[material_name] = mat;
         } else if (line[0] == '\0') {
             mat = nullptr;
@@ -226,23 +229,32 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
                 v3.z = std::strtof(end, nullptr);
 
                 if (line[char_offset + 1] == 'a' and has_normals)
-                    mat->save_uniform_value("material.ambient", v3);
+                    mat->set_uniform("material.ambient", v3);
                 else if (line[char_offset + 1] == 'd')
-                    mat->save_uniform_value("material.diffuse", v3);
+                    mat->set_uniform("material.diffuse", v3);
                 else if (line[char_offset + 1] == 's' and has_normals)
-                    mat->save_uniform_value("material.specular", v3);
+                    mat->set_uniform("material.specular", v3);
             } else if (line[char_offset] == 'N' and has_normals) {
                 if (line[char_offset + 1] == 'i')
-                    mat->save_uniform_value("material.shininess", std::strtof(l, nullptr));
+                    mat->set_uniform("material.shininess", std::strtof(l, nullptr));
             } else if (line[char_offset] == 'm') {
                 auto data = parse_mtl_texture_statement(after_char(line, ' '));
                 data.texture_path = (std::filesystem::path(file_path).parent_path() / data.texture_path).string();
 
                 if (line[char_offset + 5] == 'd') {
-                    mat->save_uniform_value("material.has_albedo_texture", true);
+                    mat->set_uniform("material.has_albedo_texture", true);
                     // assume sRGB for diffuse textures
                     auto texture = std::make_shared<Texture>(data.texture_path.c_str(), ge.get_gamma_correction());
-                    mat->save_uniform_value("material.albedo_texture", texture);
+                    mat->set_uniform("material.albedo_texture", texture);
+                } else if (tangent_maps_action != Model::FORCE_NO_GENERATION and line[char_offset + 4] == 'B') {
+                    // update shader to support normal textures
+                    if (mat->get_shader_program_id() != ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program_id()) {
+                        mat->shader_program_switch(ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program());
+                    }
+
+                    mat->set_uniform("material.has_normal_texture", true);
+                    auto texture = std::make_shared<Texture>(data.texture_path.c_str());
+                    mat->set_uniform("material.normal_texture", texture);
                 }
             }
         }
@@ -253,7 +265,7 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
 
 
 // PARSES OBJ FILE AS A MODEL (separating vertex groups, parsing materials from mtllib)
-void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[4], std::vector<std::vector<size_t>>& vertex_groups, std::vector<std::shared_ptr<Material>>& materials, bool &has_uvs, bool &has_normals) {
+void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[4], std::vector<std::vector<size_t>>& vertex_groups, std::vector<std::shared_ptr<Material>>& materials, bool &has_uvs, bool &has_normals, const Model::TangentAction &tangent_action) {
     std::ifstream file(file_path);
     if (!file.good()) {
         std::cerr << "ENGINE ERROR: FAILED LOADING .obj file: " << file_path << std::endl;
@@ -377,7 +389,7 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
         else if (line[0] == 'u') {
             // generate materials only once we know if .obj has normals and uvs
             if (!generated_materials) {
-                mtl_materials = parse_mtl_file(mtl_path.string().c_str(), has_normals, has_uvs);
+                mtl_materials = parse_mtl_file(mtl_path.string().c_str(), has_normals, has_uvs, tangent_action);
                 generated_materials = true;
             }
 
@@ -629,6 +641,7 @@ Mesh::Mesh(const char* file_path, bool generate_tangents) {
     // calculate tangents if told so
     if (generate_tangents)
         calculate_tangents(vertex_data_vec, vertex_group);
+    has_tangents = generate_tangents;
 
     // define new structures, for reordering
     std::vector<float> vertex_data;
@@ -643,15 +656,16 @@ Mesh::Mesh(const char* file_path, bool generate_tangents) {
     load_mesh_to_gpu(&vertex_data, &indices, has_uvs, has_normals, generate_tangents);
 }
 
-Model::Model(const char* file_path) {
+Model::Model(const char* file_path, const TangentAction& action) {
     // define structures
     std::vector<float> vertex_data_vec[4];
     std::vector<std::vector<size_t>> vertex_groups;
 
     // use structures to parse .obj file
-    parse_obj_file(file_path, vertex_data_vec, vertex_groups, materials, has_uvs, has_normals);
+    parse_obj_file(file_path, vertex_data_vec, vertex_groups, materials, has_uvs, has_normals, action);
 
-    for (auto &vertex_group : vertex_groups) {
+    for (size_t i = 0; i < vertex_groups.size(); ++i) {
+        auto& vertex_group = vertex_groups[i];
         if (vertex_group.empty())
             continue;
 
@@ -659,10 +673,20 @@ Model::Model(const char* file_path) {
         std::vector<float> vertex_data;
         std::vector<unsigned int> indices;
 
+        // tangents
+        bool will_have_tangents = action == FORCE_GENERATE_ALL;
+        if (action == AUTO_GENERATE) {
+            // generate if material linked to this mesh supports tangents i.e. the mtl paser found a map texture requiring tangents
+            will_have_tangents = materials.size() >= i + 1 and (materials[i]->get_shader_program_id() == ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program_id());
+            std::cout << "generate tangents: " << will_have_tangents << std::endl;
+        }
+        if (will_have_tangents)
+            calculate_tangents(vertex_data_vec, vertex_group);
+
         // use structures to create correctly formated values for Mesh
         construct_mesh_data_from_parsed_obj_data(vertex_data_vec, vertex_group, has_normals, has_uvs, vertex_data, indices);
 
-        auto msh = std::make_shared<Mesh>(&vertex_data, &indices, has_uvs, has_normals, false);
+        auto msh = std::make_shared<Mesh>(&vertex_data, &indices, has_uvs, has_normals, will_have_tangents);
         meshes.push_back(msh);
     }
 }
