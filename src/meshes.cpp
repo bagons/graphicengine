@@ -153,7 +153,8 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
                 if (line[char_offset + 5] == 'd') {
                     mat->save_uniform_value("material.has_albedo_texture", true);
                     auto texture_path = std::filesystem::path(file_path).parent_path() / normalize_path(after_char(line, ' '));
-                    auto texture = std::make_shared<Texture>(texture_path.string().c_str());
+                    // assume sRGB for diffuse textures
+                    auto texture = std::make_shared<Texture>(texture_path.string().c_str(), ge.get_gamma_correction());
                     mat->save_uniform_value("material.albedo_texture", texture);
                 }
             }
