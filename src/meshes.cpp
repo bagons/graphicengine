@@ -282,8 +282,6 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
     bool generated_materials = false;
     std::unordered_map<std::string, std::shared_ptr<Material>> mtl_materials;
 
-    std::string current_material_name;
-
     // PARSING OF .OBJ FILE
     // go line by line
     // TODO seems a bit slow, after parsing unordered map is instant, this will be the constraint
@@ -393,16 +391,9 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
                 generated_materials = true;
             }
 
-            current_material_name = after_char(line, ' ');
-            materials[materials.size() - 1] = mtl_materials[current_material_name];
-        }
-        // groups
-        else if (line[0] == 'g') {
-            // add new material slot
-            if (current_material_name.empty())
-                materials.push_back(nullptr);
-            else
-                materials.push_back(mtl_materials[current_material_name]);
+
+            std::string material_name = after_char(line, ' ');
+            materials.push_back(mtl_materials[material_name]);
 
             // create
             vertex_groups.emplace_back();
