@@ -51,6 +51,17 @@ public:
     using Vector3::operator=;
 };
 
+class Vector2 {
+public:
+    float x = 0;
+    float y = 0;
+
+    Vector2() = default;
+    Vector2(float x, float y);
+    Vector2& operator+ (const Vector2& position);
+    Vector2& operator- (const Vector2& position);
+};
+
 /// Scale data type, which calculates it's transformation matrix from a 3D vector
 /// @ingroup Coordinates
 class Scale : public Vector3 {

@@ -83,6 +83,24 @@ glm::vec3 Vector3::glm_vector() const {
     return {x, y, z};
 }
 
+Vector2::Vector2(const float x, const float y) : x(x), y(y)  {
+
+}
+
+Vector2 &Vector2::operator+(const Vector2 &position) {
+    x += position.x;
+    y += position.y;
+    return *this;
+}
+
+Vector2 &Vector2::operator-(const Vector2 &position) {
+    x -= position.x;
+    y -= position.y;
+    return *this;
+}
+
+
+
 glm::mat4& Position::get_transformation_matrix() {
     pos_matrix[3][0] = x;
     pos_matrix[3][1] = y;
