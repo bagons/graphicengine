@@ -65,6 +65,8 @@ void Engine::init_render_pipeline() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     set_gamma_correction(true);
 
     // create a Uniform Buffer for camera data
