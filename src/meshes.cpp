@@ -63,11 +63,14 @@ int Mesh::get_vertex_count() const {
     return vertex_count;
 }
 
-Mesh::Mesh(){
-    vertex_buffer_object = -1;
-    vertex_array_object = -1;
-    element_buffer_object = -1;
+bool Mesh::does_have_uvs() const {
+    return has_uvs;
 }
+
+bool Mesh::does_have_normals() const {
+    return has_normals;
+}
+
 
 // OBJ PARSER STRUCTS FOR HASHMAP
 struct UniqueVertexDataPoint {

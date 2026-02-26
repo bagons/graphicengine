@@ -41,9 +41,12 @@ public:
     Mesh(const std::vector<float>* vertices, const std::vector<unsigned int>* indices, bool has_uvs = true, bool has_normals = true, bool has_vertex_colors = false);
     /// Allocates Mesh to GPU from .obj file
     /// @param file_path path to a .obj file relative from .exe
-    explicit Mesh(const char* file_path);
     /// create empty wrapper
     Mesh();
+    /// getter for read-only has_uvs parameter
+    [[nodiscard]] bool does_have_uvs() const;
+    /// getter for read-only does_have_normals parameter
+    [[nodiscard]] bool does_have_normals() const;
 
     /// Deallocates Mesh from the GPU
     /// @warning do not do on a thread different from the main
@@ -61,12 +64,12 @@ class Model {
 public:
     /// a material by index getter, because list of pointers is read only
     /// @param index index
-    std::shared_ptr<Material> get_material(size_t index) const;
+    [[nodiscard]] std::shared_ptr<Material> get_material(size_t index) const;
     /// a mesh by index getter, because list of pointers is read only
     /// @param index index
-    std::shared_ptr<Mesh> get_mesh(size_t index) const;
+    [[nodiscard]] std::shared_ptr<Mesh> get_mesh(size_t index) const;
     /// mesh count getter, but also material count getter, because both have the same value
-    size_t get_mesh_count() const;
+    [[nodiscard]] size_t get_mesh_count() const;
 
     /// getter for read-only has_uvs
     bool get_has_uvs() const;

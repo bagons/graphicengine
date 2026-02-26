@@ -89,9 +89,13 @@ protected:
     std::shared_ptr<Mesh> mesh;
     /// Shared pointer to the material
     std::shared_ptr<Material> material;
-public:
+
     /// Uniform location for the transformation matrix in the vertex shader
     int vs_uniform_transform_loc = 0;
+    /// Uniform location for the normal transform matrix in the vertex shader
+    /// @note only != -1 if the mesh supports normals
+    int vs_uniform_normal_matrix = -1;
+public:
 
     /// read-only Mesh shared pointer getter, may be used for creating a new entity with the same Mesh
     [[nodiscard]] std::shared_ptr<Mesh> get_mesh();

@@ -27,6 +27,7 @@ out vec2 UV;
 #endif
 
 #ifdef HAS_NORMALS
+uniform mat3 normal_matrix;
 out vec3 NORMAL;
 #endif
 
@@ -40,5 +41,6 @@ void main(){
 
 #ifdef HAS_NORMALS
     NORMAL = NORMALS;
+    NORMAL = normal_matrix * NORMALS;
 #endif
 }

@@ -103,6 +103,10 @@ MeshThing::MeshThing (std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _ma
     material = std::move(_material);
 
     vs_uniform_transform_loc = glGetUniformLocation(material->shader_program.get_id(), "transform");
+
+    if (mesh->does_have_uvs()) {
+        vs_uniform_normal_matrix = glGetUniformLocation(material->shader_program.get_id(), "normal_matrix");
+    }
 }
 
 std::shared_ptr<Mesh> MeshThing::get_mesh() {
@@ -116,6 +120,10 @@ std::shared_ptr<Material> MeshThing::get_material() {
 
 void MeshThing::render() {
     glm::mat4 model = transform.position.get_transformation_matrix() * transform.rotation.get_transformation_matrix() * transform.scale.get_transformation_matrix();
+
+    if (vs_uniform_normal_matrix > -1) {
+        glUniformMatrix3fv(vs_uniform_normal_matrix, 1, GL_FALSE, &glm::mat3(inverseTranspose(model))[0][0]);
+    }
 
     glUniformMatrix4fv(vs_uniform_transform_loc, 1, GL_FALSE, &model[0][0]);
     glBindVertexArray(mesh->get_vertex_array_object());
@@ -167,6 +175,10 @@ void ModelThing::on_remove() {
 ModelSlaveThing::ModelSlaveThing(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Material> _material, const geRef<ModelThing> _manager):
 MeshThing(std::move(_mesh), std::move(_material)) {
     manager = _manager;
+
+    if (mesh->does_have_uvs()) {
+        vs_uniform_normal_matrix = glGetUniformLocation(material->shader_program.get_id(), "normal_matrix");
+    }
 };
 
 
@@ -177,6 +189,10 @@ void ModelSlaveThing::render() {
 
     // standard MeshThing render
     glm::mat4 model = transform.position.get_transformation_matrix() * transform.rotation.get_transformation_matrix() * transform.scale.get_transformation_matrix();
+
+    if (vs_uniform_normal_matrix > -1) {
+        glUniformMatrix3fv(vs_uniform_normal_matrix, 1, GL_FALSE, &glm::mat3(inverseTranspose(model))[0][0]);
+    }
 
     glUniformMatrix4fv(vs_uniform_transform_loc, 1, GL_FALSE, &model[0][0]);
     glBindVertexArray(mesh->get_vertex_array_object());
