@@ -103,8 +103,88 @@ std::string normalize_path(std::string path) {
     return path;
 }
 
+struct TextureParseData {
+    std::string texture_path;
+    bool clamp = false;
+    Vector3 offset{0.0f};
+    Vector3 scale{1.0f};
+    float bm = 1.0f;
+};
 
-std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const char* file_path, bool has_normals, bool has_uvs) {
+float float_parse_with_default_value(char *c, char*&end, const float default_value) {
+    char* start = c;
+    float f = std::strtof(c, &end);
+    if (start != end) {
+        return f;
+    }
+    end--;
+    return default_value;
+}
+
+TextureParseData parse_mtl_texture_statement(const std::string& statement) {
+    auto *c = const_cast<char *>(statement.c_str());
+    TextureParseData data{};
+    while (c != nullptr) {
+        if (*c == ' ' or *c == '\t') {
+            c++;
+            continue;
+        }
+
+        if (*c == '-') {
+            const char c_next = *(c+1);
+            if (c_next == 'o' and *(c+2) == ' ') { // -o 1.00 1.00 1.00
+                data.offset.x = std::strtof(c + 2, &c);
+                data.offset.y = float_parse_with_default_value(c+1, c, 0.0f);
+                data.offset.z = float_parse_with_default_value(c+1, c, 0.0f);
+                continue;
+            } else if (c_next == 's' and *(c+2) == ' ') { // -s 1.00 1.00 1.00
+                data.scale.x = std::strtof(c + 2, &c);
+                data.scale.y = float_parse_with_default_value(c+1, c, 1.0f);
+                data.scale.z = float_parse_with_default_value(c+1, c, 1.0f);
+                continue;
+            } else if (c_next == 'b' and *(c+2) == 'm' and *(c+3)==' ') { // -bm 1.00
+                data.bm =  std::strtof(c + 3, &c);
+                continue;
+            } else if (c_next == 'c' and *(c+2) == 'l' and *(c+3)=='a' and *(c+4)=='m' and *(c+5)=='p' and *(c+6) == ' ') {
+                data.clamp = *(c + 8) == 'n' ? true : false; // -clamp on | off
+                c += 10;
+                continue;
+            }
+            // if the opption is not supported, just continue until a new option is found OR we found the end => go to the last space
+            Engine::debug_warning("Unsupported MTL option found: " + statement + " IGNORING IT");
+            c++;
+            if (c == nullptr)
+                break;
+            char* last_space = nullptr;
+            while (*c != '-') {
+                if (*c == ' ' or *c == '\t') {
+                    last_space = c;
+                }
+                c++;
+
+                if (c == nullptr) {
+                    if (last_space == nullptr)
+                        break;
+                    c = last_space;
+                }
+            }
+            continue;
+        }
+        data.texture_path = statement.substr(c-statement.c_str());
+        break;
+    }
+    return data;
+}
+
+
+
+/// Parses a mtl file
+/// @param file_path .mtl file path
+/// @param has_normals if .obj file that links this mtl has normal data (so appropriate shaders can be chosen)
+/// @param has_uvs -- // -- has uvs data (so appropriate shaders can be chosen)
+/// @param tangent_maps_action what to do with Normal,Bump maps or any other maps that use tangent calculations - Auto - If material need them, have them OR Force ignore the maps OR Force shaders to support tangents, just in case
+/// @returns an unordered map [material name : std::shared_ptr of instanced material]
+std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const char* file_path, bool has_normals, bool has_uvs) {
     std::unordered_map<std::string, std::shared_ptr<Material>> materials;
 
     std::ifstream file(file_path);
@@ -155,11 +235,13 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mlt_file(const 
                 if (line[char_offset + 1] == 'i')
                     mat->save_uniform_value("material.shininess", std::strtof(l, nullptr));
             } else if (line[char_offset] == 'm') {
+                auto data = parse_mtl_texture_statement(after_char(line, ' '));
+                data.texture_path = (std::filesystem::path(file_path).parent_path() / data.texture_path).string();
+
                 if (line[char_offset + 5] == 'd') {
                     mat->save_uniform_value("material.has_albedo_texture", true);
-                    auto texture_path = std::filesystem::path(file_path).parent_path() / normalize_path(after_char(line, ' '));
                     // assume sRGB for diffuse textures
-                    auto texture = std::make_shared<Texture>(texture_path.string().c_str(), ge.get_gamma_correction());
+                    auto texture = std::make_shared<Texture>(data.texture_path.c_str(), ge.get_gamma_correction());
                     mat->save_uniform_value("material.albedo_texture", texture);
                 }
             }
@@ -295,7 +377,7 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
         else if (line[0] == 'u') {
             // generate materials only once we know if .obj has normals and uvs
             if (!generated_materials) {
-                mtl_materials = parse_mlt_file(mtl_path.string().c_str(), has_normals, has_uvs);
+                mtl_materials = parse_mtl_file(mtl_path.string().c_str(), has_normals, has_uvs);
                 generated_materials = true;
             }
 
