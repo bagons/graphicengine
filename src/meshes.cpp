@@ -525,7 +525,6 @@ void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_
 
     for (size_t i = 0; i < (vertex_triplets.size() / vertex_data_group_size); i++) {
         if (needs_tangents) {
-            std::cout << i << ", " << vertex_within_face_counter << std::endl;
             // face counter, by incrementing every 3 vertexes
             if (vertex_within_face_counter >= 3) {
                 vertex_within_face_counter = 0;
@@ -574,11 +573,9 @@ void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_
             out_vertex_data.insert(out_vertex_data.end(), vdp.vd.begin(), vdp.vd.begin() + 3 + 3 * has_normals + 2 * has_texture_cords);
             // add tangents if needed
             if (needs_tangents) {
-                std::cout << "bout to face count: " << face_counter << std::endl;
                 out_vertex_data.push_back(vertex_data_vec[3][face_counter * 3]);
                 out_vertex_data.push_back(vertex_data_vec[3][face_counter * 3 + 1]);
                 out_vertex_data.push_back(vertex_data_vec[3][face_counter * 3 + 2]);
-                std::cout << "finished" << std::endl;
             }
         } else {
             out_indices.push_back(match->second);
@@ -588,10 +585,8 @@ void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_
 
 
 void calculate_tangents(std::vector<float> (&vertex_data_vec)[4], const std::vector<size_t>& vertex_group) {
-    std::cout << "Starting tg calcs: " << vertex_group.size() << std::endl;
     // loop over faces
     for (size_t i = 0; i < vertex_group.size() / 9; i++) {
-        std::cout << i << std::endl;
         // positions
         glm::vec3 point_a(vertex_data_vec[0][(vertex_group[i * 9] - 1) * 3],  vertex_data_vec[0][(vertex_group[i * 9] - 1) * 3 + 1], vertex_data_vec[0][(vertex_group[i * 9] - 1) * 3 + 2]);
         glm::vec3 point_b(vertex_data_vec[0][(vertex_group[i * 9 + 3] - 1) * 3],  vertex_data_vec[0][(vertex_group[i * 9 + 3] - 1) * 3 + 1], vertex_data_vec[0][(vertex_group[i * 9 + 3] - 1) * 3 + 2]);
@@ -613,7 +608,6 @@ void calculate_tangents(std::vector<float> (&vertex_data_vec)[4], const std::vec
         vertex_data_vec[3].push_back( f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y));
         vertex_data_vec[3].push_back(f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z));
     }
-    std::cout << "Finished tg calcs" << std::endl;
 }
 
 
@@ -643,7 +637,6 @@ Mesh::Mesh(const char* file_path, bool generate_tangents) {
     // vertex_groups[0], because usually we would loop through all the groups and create the appropriate Mesh
     // but this is just a mesh, so we merged_all_groups, and now we work with only one group
     construct_mesh_data_from_parsed_obj_data(vertex_data_vec, vertex_group, has_normals, has_uvs, vertex_data, indices);
-    std::cout << "constructed mesh data" << std::endl;
     load_mesh_to_gpu(&vertex_data, &indices, has_uvs, has_normals, generate_tangents);
 }
 
@@ -669,7 +662,6 @@ Model::Model(const char* file_path, const TangentAction& action) {
         if (action == AUTO_GENERATE) {
             // generate if material linked to this mesh supports tangents i.e. the mtl paser found a map texture requiring tangents
             will_have_tangents = materials.size() >= i + 1 and (materials[i]->get_shader_program_id() == ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program_id());
-            std::cout << "generate tangents: " << will_have_tangents << std::endl;
         }
         if (will_have_tangents)
             calculate_tangents(vertex_data_vec, vertex_group);
