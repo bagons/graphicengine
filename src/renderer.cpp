@@ -10,6 +10,10 @@ ForwardOpaque3DPass::ForwardOpaque3DPass(const geRef<Camera> _camera, const unsi
 
 
 void ForwardOpaque3DPass::render() {
+    if (ge.auto_clear_screen and (!ge.was_color_buffer_cleared() or !ge.was_depth_buffer_cleared())) {
+        ge.clear_framebuffers();
+    }
+
     camera->transform_to_view_matrix();
 
     ge.lights.update(camera->transform.position);

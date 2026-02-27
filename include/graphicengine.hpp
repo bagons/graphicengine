@@ -55,6 +55,12 @@ class Engine {
 
     /// Is gamma correction enabled
     bool gamma_correction = false;
+    /// Whether input events were pooled this frame (for auto input pooling)
+    bool inputs_pooled_this_frame = false;
+
+    /// If framebuffers were cleared this frame (for auto screen clearing)
+    bool color_buffer_cleared_this_frame;
+    bool depth_buffer_cleared_this_frame;
 public:
     /// The main window in which the engine draws images (the only window)
     Window window;
@@ -83,6 +89,9 @@ public:
     /// Container holding all the render layers, at this point in time usually only one, but serves as a scalable infrastructure
     render_layer_container render_layers{};
 
+    /// If screen clearing will be handled automatically or if you want to manage it manually (usually auto works just fine)
+    bool auto_clear_screen = true;
+
     /// Starts the entire Engine, instances all managers.
     /// @param display_name name of the window
     /// @param window_width default window width
@@ -90,15 +99,39 @@ public:
     /// @param MAX_NR_POINT_LIGHTS the maximum amount of rendered point lights (default = 16)
     /// @param MAX_NR_DIRECTIONAL_LIGHTS the maximum amount of rendered directional lights (default = 3)
     /// @param light_overflow_action what does the engine do if max amount of rendered lights is excited, more at Lights page
-    Engine(const char *display_name, int window_width, int window_height, unsigned int MAX_NR_POINT_LIGHTS = 16, unsigned int MAX_NR_DIRECTIONAL_LIGHTS = 3,  Lights::LightOverflowAction light_overflow_action = Lights::SORT_BY_PROXIMITY);
+    /// @param auto_clear_window If TRUE window framebuffers will be cleared automatically at the start of each frame or if FALSE you have to clear them manually
+    Engine(
+        const char *display_name,
+        int window_width,
+        int window_height,
+        unsigned int MAX_NR_POINT_LIGHTS = 16,
+        unsigned int MAX_NR_DIRECTIONAL_LIGHTS = 3,
+        Lights::LightOverflowAction light_overflow_action = Lights::SORT_BY_PROXIMITY,
+        bool auto_clear_window = true
+        );
     /// deletes camera_matrix_ubo from the GPU
     ~Engine();
 
     /// Calls update on all spawned updatable entities, also calls Input.update(); Ment to be called every frame in the games update function. More in getting started guide.
     void update();
 
+    /// Processes received inputs. Ment to be called every frame.
+    /// You can pool manually at the start of you update method or inputs will be pooled automatically at the start of Engine.update() method
+    void pool_inputs();
+
     /// Does the buffer swap and displays image in window, pools for new window events. Ment to be called every frame, after all render functions were called.
     void send_it_to_window();
+
+    /// Clears framebuffers, if you set auto_clear_window to true, you don't need to worry about it
+    /// Otherwise you have to clear buffers on your own, or you don't need to clear them at all
+    /// @param color clears Color buffer (GL_COLOR_BUFFER_BIT)
+    /// @param depth clears Depth buffer (GL_DEPTH_BUFFER_BIT)
+    void clear_framebuffers(bool color = true, bool depth = true);
+
+    /// Getter for private color_buffer_cleared_this_frame
+    [[nodiscard]] bool was_color_buffer_cleared();
+    /// Getter for private depth_buffer_cleared_this_frame
+    [[nodiscard]] bool was_depth_buffer_cleared();
 
     /// Returns true unless the window should close (user or OS wants that). Used in while loops to that run until game stops.
     [[nodiscard]] bool is_running() const;

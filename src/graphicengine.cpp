@@ -79,8 +79,8 @@ void Engine::init_render_pipeline() {
 
 
 void Engine::update() {
-    /* Poll for and process events */
-    glfwPollEvents();
+    if (!inputs_pooled_this_frame)
+        pool_inputs();
 
     // update entities
     things_container::const_iterator it;
@@ -98,6 +98,12 @@ void Engine::update() {
     queued_things_to_be_removed.clear();
 }
 
+void Engine::pool_inputs() {
+    glfwPollEvents();
+    inputs_pooled_this_frame = true;
+}
+
+
 void Engine::send_it_to_window() {
     /* Swap front and back buffers */
     glfwSwapBuffers(window.glfwwindow);
@@ -107,6 +113,26 @@ void Engine::send_it_to_window() {
 
     frame_delta = static_cast<float>(glfwGetTime() - last_game_time);
     last_game_time = glfwGetTime();
+    inputs_pooled_this_frame = false;
+    color_buffer_cleared_this_frame = false;
+    depth_buffer_cleared_this_frame = false;
+}
+
+void Engine::clear_framebuffers(const bool color, const bool depth) {
+    glClear((color ? GL_COLOR_BUFFER_BIT : 0) | (depth ? GL_DEPTH_BUFFER_BIT : 0));
+    if (color)
+        color_buffer_cleared_this_frame  = true;
+    if (depth)
+        depth_buffer_cleared_this_frame = true;
+}
+
+
+bool Engine::was_color_buffer_cleared() {
+    return color_buffer_cleared_this_frame;
+}
+
+bool Engine::was_depth_buffer_cleared() {
+    return depth_buffer_cleared_this_frame;
 }
 
 bool Engine::is_running() const {
@@ -170,9 +196,18 @@ void Engine::remove_thing(const unsigned int id) {
 }
 
 // run to start engine
-Engine::Engine(const char* display_name, const int screen_width, const int screen_height
-    , unsigned int MAX_NR_POINT_LIGHTS, unsigned int MAX_NR_DIRECTIONAL_LIGHTS,  Lights::LightOverflowAction light_overflow_action) :
-    window(display_name, screen_width, screen_height), lights(MAX_NR_POINT_LIGHTS, MAX_NR_DIRECTIONAL_LIGHTS) {
+Engine::Engine(
+    const char* display_name,
+    const int screen_width,
+    const int screen_height,
+    unsigned int MAX_NR_POINT_LIGHTS,
+    unsigned int MAX_NR_DIRECTIONAL_LIGHTS,
+    Lights::LightOverflowAction light_overflow_action,
+    const bool auto_clear_screen
+    ) :
+    window(display_name, screen_width, screen_height),
+    lights(MAX_NR_POINT_LIGHTS, MAX_NR_DIRECTIONAL_LIGHTS),
+    auto_clear_screen(auto_clear_screen) {
 
     // handles window initialization
     // error when creating a window
