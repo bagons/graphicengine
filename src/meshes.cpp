@@ -197,6 +197,8 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
     // parsed values
     std::shared_ptr<Material> mat = nullptr;
 
+    auto vtx_uv_n_t_sp_id = ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program_id();
+
     auto template_shader_program = tangent_maps_action != Model::FORCE_GENERATE_ALL ?
         ge.shaders.get_base_material(has_uvs, has_normals)->get_shader_program()
             :
@@ -245,24 +247,39 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
             } else if (line[char_offset] == 'N' and has_normals) {
                 if (line[char_offset + 1] == 'i')
                     mat->set_uniform("material.shininess", std::strtof(l, nullptr));
-            } else if (line[char_offset] == 'm') {
+            }
+            // TEXTURES
+            else if (line[char_offset] == 'm') {
                 auto data = parse_mtl_texture_statement(after_char(line, ' '));
                 data.texture_path = (std::filesystem::path(file_path).parent_path() / data.texture_path).string();
 
                 if (line[char_offset + 5] == 'd') {
                     // assume sRGB for diffuse textures
-                    auto texture = std::make_shared<Texture>(data.texture_path.c_str(), ge.get_gamma_correction());
+                    auto texture = std::make_shared<Texture>(data.texture_path.c_str(), ge.get_gamma_correction(), true, data.clamp);
                     mat->set_uniform("material.albedo_texture", texture);
-                } else if (tangent_maps_action != Model::FORCE_NO_GENERATION and line[char_offset + 4] == 'B') {
-                    // update shader to support normal textures
-                    if (mat->get_shader_program_id() != ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program_id()) {
-                        mat->shader_program_switch(ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program());
-                    }
-
-                    mat->set_uniform("material.has_normal_texture", true);
-                    auto texture = std::make_shared<Texture>(data.texture_path.c_str());
-                    mat->set_uniform("material.normal_texture", texture);
                 }
+                // MAPS unsing tangents
+                else if (tangent_maps_action != Model::FORCE_NO_GENERATION) {
+                    // BIG B = normal map
+                    if (line[char_offset + 4] == 'B') {
+                        if (mat->get_shader_program_id() != vtx_uv_n_t_sp_id)
+                            mat->shader_program_switch(ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program());
+
+                        auto texture = std::make_shared<Texture>(data.texture_path.c_str(), false, true, data.clamp);
+                        mat->set_uniform("material.normal_map", texture);
+                    }
+                    // small b = bump map
+                    else if (line[char_offset + 4] == 'b') {
+                        if (mat->get_shader_program_id() != vtx_uv_n_t_sp_id)
+                            mat->shader_program_switch(ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program());
+
+
+                        auto texture = std::make_shared<Texture>(data.texture_path.c_str(), false, true, data.clamp);
+                        mat->set_uniform("material.bump_map", texture);
+                        mat->set_uniform("material.bump_map_strength", data.bm);
+                    }
+                }
+
             }
         }
     }

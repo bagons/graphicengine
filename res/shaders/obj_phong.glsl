@@ -23,8 +23,9 @@ struct Material {
     sampler2D albedo_texture;
 
 #ifdef HAS_TANGENTS
-    bool has_normal_texture;
-    sampler2D normal_texture;
+    sampler2D normal_map;
+    sampler2D bump_map;
+    float bump_map_strength;
 #endif
 };
 
@@ -60,7 +61,17 @@ mat3 light() {
     );
 
     #ifdef HAS_TANGENTS
-    vec3 norm = normalize(mix(NORMAL, TBN * (texture(material.normal_texture, UV).rgb * 2.0 - 1.0), float(material.has_normal_texture)));
+    /*vec3 norm_detail = (texture(material.normal_texture, UV).rgb * 2.0 - 1.0);
+    vec3 norm = mix(NORMAL, TBN * norm_detail, float(material.has_normal_texture));*/
+
+    vec2 texel_size = 1.0 / vec2(textureSize(material.bump_map, 0));
+    float height = texture(material.bump_map, UV).r;
+    float height_dx = texture(material.bump_map, UV + vec2(texel_size.x, 0)).r - height;
+    float height_dy = texture(material.bump_map, UV + vec2(0, texel_size.y)).r - height;
+
+    vec3 norm_detail = vec3(height_dx * material.bump_map_strength * 5, height_dy * material.bump_map_strength * 5, 1.0f);
+    vec3 norm = normalize(TBN * norm_detail);
+
     #endif
 
     #ifndef HAS_TANGENTS
@@ -121,9 +132,8 @@ void main() {
 
     vec3 result = ambient + diffuse + specular;
 
-    result *= material.albedo_color;
     #ifdef HAS_UV
-    result *= material.has_albedo_texture ? texture(material.albedo_texture, UV).xyz : vec3(1.0, 1.0, 1.0);
+    result *= texture(material.albedo_texture, UV).xyz;
     #endif
 
     FragColor = vec4(result, 1.0);
