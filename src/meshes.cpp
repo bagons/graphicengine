@@ -289,7 +289,7 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
 
 
 // PARSES OBJ FILE AS A MODEL (separating vertex groups, parsing materials from mtllib)
-void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[4], std::vector<std::vector<size_t>>& vertex_groups, std::vector<std::shared_ptr<Material>>& materials, bool &has_uvs, bool &has_normals, const Model::TangentAction &tangent_action) {
+void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[3], std::vector<std::vector<size_t>>& vertex_groups, std::vector<std::shared_ptr<Material>>& materials, bool &has_uvs, bool &has_normals, const Model::TangentAction &tangent_action) {
     std::ifstream file(file_path);
     if (!file.good()) {
         std::cerr << "ENGINE ERROR: FAILED LOADING .obj file: " << file_path << std::endl;
@@ -428,7 +428,7 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
 
 
 // PARSE OBJ FILE AS A UNIFORM MESH WITH NO MATERIAL
-void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[4], std::vector<size_t>& vertex_group, bool &has_uvs, bool &has_normals) {
+void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)[3], std::vector<size_t>& vertex_group, bool &has_uvs, bool &has_normals) {
     std::ifstream file(file_path);
     if (!file.good()) {
         std::cerr << "ENGINE ERROR: FAILED LOADING .obj file: " << file_path << std::endl;
@@ -535,14 +535,14 @@ void parse_obj_file(const char* file_path, std::vector<float> (&vertex_data_vec)
 }
 
 
-void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_data_vec)[4], const std::vector<size_t>& vertex_triplets, const bool has_normals, const bool has_texture_cords, std::vector<float>& out_vertex_data, std::vector<unsigned int>& out_indices) {
+void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_data_vec)[3], const std::vector<size_t>& vertex_triplets, const std::vector<float>& tangents, const bool has_normals, const bool has_texture_cords, std::vector<float>& out_vertex_data, std::vector<unsigned int>& out_indices) {
     std::unordered_map<UniqueVertexDataPoint, unsigned int, UniqueVertexDataPointHash> unique_vertex_data_points;
 
     unsigned int vertex_data_group_size = 1 + has_normals + has_texture_cords;
 
     unsigned int indecy_count = 0;
 
-    const bool needs_tangents = !vertex_data_vec[3].empty();
+    const bool needs_tangents = !tangents.empty();
 
     size_t face_counter = 0;
     char vertex_within_face_counter = 0;
@@ -597,9 +597,9 @@ void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_
             out_vertex_data.insert(out_vertex_data.end(), vdp.vd.begin(), vdp.vd.begin() + 3 + 3 * has_normals + 2 * has_texture_cords);
             // add tangents if needed
             if (needs_tangents) {
-                out_vertex_data.push_back(vertex_data_vec[3][face_counter * 3]);
-                out_vertex_data.push_back(vertex_data_vec[3][face_counter * 3 + 1]);
-                out_vertex_data.push_back(vertex_data_vec[3][face_counter * 3 + 2]);
+                out_vertex_data.push_back(tangents[face_counter * 3]);
+                out_vertex_data.push_back(tangents[face_counter * 3 + 1]);
+                out_vertex_data.push_back(tangents[face_counter * 3 + 2]);
             }
         } else {
             out_indices.push_back(match->second);
@@ -608,7 +608,8 @@ void construct_mesh_data_from_parsed_obj_data(const std::vector<float> (&vertex_
 }
 
 
-void calculate_tangents(std::vector<float> (&vertex_data_vec)[4], const std::vector<size_t>& vertex_group) {
+std::vector<float> calculate_tangents(const std::vector<float> (&vertex_data_vec)[3], const std::vector<size_t>& vertex_group) {
+    std::vector<float> tangents;
     // loop over faces
     for (size_t i = 0; i < vertex_group.size() / 9; i++) {
         // positions
@@ -628,10 +629,11 @@ void calculate_tangents(std::vector<float> (&vertex_data_vec)[4], const std::vec
         float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 
         // save 1 tangent vector per face
-        vertex_data_vec[3].push_back(f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x));
-        vertex_data_vec[3].push_back( f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y));
-        vertex_data_vec[3].push_back(f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z));
+        tangents.push_back(f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x));
+        tangents.push_back( f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y));
+        tangents.push_back(f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z));
     }
+    return tangents;
 }
 
 
@@ -641,15 +643,16 @@ Mesh::Mesh(const char* file_path, bool generate_tangents) {
     element_buffer_object = -1;
 
     // define structures
-    std::vector<float> vertex_data_vec[4];
+    std::vector<float> vertex_data_vec[3];
     std::vector<size_t> vertex_group;
 
     // use structures to parse .obj file
     parse_obj_file(file_path, vertex_data_vec, vertex_group, has_uvs, has_normals);
 
     // calculate tangents if told so
+    std::vector<float> tangents{};
     if (generate_tangents)
-        calculate_tangents(vertex_data_vec, vertex_group);
+        tangents = calculate_tangents(vertex_data_vec, vertex_group);
     has_tangents = generate_tangents;
 
     // define new structures, for reordering
@@ -660,13 +663,13 @@ Mesh::Mesh(const char* file_path, bool generate_tangents) {
 
     // vertex_groups[0], because usually we would loop through all the groups and create the appropriate Mesh
     // but this is just a mesh, so we merged_all_groups, and now we work with only one group
-    construct_mesh_data_from_parsed_obj_data(vertex_data_vec, vertex_group, has_normals, has_uvs, vertex_data, indices);
+    construct_mesh_data_from_parsed_obj_data(vertex_data_vec, vertex_group, tangents, has_normals, has_uvs, vertex_data, indices);
     load_mesh_to_gpu(&vertex_data, &indices, has_uvs, has_normals, generate_tangents);
 }
 
 Model::Model(const char* file_path, const TangentAction& action) {
     // define structures
-    std::vector<float> vertex_data_vec[4];
+    std::vector<float> vertex_data_vec[3];
     std::vector<std::vector<size_t>> vertex_groups;
 
     // use structures to parse .obj file
@@ -687,11 +690,12 @@ Model::Model(const char* file_path, const TangentAction& action) {
             // generate if material linked to this mesh supports tangents i.e. the mtl paser found a map texture requiring tangents
             will_have_tangents = materials.size() >= i + 1 and (materials[i]->get_shader_program_id() == ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program_id());
         }
+        std::vector<float> tangents;
         if (will_have_tangents)
-            calculate_tangents(vertex_data_vec, vertex_group);
+            tangents = calculate_tangents(vertex_data_vec, vertex_group);
 
         // use structures to create correctly formated values for Mesh
-        construct_mesh_data_from_parsed_obj_data(vertex_data_vec, vertex_group, has_normals, has_uvs, vertex_data, indices);
+        construct_mesh_data_from_parsed_obj_data(vertex_data_vec, vertex_group, tangents, has_normals, has_uvs, vertex_data, indices);
 
         auto msh = std::make_shared<Mesh>(&vertex_data, &indices, has_uvs, has_normals, will_have_tangents);
         meshes.push_back(msh);
