@@ -120,7 +120,7 @@ public:
     void pool_inputs();
 
     /// Does the buffer swap and displays image in window, pools for new window events. Ment to be called every frame, after all render functions were called.
-    void send_it_to_window();
+    void send_to_window();
 
     /// Clears framebuffers, if you set auto_clear_window to true, you don't need to worry about it
     /// Otherwise you have to clear buffers on your own, or you don't need to clear them at all

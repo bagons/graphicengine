@@ -104,7 +104,7 @@ void Engine::pool_inputs() {
 }
 
 
-void Engine::send_it_to_window() {
+void Engine::send_to_window() {
     /* Swap front and back buffers */
     glfwSwapBuffers(window.glfwwindow);
 
