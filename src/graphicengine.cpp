@@ -244,6 +244,8 @@ Engine::Engine(
     // engine setup
     init_render_pipeline();
 
+    // placeholder textures
+    shaders.setup_placeholder_textures();
     // base material setup
     shaders.setup_base_materials();
 

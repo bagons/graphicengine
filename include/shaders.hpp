@@ -174,6 +174,8 @@ class Shaders {
     /// central shader program use counter
     std::map<unsigned int, unsigned int> shader_programs_id_used = {};
 
+    std::array<std::shared_ptr<Texture>, 2> texture_placeholders{};
+
     /// BASE SHADER PROGRAMS
     /// a set of shader programs useful for loading MTL materials,
     /// all here, so that they can be universally used across all loaded models
@@ -188,6 +190,17 @@ class Shaders {
     /// AUTO increment Shader ID value
     uint64_t next_material_id = 0;
 public:
+    enum PlaceholderTextures{
+        WHITE,
+        NORMAL_MAP
+    };
+    /// Generates a few placeholder textures, that can be supplied to shader uniforms
+    void setup_placeholder_textures();
+
+    /// Returns a placeholder texture based on the identifier
+    /// @param identifier which texture do you want
+    std::shared_ptr<Texture> get_placeholder_texture(PlaceholderTextures identifier) const;
+
     /// Identifiers for Base Materials
     enum BaseMaterial {
         VERTEX_UV_NORMAL,

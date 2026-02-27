@@ -206,7 +206,15 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
         if (line[0] == 'n') {
             auto material_name = after_char(line, ' ');
             mat = std::make_shared<Material>(template_shader_program);
-            mat->set_uniform("material.has_albedo_texture", false);
+
+            if (has_uvs)
+                mat->set_uniform("material.albedo_texture", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::WHITE));
+
+            if (tangent_maps_action == Model::FORCE_GENERATE_ALL) {
+                mat->set_uniform("material.normal_map", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::NORMAL_MAP));
+                mat->set_uniform("material.bump_map", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::WHITE));
+            }
+
             materials[material_name] = mat;
         } else if (line[0] == '\0') {
             mat = nullptr;
@@ -242,7 +250,6 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
                 data.texture_path = (std::filesystem::path(file_path).parent_path() / data.texture_path).string();
 
                 if (line[char_offset + 5] == 'd') {
-                    mat->set_uniform("material.has_albedo_texture", true);
                     // assume sRGB for diffuse textures
                     auto texture = std::make_shared<Texture>(data.texture_path.c_str(), ge.get_gamma_correction());
                     mat->set_uniform("material.albedo_texture", texture);

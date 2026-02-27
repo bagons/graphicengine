@@ -2,9 +2,11 @@
 #define TEXTURES_HPP
 #pragma once
 #include <glad/glad.h>
+#include "coordinates.h"
 
 /// A texture GPU resource a wrapper around OpenGL texture ID system, supports normal and also bindless textures
 class Texture {
+    void generate_bindless_handle();
 public:
     /// standard OpenGL texture id
     unsigned int id;
@@ -14,7 +16,12 @@ public:
     /// @note Supports RGB and RGBA formats.
     /// @warning If you construct the same texture twice, there is no checking as of this point, so it'll be allocated twice on the GPU.
     /// @warning If you want to use this texture twice just give the std::shared_ptr to two materials.
-    explicit Texture(const char* file_path, bool sRGB = false, bool generate_minimap = true);
+    Texture(const char* file_path, bool sRGB = false, bool generate_minimap = true, bool clamp = false);
+
+    /// Generates a 1px x 1px placeholder texture of specific color
+    /// @param color the color of the pixel
+    /// @param alpha if texture will have an alpha compoment
+    explicit Texture(Color color, bool alpha = false);
     /// Deconstructs and removes the texture from GPU.
     ~Texture();
 };

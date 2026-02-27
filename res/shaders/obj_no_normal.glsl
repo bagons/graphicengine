@@ -12,9 +12,9 @@ in vec3 CAMERA_GLOBAL_POS;
 
 struct Material {
     vec3 diffuse;
-
-    bool has_albedo;
+#ifdef HAS_UV
     sampler2D albedo_texture;
+#endif
 };
 
 /* <GRAPHIC ENGINE TEMPLATE CODE> */
@@ -45,7 +45,7 @@ void main() {
     vec3 diffuse = material.diffuse * BASE_AMBINET_LIGHT;
 
 #ifdef HAS_UV
-    diffuse *= material.has_albedo ? texture(material.albedo_texture, UV).xyz : vec3(1.0);
+    diffuse *= texture(material.albedo_texture, UV).xyz;
 #endif
 
     FragColor = vec4(diffuse, 1.0);

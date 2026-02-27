@@ -20,9 +20,6 @@ struct Material {
     vec3 diffuse;
     vec3 specular;
     float shininess;
-
-    bool has_albedo_texture;
-    vec3 albedo_color;
     sampler2D albedo_texture;
 
 #ifdef HAS_TANGENTS
