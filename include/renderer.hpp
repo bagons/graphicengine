@@ -2,6 +2,7 @@
 #define RENDERER_HPP
 
 #include "gereferences.hpp"
+#include "coordinates.h"
 
 class Camera;
 
@@ -12,13 +13,20 @@ public:
     virtual ~RenderPass() = default;
 };
 
+class ColorPass : public RenderPass {
+public:
+    Color color;
+    ColorPass(Color color);
+    void render();
+};
+
 
 class ForwardOpaque3DPass : public RenderPass {
 public:
     geRef<Camera> camera;
     unsigned int render_layer;
 
-    explicit ForwardOpaque3DPass(geRef<Camera> camera, unsigned int _render_layer = 1);
+    ForwardOpaque3DPass(geRef<Camera> camera, unsigned int _render_layer = 1);
 
     void render();
     void change_resolution(int width, int height) override;

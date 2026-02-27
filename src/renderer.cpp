@@ -3,6 +3,14 @@
 #include "graphicengine.hpp"
 #include "gtc/type_ptr.inl"
 
+ColorPass::ColorPass(Color color) : color(color) {
+
+};
+
+void ColorPass::render() {
+    glClearColor(color.r, color.g, color.b, color.a);
+}
+
 ForwardOpaque3DPass::ForwardOpaque3DPass(const geRef<Camera> _camera, const unsigned int _render_layer) {
     render_layer = _render_layer;
     camera = _camera;
