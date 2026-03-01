@@ -249,7 +249,6 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
                 if (line[char_offset + 1] == 'i') {
                     char * end;
                     float shininess = std::strtof(l, &end);
-                    std::cout << "shininess: " << shininess << std::endl;
                     mat->set_uniform("material.shininess", shininess);
                 }
             }
@@ -272,7 +271,6 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
                             mat->set_uniform("material.bump_map", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::WHITE));
                             mat->set_uniform("material.bump_map_strength", 0.0f);
                         }
-                        std::cout << "adding normal map : " << data.texture_path.c_str() << std::endl;
                         auto texture = std::make_shared<Texture>(data.texture_path.c_str(), false, true, data.clamp);
                         mat->set_uniform("material.normal_map", texture);
                     }

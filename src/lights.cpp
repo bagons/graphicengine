@@ -77,7 +77,6 @@ void Lights::update(Position& camera_pos) {
             plt_pos = ptl->transform.position.glm_vector();
             light_color = ptl->color.no_alpha().glm_vector();
             intensity = ptl->intensity;
-            std::cout << "point light: " << i << " int: " << intensity << " z: " << plt_pos.z << " " << light_color.x << std::endl;
         }
         glBufferSubData(GL_UNIFORM_BUFFER, byte_offset, sizeof(float) * 3, &light_color);
         glBufferSubData(GL_UNIFORM_BUFFER, byte_offset + static_cast<unsigned int>(sizeof(float)) * 3, sizeof(float), &intensity);

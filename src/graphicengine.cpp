@@ -6,7 +6,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // we work with the premiss that we have only one window
     glViewport(0, 0, width, height);
-    std::cout << "ENGINE MESSAGE: Window size changed: " << width << "x" << height << std::endl;
     const auto engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
     engine->window.width = width;
     engine->window.height = height;
