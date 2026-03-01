@@ -277,7 +277,7 @@ void Engine::set_gamma_correction(const bool state) {
     }
 }
 
-bool Engine::get_gamma_correction() const {
+bool Engine::gamma_correction_enabled() const {
     return gamma_correction;
 }
 

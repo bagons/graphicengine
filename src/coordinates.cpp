@@ -1,4 +1,5 @@
 #include "coordinates.h"
+#include "graphicengine.hpp"
 
 
 Vector3::Vector3(const float _x, const float _y, const float _z) {
@@ -235,18 +236,39 @@ void Rotation::rotate_point(float _x, float _y, float _z, Vector3& point) {
 }
 
 
-Color::Color(float _r, float _g, float _b, float _a) {
+Color::Color(float _r, float _g, float _b, float _a, bool auto_sRGB) {
     r = _r;
     g = _g;
     b = _b;
     a = _a;
+
+    if (auto_sRGB and ge.gamma_correction_enabled()) {
+        gamma_decode();
+    }
 }
 
-Color::Color(const glm::vec3 color) {
+void Color::gamma_encode() {
+    r = std::powf(r, 1.0f/2.2f);
+    g = std::powf(g, 1.0f/2.2f);
+    b = std::powf(b, 1.0f/2.2f);
+}
+
+void Color::gamma_decode() {
+    r = std::powf(r, 2.2f);
+    g = std::powf(g, 2.2f);
+    b = std::powf(b, 2.2f);
+}
+
+
+Color::Color(const glm::vec3 color, bool auto_sRGB) {
     r = color.x;
     g = color.y;
     b = color.z;
     a = 1.0f;
+
+    if (auto_sRGB and ge.gamma_correction_enabled()) {
+        gamma_encode();
+    }
 }
 
 Vector3 Color::no_alpha() const {

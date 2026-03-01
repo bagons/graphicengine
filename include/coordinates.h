@@ -143,8 +143,13 @@ public:
     float b;
     float a;
 
-    Color(float _r, float _g, float _b, float _a = 1.0f);
-    Color(glm::vec3 color);
+    Color(float _r, float _g, float _b, float _a = 1.0f, bool auto_sRGB = true);
+    Color(glm::vec3 color, bool auto_sRGB = true);
+
+    /// Transforms color from Linear space to Gamma Space (color ^ (1 / 2.2))
+    void gamma_encode();
+    /// Transforms color from Gamma Space to Linear Space (color ^ 2.2)
+    void gamma_decode();
 
     static const Color RED;
     static const Color GREEN;
@@ -162,7 +167,7 @@ inline const Color Color::GREEN {0.0f, 1.0f, 0.0f};
 inline const Color Color::BLUE  {0.0f, 0.0f, 1.0f};
 inline const Color Color::WHITE {1.0f, 1.0f, 1.0f};
 inline const Color Color::BLACK {0.0f, 0.0f, 0.0f};
-inline const Color Color::ORANGE {1.0f, 0.77f, 0.54f};
-inline const Color Color::TEAL {0.54f, 0.77f, 1.0f};
+inline const Color Color::ORANGE {1.0f, 0.6f, 0.3f};
+inline const Color Color::TEAL {0.3f, 0.6f, 1.0f};
 
 #endif //COORDINATES_H

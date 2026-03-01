@@ -259,7 +259,7 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
 
                 if (line[char_offset + 5] == 'd') {
                     // assume sRGB for diffuse textures
-                    auto texture = std::make_shared<Texture>(data.texture_path.c_str(), ge.get_gamma_correction(), true, data.clamp);
+                    auto texture = std::make_shared<Texture>(data.texture_path.c_str(), ge.gamma_correction_enabled(), true, data.clamp);
                     mat->set_uniform("material.albedo_texture", texture);
                 }
                 // MAPS unsing tangents

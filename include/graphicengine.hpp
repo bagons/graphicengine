@@ -218,7 +218,7 @@ public:
     /// Sets gamma correction on the following
     void set_gamma_correction(bool gamma_correction);
     /// Tells if gamma correction is enabled
-    [[nodiscard]] bool get_gamma_correction() const;
+    [[nodiscard]] bool gamma_correction_enabled() const;
 
     /// Bindless Texture Support Setter
     /// @warning Do not touch this
