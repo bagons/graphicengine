@@ -65,26 +65,42 @@ void Lights::update(Position& camera_pos) {
     glBufferSubData(GL_UNIFORM_BUFFER, 0, 4 * sizeof(float), &ambient_light);
     constexpr unsigned int BASE_OFFSET = 4 * sizeof(float);
     // point lights
-    for (size_t i = 0; i < std::min(point_lights.size(), static_cast<size_t>(MAX_NR_POINT_LIGHTS)); i++) {
-        const auto ptl = dynamic_cast<PointLight*>(ge.get_thing(point_lights[i]));
+    for (size_t i = 0; i < MAX_NR_POINT_LIGHTS; i++) {
+        glm::vec3 plt_pos{0};
+        glm::vec3 light_color{0};
+        float intensity = 0;
 
-        unsigned int byte_offset = static_cast<unsigned int>(i) * PointLight::STRUCT_BYTE_SIZE + BASE_OFFSET;
+        const unsigned int byte_offset = static_cast<unsigned int>(i) * PointLight::STRUCT_BYTE_SIZE + BASE_OFFSET;
+        if (i < point_lights.size()) {
+            const auto ptl = dynamic_cast<PointLight*>(ge.get_thing(point_lights[i]));
 
-        glm::vec3 plt_pos = ptl->transform.position.glm_vector();
-
-        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset, sizeof(float) * 3, &ptl->color);
-        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset + static_cast<unsigned int>(sizeof(float)) * 3, sizeof(float), &ptl->intensity);
+            plt_pos = ptl->transform.position.glm_vector();
+            light_color = ptl->color.no_alpha().glm_vector();
+            intensity = ptl->intensity;
+            std::cout << "point light: " << i << " int: " << intensity << " z: " << plt_pos.z << " " << light_color.x << std::endl;
+        }
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset, sizeof(float) * 3, &light_color);
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset + static_cast<unsigned int>(sizeof(float)) * 3, sizeof(float), &intensity);
         glBufferSubData(GL_UNIFORM_BUFFER, byte_offset + static_cast<unsigned int>(sizeof(float) * 4), sizeof(float) * 3, &plt_pos);
     }
     // directional lights
-    for (size_t i = 0; i < std::min(directional_lights.size(), static_cast<size_t>(MAX_NR_DIRECTIONAL_LIGHTS)); i++) {
-        auto dl = dynamic_cast<DirectionalLight*>(ge.get_thing(directional_lights[i]));
+    for (size_t i = 0; i < MAX_NR_DIRECTIONAL_LIGHTS; i++) {
+        glm::vec3 light_color{};
+        glm::vec3 dir{};
+        float intensity = 0;
 
         unsigned int byte_offset = static_cast<unsigned int>(i) * DirectionalLight::STRUCT_BYTE_SIZE + MAX_NR_POINT_LIGHTS * PointLight::STRUCT_BYTE_SIZE + BASE_OFFSET;
+        if (i < directional_lights.size()) {
+            auto dl = dynamic_cast<DirectionalLight*>(ge.get_thing(directional_lights[i]));
 
-        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset, sizeof(float) * 3, &dl->color);
-        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset +  static_cast<unsigned int>(sizeof(float)) * 3, sizeof(float), &dl->intensity);
-        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset +  static_cast<unsigned int>(sizeof(float)) * 4, sizeof(float) * 3, &dl->direction);
+
+            light_color = dl->color.no_alpha().glm_vector();
+            dir = dl->direction.glm_vector();
+        }
+
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset, sizeof(float) * 3, &light_color);
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset +  static_cast<unsigned int>(sizeof(float)) * 3, sizeof(float), &intensity);
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset +  static_cast<unsigned int>(sizeof(float)) * 4, sizeof(float) * 3, &dir);
     }
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

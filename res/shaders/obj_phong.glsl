@@ -52,26 +52,28 @@ layout (std140) uniform LIGHTS
 
 /* </GRAPHIC ENGINE TEMPLATE CODE> */
 
-/* <GRAPHIC ENGINE DEFAULT LIGHT FUNCTION> */
-mat3 light() {
-    mat3 out_lights = mat3(
-    BASE_AMBINET_LIGHT,
+
+out vec4 FragColor;
+
+mat3 blinn_phong_lighting(){
+    mat3 out_light = mat3(
+    vec3(0.0f, 0.0f, 0.0f),
     vec3(0.0f, 0.0f, 0.0f),
     vec3(0.0f, 0.0f, 0.0f)
     );
 
     #ifdef HAS_TANGENTS
-    /*vec3 norm_detail = (texture(material.normal_texture, UV).rgb * 2.0 - 1.0);
-    vec3 norm = mix(NORMAL, TBN * norm_detail, float(material.has_normal_texture));*/
+    vec3 norm_detail = texture(material.normal_map, UV).rgb * 2.0 - 1.0;
 
-    vec2 texel_size = 1.0 / vec2(textureSize(material.bump_map, 0));
-    float height = texture(material.bump_map, UV).r;
-    float height_dx = texture(material.bump_map, UV + vec2(texel_size.x, 0)).r - height;
-    float height_dy = texture(material.bump_map, UV + vec2(0, texel_size.y)).r - height;
+    volatile vec2 texel_size = 1.0 / vec2(textureSize(material.bump_map, 0));
+    volatile float height = texture(material.bump_map, UV).r;
+    volatile float height_dx = texture(material.bump_map, UV + vec2(texel_size.x, 0)).r - height;
+    volatile float height_dy = texture(material.bump_map, UV + vec2(0, texel_size.y)).r - height;
 
-    vec3 norm_detail = vec3(height_dx * material.bump_map_strength * 5, height_dy * material.bump_map_strength * 5, 1.0f);
-    vec3 norm = normalize(TBN * norm_detail);
+    norm_detail += vec3(height_dx * material.bump_map_strength * 2, height_dy * material.bump_map_strength * 2, 0.0);
+    //norm_detail += vec3(, 0.0, 0.0);
 
+    volatile vec3 norm = normalize(TBN * norm_detail);
     #endif
 
     #ifndef HAS_TANGENTS
@@ -80,61 +82,55 @@ mat3 light() {
 
     vec3 view_dir = normalize(CAMERA_GLOBAL_POS - FRAG_GLOBAL_POS);
 
-    // point lights
     for(int i = 0; i < NR_POINT_LIGHTS; i++){
-        vec4 light_data = point_lights[i].light_data;
-        vec3 dir_to_light = point_lights[i].position - FRAG_GLOBAL_POS;
+        volatile vec4 light_data = point_lights[i].light_data;
+        volatile vec3 dir_to_light = point_lights[i].position - FRAG_GLOBAL_POS;
 
-        // intensity
-        float dist_to_light = dir_to_light.length();
-        float attenuation = light_data.w == 0 ? 0 : 1/(min(1/log(light_data.w*10), 1.0) + (1.2/light_data.w) * dist_to_light + (30.0 / pow(light_data.w, 2)) * pow(dist_to_light, 2));
+        volatile float dist_to_light = dir_to_light.length();
+        volatile float attenuation = light_data.w / (1 + pow(dist_to_light, 2));
 
-        // Diffuse
-        vec3 dir = normalize(dir_to_light);
-        float diff = max(dot(norm, dir), 0.0);
-        out_lights[1] += light_data.rgb * diff * attenuation;
+        volatile vec3 dir = normalize(dir_to_light);
+        volatile float diff = max(dot(norm, dir), 0.0);
+        out_light[1] += light_data.rgb * diff * attenuation;
 
-        // Blinn-Phong specular
-        vec3 halfway_dir = normalize(dir + view_dir);
-        float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess + 1);
-        out_lights[2] += light_data.rgb * attenuation * spec;
+        volatile vec3 halfway_dir = normalize(dir + view_dir);
+        volatile float spec = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + material.shininess);
+        volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + 0.6f);
+        //out_light[2] += spec * light_data.rgb * attenuation;
+        out_light[2] += spec2 * light_data.rgb * attenuation;
     }
-    // directional lights
+
     for(int i = 0; i < NR_DIRECTIONAL_LIGHTS; i++){
-        vec4 light_data = directional_lights[i].light_data;
+        volatile vec4 light_data = directional_lights[i].light_data;
         /// diffuse
-        vec3 dir = -normalize(directional_lights[i].direction);
-        float diff = max(dot(norm, dir), 0.0);
-        out_lights[1] += light_data.rgb * diff;
+        volatile vec3 dir = -normalize(directional_lights[i].direction);
+        volatile float diff = max(dot(norm, dir), 0.0);
+        out_light[1] += light_data.rgb * diff;
 
         // Blinn-Phong specular
-        vec3 halfway_dir = normalize(dir + view_dir);
-        float spec = pow(max(dot(norm, halfway_dir), 0.0), material.shininess + 1);
-        out_lights[2] += light_data.rgb;
+        volatile vec3 halfway_dir = normalize(dir + view_dir);
+        volatile float spec = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + material.shininess);
+        volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + 0.6f);
+        //out_light[2] += light_data.rgb * spec;
+        out_light[2] += light_data.rgb * spec2;
     }
 
-    return out_lights;
+    return out_light;
 }
-/* </GRAPHIC ENGINE DEFAULT LIGHT FUNCTION> */
-
-out vec4 FragColor;
-
 
 void main() {
-    mat3 lighting = light();
-    // ambient
-    vec3 ambient = lighting[0] * material.ambient;
-    // diffuse
-    vec3 diffuse = lighting[1] * material.diffuse;
+    vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
 
-    // specular
-    vec3 specular = lighting[2] * material.specular;
+    mat3 lighting = blinn_phong_lighting();
 
-    vec3 result = ambient + diffuse + specular;
+    result.xyz = (BASE_AMBINET_LIGHT * material.ambient) + (lighting[1] * material.diffuse) + (lighting[2] * material.specular);
 
     #ifdef HAS_UV
-    result *= texture(material.albedo_texture, UV).xyz;
-    #endif
+    result *= texture(material.albedo_texture, UV);
 
-    FragColor = vec4(result, 1.0);
+    if (result.a < 0.1){
+        discard;
+    }
+    #endif
+    FragColor = result;
 }

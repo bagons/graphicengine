@@ -143,7 +143,7 @@ TextureParseData parse_mtl_texture_statement(const std::string& statement) {
                 data.scale.z = float_parse_with_default_value(c+1, c, 1.0f);
                 continue;
             } else if (c_next == 'b' and *(c+2) == 'm' and *(c+3)==' ') { // -bm 1.00
-                data.bm =  std::strtof(c + 3, &c);
+                data.bm = std::strtof(c + 3, &c);
                 continue;
             } else if (c_next == 'c' and *(c+2) == 'l' and *(c+3)=='a' and *(c+4)=='m' and *(c+5)=='p' and *(c+6) == ' ') {
                 data.clamp = *(c + 8) == 'n' ? true : false; // -clamp on | off
@@ -209,8 +209,9 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
             auto material_name = after_char(line, ' ');
             mat = std::make_shared<Material>(template_shader_program);
 
-            if (has_uvs)
+            if (has_uvs) {
                 mat->set_uniform("material.albedo_texture", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::WHITE));
+            }
 
             if (tangent_maps_action == Model::FORCE_GENERATE_ALL) {
                 mat->set_uniform("material.normal_map", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::NORMAL_MAP));
@@ -245,8 +246,12 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
                 else if (line[char_offset + 1] == 's' and has_normals)
                     mat->set_uniform("material.specular", v3);
             } else if (line[char_offset] == 'N' and has_normals) {
-                if (line[char_offset + 1] == 'i')
-                    mat->set_uniform("material.shininess", std::strtof(l, nullptr));
+                if (line[char_offset + 1] == 'i') {
+                    char * end;
+                    float shininess = std::strtof(l, &end);
+                    std::cout << "shininess: " << shininess << std::endl;
+                    mat->set_uniform("material.shininess", shininess);
+                }
             }
             // TEXTURES
             else if (line[char_offset] == 'm') {
@@ -262,17 +267,21 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
                 else if (tangent_maps_action != Model::FORCE_NO_GENERATION) {
                     // BIG B = normal map
                     if (line[char_offset + 4] == 'B') {
-                        if (mat->get_shader_program_id() != vtx_uv_n_t_sp_id)
+                        if (mat->get_shader_program_id() != vtx_uv_n_t_sp_id) {
                             mat->shader_program_switch(ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program());
-
+                            mat->set_uniform("material.bump_map", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::WHITE));
+                            mat->set_uniform("material.bump_map_strength", 0.0f);
+                        }
+                        std::cout << "adding normal map : " << data.texture_path.c_str() << std::endl;
                         auto texture = std::make_shared<Texture>(data.texture_path.c_str(), false, true, data.clamp);
                         mat->set_uniform("material.normal_map", texture);
                     }
                     // small b = bump map
                     else if (line[char_offset + 4] == 'b') {
-                        if (mat->get_shader_program_id() != vtx_uv_n_t_sp_id)
+                        if (mat->get_shader_program_id() != vtx_uv_n_t_sp_id) {
                             mat->shader_program_switch(ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program());
-
+                            mat->set_uniform("material.normal_map", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::NORMAL_MAP));
+                        }
 
                         auto texture = std::make_shared<Texture>(data.texture_path.c_str(), false, true, data.clamp);
                         mat->set_uniform("material.bump_map", texture);

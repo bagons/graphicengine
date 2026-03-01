@@ -332,7 +332,7 @@ void Shaders::debug_show_shader_program_use() {
 
 void Shaders::setup_placeholder_textures() {
     texture_placeholders[WHITE] = std::make_shared<Texture>(Color::WHITE);
-    texture_placeholders[NORMAL_MAP] = std::make_shared<Texture>(Color::BLUE);
+    texture_placeholders[NORMAL_MAP] = std::make_shared<Texture>(Color{0.5, 0.5, 1.0});
 }
 
 std::shared_ptr<Texture> Shaders::get_placeholder_texture(const PlaceholderTextures identifier) const {

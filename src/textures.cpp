@@ -78,15 +78,15 @@ Texture::Texture(Color color, const bool alpha) {
     const auto data = new unsigned char[alpha ? 4 : 3];
 
     color.r = std::max(0.0f, std::min(1.0f, color.r));
-    data[0] = static_cast<unsigned char>(floor(color.r >= 1.0 ? 255 : color.r * 256.0));
+    data[0] = static_cast<unsigned char>(floor(abs(color.r - 1.0) < 0.01 ? 255 : color.r * 255.0));
     color.g = std::max(0.0f, std::min(1.0f, color.g));
-    data[1] = static_cast<unsigned char>(floor(color.g >= 1.0 ? 255 : color.g * 256.0));
+    data[1] = static_cast<unsigned char>(floor(abs(color.g - 1.0) < 0.01 ? 255 : color.g * 255.0));
     color.b = std::max(0.0f, std::min(1.0f, color.b));
-    data[2] = static_cast<unsigned char>(floor(color.b >= 1.0 ? 255 : color.b * 256.0));
+    data[2] = static_cast<unsigned char>(floor(abs(color.b - 1.0) < 0.01 ? 255 : color.b * 255.0));
 
     if (alpha) {
         color.a = std::max(0.0f, std::min(1.0f, color.a));
-        data[3] = static_cast<unsigned char>(floor(color.a >= 1.0 ? 255 : color.a * 256.0));
+        data[3] = static_cast<unsigned char>(floor(color.a >= 1.0 ? 255 : color.a * 255.0));
     }
 
     glTexImage2D(GL_TEXTURE_2D, 0, format, 1, 1, 0, format, GL_UNSIGNED_BYTE, data);
