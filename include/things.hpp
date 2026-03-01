@@ -64,13 +64,13 @@ public:
     /// @param projection_matrix the PROJECTION matrix
     explicit Camera(const glm::mat4 &projection_matrix);
     /// Constructs a perspective camera (PROJECTION matrix gets created in the constructor based on params)
-    /// @param _fov Field of view of camera
-    /// @param _far_plane
-    /// @param _near_plane
+    /// @param _fov Field of view of camera in degrees
+    /// @param _far_plane The furthest position camera can see
+    /// @param _near_plane The closest position camera can see
     Camera(float _fov, float _far_plane, float _near_plane);
     /// Constructs an orthographic camera (PROJECTION matrix gets created in the constructor based on params)
-    /// @param _far_plane
-    /// @param _near_plane
+    /// @param _far_plane The furthest position camera can see
+    /// @param _near_plane The closest position camera can see
     Camera(float _far_plane, float _near_plane);
     /// Updates projection matrix based on resolution to keep the same scale. Called by Window resize event.
     /// @param width width in pixels
