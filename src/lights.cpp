@@ -123,6 +123,7 @@ void Lights::update(Position& camera_pos) {
             intensity = spot->intensity;
             angle = cos(spot->angle / 2.0f);
 
+            spot->transform.rotation.quat_2_euler();
             dir.x = -sin(spot->transform.rotation.z) * cos(spot->transform.rotation.x);
             dir.y = -cos(spot->transform.rotation.z) * cos(spot->transform.rotation.x);
             dir.z =  sin(spot->transform.rotation.x);
