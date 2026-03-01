@@ -20,6 +20,7 @@ struct Material {
     vec3 diffuse;
     vec3 specular;
     float shininess;
+    vec3 albedo_color;
     sampler2D albedo_texture;
 
 #ifdef HAS_TANGENTS
@@ -148,6 +149,7 @@ void main() {
     mat3 lighting = blinn_phong_lighting();
 
     result.xyz = (BASE_AMBINET_LIGHT * material.ambient) + (lighting[1] * material.diffuse) + (lighting[2] * material.specular);
+    result.xyz *= material.albedo_color;
 
     #ifdef HAS_UV
     result *= texture(material.albedo_texture, UV);

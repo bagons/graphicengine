@@ -209,6 +209,10 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
             auto material_name = after_char(line, ' ');
             mat = std::make_shared<Material>(template_shader_program);
 
+            if (has_normals) {
+                mat->set_uniform("material.albedo_color", Color::WHITE.no_alpha());
+            }
+
             if (has_uvs) {
                 mat->set_uniform("material.albedo_texture", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::WHITE));
             }
