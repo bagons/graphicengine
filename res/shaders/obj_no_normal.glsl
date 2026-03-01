@@ -28,11 +28,19 @@ struct DirectionalLight{
     vec3 direction;
 };
 
+struct SpotLight{
+    vec4 light_data;
+    float cut_off;
+    vec3 position;
+    vec3 direction;
+};
+
 layout (std140) uniform LIGHTS
 {
-    vec3 BASE_AMBINET_LIGHT; // <- only this used
+    vec3 BASE_AMBINET_LIGHT;
     PointLight point_lights[NR_POINT_LIGHTS];
     DirectionalLight directional_lights[NR_DIRECTIONAL_LIGHTS];
+    SpotLight spot_lights[NR_SPOT_LIGHTS];
 };
 
 /* </GRAPHIC ENGINE TEMPLATE CODE> */

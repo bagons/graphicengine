@@ -182,6 +182,12 @@ public:
                 ref.ge = nullptr;
                 return ref;
             }
+        } else if constexpr (std::is_base_of_v<SpotLight, T>) {
+            if (!lights.add_spot_light(ref.id)) {
+                ref.id = -1;
+                ref.ge = nullptr;
+                return ref;
+            }
         }
 
         things[ref.id] = std::move(thing);

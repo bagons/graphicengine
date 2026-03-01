@@ -43,11 +43,19 @@ struct DirectionalLight{
     vec3 direction;
 };
 
+struct SpotLight{
+    vec4 light_data;
+    float cut_off;
+    vec3 position;
+    vec3 direction;
+};
+
 layout (std140) uniform LIGHTS
 {
     vec3 BASE_AMBINET_LIGHT;
     PointLight point_lights[NR_POINT_LIGHTS];
     DirectionalLight directional_lights[NR_DIRECTIONAL_LIGHTS];
+    SpotLight spot_lights[NR_SPOT_LIGHTS];
 };
 
 /* </GRAPHIC ENGINE TEMPLATE CODE> */
@@ -113,6 +121,22 @@ mat3 blinn_phong_lighting(){
         volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + 0.6f);
         //out_light[2] += light_data.rgb * spec;
         out_light[2] += light_data.rgb * spec2;
+    }
+
+    for (int i = 0; i < NR_SPOT_LIGHTS; i++){
+        volatile vec4 light_data = spot_lights[i].light_data;
+        volatile vec3 dir_to_light = normalize(spot_lights[i].position - FRAG_GLOBAL_POS);
+        float theta = dot(dir_to_light, normalize(-spot_lights[i].direction));
+
+        volatile float attenuation = min(max(theta - spot_lights[i].cut_off, 0.0) * 50, 1.0);
+        volatile float diff = max(dot(norm, dir_to_light), 0.0);
+
+        out_light[1] += light_data.rgb * diff * attenuation;
+
+        // Blinn-Phong specular
+        volatile vec3 halfway_dir = normalize(dir_to_light + view_dir);
+        volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + 0.6f);
+        out_light[2] += light_data.rgb * spec2 * attenuation;
     }
 
     return out_light;

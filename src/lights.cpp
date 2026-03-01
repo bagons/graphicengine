@@ -15,8 +15,13 @@ color(color), intensity(intensity), direction(direction) {
 
 }
 
-Lights::Lights(unsigned int MAX_NR_POINT_LIGHTS, unsigned int MAX_NR_DIRECTIONAL_LIGHTS, LightOverflowAction light_overflow_action) :
-MAX_NR_POINT_LIGHTS(MAX_NR_POINT_LIGHTS), MAX_NR_DIRECTIONAL_LIGHTS(MAX_NR_DIRECTIONAL_LIGHTS), light_overflow_action(light_overflow_action), ambient_light(Color::BLACK) { }
+SpotLight::SpotLight(const Color color, const float intensity, float angle) :
+color(color), intensity(intensity), angle(angle){
+
+}
+
+Lights::Lights(unsigned int MAX_NR_POINT_LIGHTS, unsigned int MAX_NR_DIRECTIONAL_LIGHTS, unsigned int MAX_NR_SPOT_LIGHTS, LightOverflowAction light_overflow_action) :
+MAX_NR_POINT_LIGHTS(MAX_NR_POINT_LIGHTS), MAX_NR_DIRECTIONAL_LIGHTS(MAX_NR_DIRECTIONAL_LIGHTS), MAX_NR_SPOT_LIGHTS(MAX_NR_SPOT_LIGHTS), light_overflow_action(light_overflow_action), ambient_light(Color::BLACK) { }
 
 
 Lights::~Lights() {
@@ -24,7 +29,7 @@ Lights::~Lights() {
 }
 
 void Lights::init_central_light_system() {
-    const unsigned int buffer_size = PointLight::STRUCT_BYTE_SIZE * MAX_NR_POINT_LIGHTS + DirectionalLight::STRUCT_BYTE_SIZE * MAX_NR_DIRECTIONAL_LIGHTS;
+    const unsigned int buffer_size = PointLight::STRUCT_BYTE_SIZE * MAX_NR_POINT_LIGHTS + DirectionalLight::STRUCT_BYTE_SIZE * MAX_NR_DIRECTIONAL_LIGHTS + SpotLight::STRUCT_BYTE_SIZE * MAX_NR_SPOT_LIGHTS;
 
     // create a Uniform Buffer for light system
     glGenBuffers(1, &lights_ubo);
@@ -101,6 +106,33 @@ void Lights::update(Position& camera_pos) {
         glBufferSubData(GL_UNIFORM_BUFFER, byte_offset +  static_cast<unsigned int>(sizeof(float)) * 3, sizeof(float), &intensity);
         glBufferSubData(GL_UNIFORM_BUFFER, byte_offset +  static_cast<unsigned int>(sizeof(float)) * 4, sizeof(float) * 3, &dir);
     }
+    // spotlights
+    for (size_t i = 0; i < MAX_NR_SPOT_LIGHTS; i++) {
+        glm::vec3 pos{0};
+        glm::vec3 dir {0};
+        glm::vec3 light_color{0};
+        float intensity = 0;
+        float angle = 0;
+
+        const unsigned int byte_offset = static_cast<unsigned int>(i) * SpotLight::STRUCT_BYTE_SIZE + MAX_NR_DIRECTIONAL_LIGHTS * DirectionalLight::STRUCT_BYTE_SIZE + MAX_NR_POINT_LIGHTS * PointLight::STRUCT_BYTE_SIZE + BASE_OFFSET ;
+        if (i < spot_lights.size()) {
+            const auto spot = dynamic_cast<SpotLight*>(ge.get_thing(spot_lights[i]));
+
+            pos = spot->transform.position.glm_vector();
+            light_color = spot->color.no_alpha().glm_vector();
+            intensity = spot->intensity;
+            angle = cos(spot->angle / 2.0f);
+
+            dir.x = -sin(spot->transform.rotation.z) * cos(spot->transform.rotation.x);
+            dir.y = -cos(spot->transform.rotation.z) * cos(spot->transform.rotation.x);
+            dir.z =  sin(spot->transform.rotation.x);
+        }
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset, sizeof(float) * 3, &light_color);
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset + static_cast<unsigned int>(sizeof(float)) * 3, sizeof(float), &intensity);
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset + static_cast<unsigned int>(sizeof(float)) * 4, sizeof(float), &angle);
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset + static_cast<unsigned int>(sizeof(float) * 8), sizeof(float) * 3, &pos);
+        glBufferSubData(GL_UNIFORM_BUFFER, byte_offset + static_cast<unsigned int>(sizeof(float) * 12), sizeof(float) * 3, &dir);
+    }
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -121,7 +153,7 @@ void Lights::remove_point_light(const unsigned int ge_ref_id) {
 
 bool Lights::add_directional_light(const unsigned int ge_ref_id) {
     if (light_overflow_action == CANCEL_NEW and directional_lights.size() >= MAX_NR_DIRECTIONAL_LIGHTS) {
-        std::cerr << "ENGINE WARNING: Failed to add point light, LIMIT REACHED. Returning null geRef." << std::endl;
+        std::cerr << "ENGINE WARNING: Failed to add directional light, LIMIT REACHED. Returning null geRef." << std::endl;
         return false;
     }
 
@@ -133,4 +165,21 @@ bool Lights::add_directional_light(const unsigned int ge_ref_id) {
 void Lights::remove_directional_light(const unsigned int ge_ref_id) {
     directional_lights[std::ranges::find(directional_lights, ge_ref_id) - directional_lights.begin()] = directional_lights.back();
     directional_lights.pop_back();
+}
+
+
+bool Lights::add_spot_light(const unsigned int ge_ref_id) {
+    if (light_overflow_action == CANCEL_NEW and spot_lights.size() >= MAX_NR_SPOT_LIGHTS) {
+        std::cerr << "ENGINE WARNING: Failed to add spot light, LIMIT REACHED. Returning null geRef." << std::endl;
+        return false;
+    }
+
+    spot_lights.push_back(ge_ref_id);
+    return true;
+}
+
+
+void Lights::remove_spot_light(const unsigned int ge_ref_id) {
+    spot_lights[std::ranges::find(spot_lights, ge_ref_id) - spot_lights.begin()] = spot_lights.back();
+    spot_lights.pop_back();
 }

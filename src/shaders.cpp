@@ -31,6 +31,7 @@ Shader::Shader(const char *file_path, const ShaderType shader_type, const std::s
             if (shader_type == GL_FRAGMENT_SHADER) {
                 shader_string += "#define NR_POINT_LIGHTS " + std::to_string(ge.lights.MAX_NR_POINT_LIGHTS) + "\n";
                 shader_string += "#define NR_DIRECTIONAL_LIGHTS " + std::to_string(ge.lights.MAX_NR_DIRECTIONAL_LIGHTS) + "\n";
+                shader_string += "#define NR_SPOT_LIGHTS " + std::to_string(ge.lights.MAX_NR_SPOT_LIGHTS) + "\n";
             }
         }
     }

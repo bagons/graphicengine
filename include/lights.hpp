@@ -37,12 +37,32 @@ public:
     DirectionalLight(Color color, float intensity, const Vector3 &direction);
 };
 
+/// A Spotlight
+class SpotLight : public SpatialThing {
+public:
+    /// The size of the SpotLight struct on the GPU
+    static constexpr unsigned int STRUCT_BYTE_SIZE = 64;
+    /// Light color
+    Color color;
+    /// Light intensity
+    float intensity;
+    /// Angle of light cone
+    float angle;
+    /// PointLight constructor
+    /// @param color light color
+    /// @param intensity light intesity
+    SpotLight(Color color, float intensity, float angle);
+};
+
+
 /// Central Light System Manager
 class Lights {
     /// List of geRef ids of all PointLights
     std::vector<unsigned int> point_lights;
     /// List of geRef ids for all DirectionalLights
     std::vector<unsigned int> directional_lights;
+    /// List of geRef ids for all SpotLights
+    std::vector<unsigned int> spot_lights;
     /// OpenGL ID of the Uniform Buffer Object
     unsigned int lights_ubo = -1;
 public:
@@ -56,6 +76,8 @@ public:
     unsigned int MAX_NR_POINT_LIGHTS;
     /// Maximum amount of rendered DirectionalLights
     unsigned int MAX_NR_DIRECTIONAL_LIGHTS;
+    /// Maximum amount of rendered SpotLights
+    unsigned int MAX_NR_SPOT_LIGHTS;
 
     /// The base ambient light color used by the "default material"
     Color ambient_light;
@@ -66,8 +88,9 @@ public:
     /// Constructor of Light Manager
     /// @param MAX_NR_POINT_LIGHTS Max amount of rendered PointLights
     /// @param MAX_NR_DIRECTIONAL_LIGHTS Max amount of rendered DirectionalLights
+    /// @param MAX_NR_SPOT_LIGHTS Max amount of rendered SpotLights
     /// @param light_overflow_action Light overflow solution
-    explicit Lights(unsigned int MAX_NR_POINT_LIGHTS = 16, unsigned int MAX_NR_DIRECTIONAL_LIGHTS = 1, LightOverflowAction light_overflow_action = SORT_BY_PROXIMITY);
+    explicit Lights(unsigned int MAX_NR_POINT_LIGHTS = 16, unsigned int MAX_NR_DIRECTIONAL_LIGHTS = 3, unsigned int MAX_NR_SPOT_LIGHTS = 8, LightOverflowAction light_overflow_action = SORT_BY_PROXIMITY);
 
     /// Destroys light UBO
     ~Lights();
@@ -97,6 +120,16 @@ public:
     /// @note Engine does this automatically, no need to do so for the user
     /// @param ge_ref_id geRef ID of the DirectionalLight entity
     void remove_directional_light(unsigned int ge_ref_id);
+
+    /// Add a SpotLight to the Central Light System
+    /// @note Engine does this automatically, no need to do so for the user
+    /// @param ge_ref_id geRef ID of the SpotLight entity
+    bool add_spot_light(unsigned int ge_ref_id);
+
+    /// Remove a SpotLight to the Central Light System
+    /// @note Engine does this automatically, no need to do so for the user
+    /// @param ge_ref_id geRef ID of the SpotLight entity
+    void remove_spot_light(unsigned int ge_ref_id);
 };
 
 #endif //LIGHTS_H
