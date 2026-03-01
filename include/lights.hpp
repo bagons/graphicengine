@@ -80,7 +80,7 @@ public:
     unsigned int MAX_NR_SPOT_LIGHTS;
 
     /// The base ambient light color used by the "default material"
-    Color ambient_light;
+    Color ambient_light = Color{0.1f, 0.1f, 0.1f};
 
     /// Light overflow solution
     LightOverflowAction light_overflow_action;
