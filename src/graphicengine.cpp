@@ -2,14 +2,20 @@
 #include "graphicengine.hpp"
 
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    if (width <= 0) {
+        width = 1;
+    }
+    if (height <= 0) {
+        height = 1;
+    }
     // we work with the premiss that we have only one window
     glViewport(0, 0, width, height);
     const auto engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
-    engine->window.width = width;
-    engine->window.height = height;
-
+    if (!engine->window.is_fullscreen()) {
+        engine->window.width = width;
+        engine->window.height = height;
+    }
     // update all render layers
     for (render_layer_container::const_iterator it = engine->render_layers.begin(); it != engine->render_layers.end(); ++it) {
         it->second->change_resolution(width, height);
@@ -17,7 +23,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
     /* Create a windowed mode window and its OpenGL context */
-Window::Window(const char* title, const int _width, const int _height) {
+Window::Window(const char* title, const int _width, const int _height, const bool _fullscreen) : fullscreen(_fullscreen) {
     if (glfwGetCurrentContext()) {
         std::cerr << "ENGINE ERROR: A window already exists, only one window allowed!" << std::endl;
         return;
@@ -30,8 +36,15 @@ Window::Window(const char* title, const int _width, const int _height) {
 
     width = _width;
     height = _height;
-    glfwwindow = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    if (!fullscreen) {
+        glfwwindow = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    } else {
+        const auto main_monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(main_monitor);
+        glfwwindow = glfwCreateWindow(mode->width, mode->height, title, main_monitor, nullptr);
+    }
     glfwSetFramebufferSizeCallback(glfwwindow, framebuffer_size_callback);
+    glfwGetWindowPos(glfwwindow, &pos_x, &pos_x);
 }
 
 Window::~Window() {
@@ -49,6 +62,24 @@ void Window::select() const {
 void Window::set_vsync(const bool _vsync) const {
     glfwMakeContextCurrent(glfwwindow);
     glfwSwapInterval(_vsync ? 1 : 0);
+}
+
+void Window::set_fullscreen(const bool value) {
+    fullscreen = value;
+
+    if (fullscreen) {
+        glfwGetWindowPos(glfwwindow, &pos_x, &pos_y);
+        const auto main_monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(main_monitor);
+        glfwSetWindowMonitor(glfwwindow, main_monitor,0, 0,mode->width, mode->height,mode->refreshRate);
+    } else {
+        glfwSetWindowMonitor(glfwwindow, nullptr,pos_x, pos_y, width, height,0);
+    }
+}
+
+
+bool Window::is_fullscreen() const {
+    return fullscreen;
 }
 
 Thing *Engine::get_thing(const unsigned int id) {
@@ -202,7 +233,7 @@ Engine::Engine(
     const int screen_height,
     const EngineSettings options
     ) :
-    window(display_name, screen_width, screen_height),
+    window(display_name, screen_width, screen_height, options.fullscreen),
     lights(options.MAX_NR_POINT_LIGHTS, options.MAX_NR_DIRECTIONAL_LIGHTS),
     auto_clear_screen(options.auto_clear_window) {
 

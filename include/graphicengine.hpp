@@ -22,16 +22,26 @@ typedef std::unordered_map<int, std::unique_ptr<RenderPass>> render_layer_contai
 
 /// Wrapper for a GLFWwindow. Only one window allowed.
 class Window {
+    /// position of window
+    int pos_x = 50, pos_y = 50;
+    /// if window is fullscreen
+    bool fullscreen = false;
 public:
     /// pointer to a glfwwindow;
     GLFWwindow *glfwwindow;
     /// Window dimensions
     int width, height;
-    Window(const char* title, int _width, int _height);
+    Window(const char* title, int _width, int _height, bool _fullscreen);
     /// Makes this window context the one which is render on.
     void select() const;
     /// Sets VSync on this window
     void set_vsync(bool _vsync) const;
+    /// Sets the window fullscreen
+    /// @param value if true = fullscreen, if false windowed
+    void set_fullscreen(bool value);
+    /// Returns if window is fullscreen
+    [[nodiscard]] bool is_fullscreen() const;
+    /// In this deconstructor glfwTerminate is called, after that OpenGL context is dead, you can no longer do anything
     ~Window();
 };
 
@@ -42,6 +52,7 @@ public:
 /// @param gamma_correction If gamma correction is applied to final image + Engine interprets Colors and Albedo textures in sRGB
 /// @param auto_clear_window If TRUE window framebuffers will be cleared automatically at the start of each frame or if FALSE you have to clear them manually
 struct EngineSettings {
+    bool fullscreen = false;
     unsigned int MAX_NR_POINT_LIGHTS = 16;
     unsigned int MAX_NR_DIRECTIONAL_LIGHTS = 3;
     Lights::LightOverflowAction light_overflow_action = Lights::SORT_BY_PROXIMITY;
@@ -201,7 +212,7 @@ public:
     /// @return a geRendRef<T> object, by which you can reference the render layer
     template<typename T, typename... Args>
     requires std::is_base_of_v<RenderPass, T>
-    geRendRef<T> add_render_layer(Args&&... args) {
+    geRendRef<T> add_render_pass(Args&&... args) {
         geRendRef<T> ref(next_render_layer_id, this);
 
         auto thing = std::make_unique<T>(std::forward<Args>(args)...);
