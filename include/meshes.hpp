@@ -95,71 +95,23 @@ public:
 /// A default Mesh houser
 /// @note loads default meshes to GPU, it's a few bytes, but if really don't want them loaded set pointers to nullptr and don't use them anywhere, there are going to get cleared
 class Meshes {
-public:
-    /// vertex data for a UV, NORMAL cube
-    const std::vector<float> CUBE_VERTEX_DATA = {
-        // front face (+Z)
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  0.0f, 0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,  0.0f, 0.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,  0.0f, 0.0f, 1.0f,
-
-        // back face (-Z)
-        -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,  0.0f, 0.0f, -1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 0.0f,  0.0f, 0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  0.0f, 0.0f, -1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f, 0.0f, -1.0f,
-
-        // left face (-X)
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,  -1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  -1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  -1.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 1.0f,  -1.0f, 0.0f, 0.0f,
-
-        // right face (+X)
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,  1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  1.0f, 0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f, 1.0f,  1.0f, 0.0f, 0.0f,
-
-        // top face (+Y)
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,  0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  0.0f, 1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  0.0f, 1.0f, 0.0f,
-
-        // bottom face (-Y)
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,  0.0f, -1.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,  0.0f, -1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 1.0f,  0.0f, -1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 1.0f,  0.0f, -1.0f, 0.0f
-    };
-
-    /// indecy data for a cube
-    const std::vector<unsigned int> CUBE_INDICES = {
-        0, 1, 2,  1, 3, 2,      // front
-        4, 5, 6,  5, 7, 6,      // back
-        8, 9,10,  9,11,10,      // left
-       12,13,14, 13,15,14,      // right
-       16,17,18, 17,19,18,      // top
-       20,21,22, 21,23,22       // bottom
-    };
-
-    /// vertex data for a UV, NORMAL plane
-    const std::vector<float> PLANE_VERTEX_DATA = {
-        -0.5f, 0.0f, -0.5f, 0.0, 0.0, 0.0, 1.0, 0.0,
-        -0.5f, 0.0f, 0.5f, 0.0, 1.0, 0.0, 1.0, 0.0,
-        0.5f, 0.0f, 0.5f, 1.0, 1.0, 0.0, 1.0, 0.0,
-        0.5f, 0.0f, -0.5f, 1.0, 0.0, 0.0, 1.0, 0.0
-    };
-
-    /// indecy data for a plane
-    const std::vector<unsigned int> PLANE_INDICES = {0, 1, 2, 0, 2, 3};
-
-    /// default plane
     std::shared_ptr<Mesh> plane;
-    /// default cube
+    std::shared_ptr<Mesh> sphere;
     std::shared_ptr<Mesh> cube;
+
+    std::shared_ptr<Mesh> tangent_plane;
+    std::shared_ptr<Mesh> tangent_sphere;
+    std::shared_ptr<Mesh> tangent_cube;
+public:
+    /// default plane
+    /// @param with_tangents if the Mesh has tangent data, meaning that normal or bump maps can be applied
+    [[nodiscard]] std::shared_ptr<Mesh> get_plane(bool with_tangents = false) const;
+    /// default cube
+    /// @param with_tangents if the Mesh has tangent data, meaning that normal or bump maps can be applied
+    [[nodiscard]] std::shared_ptr<Mesh> get_cube(bool with_tangents = false) const;
+    /// default sphere
+    /// @param with_tangents if the Mesh has tangent data, meaning that normal or bump maps can be applied
+    [[nodiscard]] std::shared_ptr<Mesh> get_sphere(bool with_tangents = false) const;
 
     /// load default Meshes to GPU
     void load_base_meshes();

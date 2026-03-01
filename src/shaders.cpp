@@ -343,7 +343,7 @@ std::shared_ptr<Texture> Shaders::get_placeholder_texture(const PlaceholderTextu
 
 void Shaders::setup_base_materials() {
     base_materials[0] = std::make_shared<Material>(phong_shader_program_gen(true, false));
-    base_materials[0]->set_uniform("material.ambient", Vector3(0.2f));
+    base_materials[0]->set_uniform("material.ambient", Vector3(0.5f));
     base_materials[0]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
     base_materials[0]->set_uniform("material.specular", Color::WHITE.no_alpha());
     base_materials[0]->set_uniform("material.shininess", 32.0f);
@@ -351,7 +351,7 @@ void Shaders::setup_base_materials() {
     base_materials[0]->set_uniform("material.albedo_texture", get_placeholder_texture(WHITE));
 
     base_materials[1] = std::make_shared<Material>(phong_shader_program_gen(true, true));
-    base_materials[1]->set_uniform("material.ambient", Vector3(0.2f));
+    base_materials[1]->set_uniform("material.ambient", Vector3(0.5f));
     base_materials[1]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
     base_materials[1]->set_uniform("material.specular", Color::WHITE.no_alpha());
     base_materials[1]->set_uniform("material.shininess", 32.0f);
@@ -359,7 +359,7 @@ void Shaders::setup_base_materials() {
     base_materials[0]->set_uniform("material.albedo_texture", get_placeholder_texture(WHITE));
 
     base_materials[2] = std::make_shared<Material>(phong_shader_program_gen(false, false));
-    base_materials[2]->set_uniform("material.ambient", Vector3(0.2f));
+    base_materials[2]->set_uniform("material.ambient", Vector3(0.5f));
     base_materials[2]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
     base_materials[2]->set_uniform("material.specular", Color::WHITE.no_alpha());
     base_materials[0]->set_uniform("material.albedo_color", Color::WHITE.no_alpha());

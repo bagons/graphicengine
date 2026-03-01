@@ -741,15 +741,41 @@ Mesh::~Mesh() {
 
 void Meshes::load_base_meshes()
 {
+    plane = std::make_shared<Mesh>("engine/res/meshes/plane.obj");
+    cube = std::make_shared<Mesh>("engine/res/meshes/cube.obj");
+    sphere = std::make_shared<Mesh>("engine/res/meshes/sphere.obj");
+
+    tangent_plane = std::make_shared<Mesh>("engine/res/meshes/plane.obj", true);
+    tangent_cube = std::make_shared<Mesh>("engine/res/meshes/cube.obj", true);
+    tangent_sphere = std::make_shared<Mesh>("engine/res/meshes/sphere.obj", true);
     std::cout << "ENGINE MESSAGE: Default meshes created" << std::endl;
-    plane = std::make_shared<Mesh>(&PLANE_VERTEX_DATA, &PLANE_INDICES, true, true);
-    cube = std::make_shared<Mesh>(&CUBE_VERTEX_DATA, &CUBE_INDICES, true, true);
 }
 
 void Meshes::unload_base_meshes()
 {
     plane = nullptr;
     cube = nullptr;
+    sphere = nullptr;
+
+    tangent_plane = nullptr;
+    tangent_cube = nullptr;
+    tangent_sphere = nullptr;
 }
 
+std::shared_ptr<Mesh> Meshes::get_plane(const bool with_tangents) const {
+    if (!with_tangents)
+        return plane;
+    return tangent_plane;
+}
 
+std::shared_ptr<Mesh> Meshes::get_cube(const bool with_tangents) const {
+    if (!with_tangents)
+        return cube;
+    return tangent_cube;
+}
+
+std::shared_ptr<Mesh> Meshes::get_sphere(const bool with_tangents) const {
+    if (!with_tangents)
+        return sphere;
+    return tangent_sphere;
+}
