@@ -96,11 +96,33 @@ void Input::key_callback(GLFWwindow *window, int key, int scancode, int action, 
     }
 }
 
+void Input::mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
+    Input& im = static_cast<Engine*>(glfwGetWindowUserPointer(window))->input;
+
+    if (action == GLFW_PRESS and im.all_key_states[button] != PRESSED) {
+        im.all_key_states[button] = JUST_PRESSED;
+        if (im.just_updated_key_count < im.just_updated_keys.size()) {
+            im.just_updated_keys[im.just_updated_key_count] = button;
+            im.just_updated_key_count++;
+        }
+    } else if (action == GLFW_RELEASE) {
+        im.all_key_states[button] = JUST_RELEASED;
+        if (im.just_updated_key_count < im.just_updated_keys.size()) {
+            im.just_updated_keys[im.just_updated_key_count] = button;
+            im.just_updated_key_count++;
+        }
+    }
+}
+
+
 void Input::connect_callbacks(GLFWwindow *window) {
     glfwSetKeyCallback(window, key_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
 }
 
 
 void Input::set_mouse_mode(const MouseMode mode) {
     glfwSetInputMode(ge.window.glfwwindow, GLFW_CURSOR, mode);
+    update_mouse_positions();
+    mouse_move_delta = Vector2();
 }

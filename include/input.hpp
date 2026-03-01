@@ -85,6 +85,8 @@ public:
 
     /// Static (necessary) key_callback method. Responsible for just pressed and released features.
     static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    /// Static (necessary) mouse button_callback_method. Responsible for just pressed and released features of mouse buttons.
+    static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 };
 
 #endif //INPUT_HPP
