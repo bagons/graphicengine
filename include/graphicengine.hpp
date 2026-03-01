@@ -35,6 +35,20 @@ public:
     ~Window();
 };
 
+/// Engine Options struct, hold default engine settings, but when starting the engine a different one can be supplied.
+/// @param MAX_NR_POINT_LIGHTS the maximum amount of rendered point lights (default = 16)
+/// @param MAX_NR_DIRECTIONAL_LIGHTS the maximum amount of rendered directional lights (default = 3)
+/// @param light_overflow_action what does the engine do if max amount of rendered lights is excited, more at Lights page
+/// @param gamma_correction If gamma correction is applied to final image + Engine interprets Colors and Albedo textures in sRGB
+/// @param auto_clear_window If TRUE window framebuffers will be cleared automatically at the start of each frame or if FALSE you have to clear them manually
+struct EngineSettings {
+    unsigned int MAX_NR_POINT_LIGHTS = 16;
+    unsigned int MAX_NR_DIRECTIONAL_LIGHTS = 3;
+    Lights::LightOverflowAction light_overflow_action = Lights::SORT_BY_PROXIMITY;
+    bool gamma_correction = true;
+    bool auto_clear_window = true;
+};
+
 /// Engine class, it's initialization starts the engine. Holds all managers. Is ment to be a global variable instanced only once, all engine managing is accessible through that object.
 class Engine {
     /// Auto increment ID counter for render layers
@@ -96,18 +110,12 @@ public:
     /// @param display_name name of the window
     /// @param window_width default window width
     /// @param window_height default window height
-    /// @param MAX_NR_POINT_LIGHTS the maximum amount of rendered point lights (default = 16)
-    /// @param MAX_NR_DIRECTIONAL_LIGHTS the maximum amount of rendered directional lights (default = 3)
-    /// @param light_overflow_action what does the engine do if max amount of rendered lights is excited, more at Lights page
-    /// @param auto_clear_window If TRUE window framebuffers will be cleared automatically at the start of each frame or if FALSE you have to clear them manually
+    /// @param options Optional settings engine settings, you can instance your own any supply them e.g. EngineSettings options = {.gamma_correction = false}
     Engine(
         const char *display_name,
         int window_width,
         int window_height,
-        unsigned int MAX_NR_POINT_LIGHTS = 16,
-        unsigned int MAX_NR_DIRECTIONAL_LIGHTS = 3,
-        Lights::LightOverflowAction light_overflow_action = Lights::SORT_BY_PROXIMITY,
-        bool auto_clear_window = true
+        EngineSettings options = EngineSettings{}
         );
     /// deletes camera_matrix_ubo from the GPU
     ~Engine();
@@ -129,9 +137,9 @@ public:
     void clear_framebuffers(bool color = true, bool depth = true);
 
     /// Getter for private color_buffer_cleared_this_frame
-    [[nodiscard]] bool was_color_buffer_cleared();
+    [[nodiscard]] bool was_color_buffer_cleared() const;
     /// Getter for private depth_buffer_cleared_this_frame
-    [[nodiscard]] bool was_depth_buffer_cleared();
+    [[nodiscard]] bool was_depth_buffer_cleared() const;
 
     /// Returns true unless the window should close (user or OS wants that). Used in while loops to that run until game stops.
     [[nodiscard]] bool is_running() const;

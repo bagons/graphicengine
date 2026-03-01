@@ -62,12 +62,13 @@ RenderPass *Engine::get_render_layer(const int id) {
 
 
 void Engine::init_render_pipeline() {
+    inputs_pooled_this_frame = false;
+    color_buffer_cleared_this_frame = false;
+    depth_buffer_cleared_this_frame = false;
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    set_gamma_correction(true);
 
     // create a Uniform Buffer for camera data
     glGenBuffers(1, &camera_matrix_ubo);
@@ -127,11 +128,11 @@ void Engine::clear_framebuffers(const bool color, const bool depth) {
 }
 
 
-bool Engine::was_color_buffer_cleared() {
+bool Engine::was_color_buffer_cleared() const {
     return color_buffer_cleared_this_frame;
 }
 
-bool Engine::was_depth_buffer_cleared() {
+bool Engine::was_depth_buffer_cleared() const {
     return depth_buffer_cleared_this_frame;
 }
 
@@ -200,14 +201,11 @@ Engine::Engine(
     const char* display_name,
     const int screen_width,
     const int screen_height,
-    unsigned int MAX_NR_POINT_LIGHTS,
-    unsigned int MAX_NR_DIRECTIONAL_LIGHTS,
-    Lights::LightOverflowAction light_overflow_action,
-    const bool auto_clear_screen
+    const EngineSettings options
     ) :
     window(display_name, screen_width, screen_height),
-    lights(MAX_NR_POINT_LIGHTS, MAX_NR_DIRECTIONAL_LIGHTS),
-    auto_clear_screen(auto_clear_screen) {
+    lights(options.MAX_NR_POINT_LIGHTS, options.MAX_NR_DIRECTIONAL_LIGHTS),
+    auto_clear_screen(options.auto_clear_window) {
 
     // handles window initialization
     // error when creating a window
@@ -242,6 +240,7 @@ Engine::Engine(
     }
 
     // engine setup
+    set_gamma_correction(options.gamma_correction);
     init_render_pipeline();
 
     // placeholder textures
