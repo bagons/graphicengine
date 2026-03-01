@@ -135,7 +135,7 @@ public:
     Scale scale{1, 1, 1};
 };
 
-
+/// Useful Color class, can be used for RGBA or RGB formats
 class Color {
 public:
     float r;
@@ -143,8 +143,13 @@ public:
     float b;
     float a;
 
+    /// Color class constuctor
+    /// @param _r red value 0-1
+    /// @param _b blue value 0-1
+    /// @param _g green value 0-1
+    /// @param auto_sRGB If Gamma Correction is enabled, the Engine will automatically interpret Colors in Gamma Space, unless told not to do so by setting this parameter to false
     Color(float _r, float _g, float _b, float _a = 1.0f, bool auto_sRGB = true);
-    Color(glm::vec3 color, bool auto_sRGB = true);
+    explicit Color(glm::vec3 color, bool auto_sRGB = true);
 
     /// Transforms color from Linear space to Gamma Space (color ^ (1 / 2.2))
     void gamma_encode();
@@ -156,7 +161,9 @@ public:
     static const Color BLUE;
     static const Color WHITE;
     static const Color BLACK;
+    /// rgb 1, 0.6, 0.3
     static const Color ORANGE;
+    /// rgb 0.3, 0.6, 1
     static const Color TEAL;
 
     [[nodiscard]] Vector3 no_alpha() const;

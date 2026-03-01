@@ -11,9 +11,7 @@ void ColorPass::render() {
     glClearColor(color.r, color.g, color.b, color.a);
 }
 
-ForwardOpaque3DPass::ForwardOpaque3DPass(const geRef<Camera> _camera, const unsigned int _render_layer) {
-    render_layer = _render_layer;
-    camera = _camera;
+ForwardOpaque3DPass::ForwardOpaque3DPass(const geRef<Camera> _camera, const unsigned int render_layer) : render_layer(render_layer), camera(_camera) {
 }
 
 

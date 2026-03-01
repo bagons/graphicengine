@@ -16,7 +16,7 @@ public:
     bool paused;
     /// Whether entity is visible right now.
     bool visible;
-    /// RenderLayer
+    /// RenderLayer a bit map showing which ForwardOpaque3DPass will render the object based their render_layer values
     unsigned int render_layer;
 
     Thing () = default;
