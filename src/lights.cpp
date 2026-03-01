@@ -184,3 +184,15 @@ void Lights::remove_spot_light(const unsigned int ge_ref_id) {
     spot_lights[std::ranges::find(spot_lights, ge_ref_id) - spot_lights.begin()] = spot_lights.back();
     spot_lights.pop_back();
 }
+
+size_t Lights::get_point_light_count() const {
+    return point_lights.size();
+}
+
+size_t Lights::get_directional_light_count() const {
+    return directional_lights.size();
+}
+
+size_t Lights::get_spot_light_count() const {
+    return spot_lights.size();
+}

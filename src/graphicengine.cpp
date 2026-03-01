@@ -221,6 +221,14 @@ void Engine::remove_thing(const unsigned int id) {
         }
     }
 
+    if (dynamic_cast<PointLight*>(thing)) {
+        ge.lights.remove_point_light(id);
+    } else if (dynamic_cast<DirectionalLight*>(thing)) {
+        ge.lights.remove_directional_light(id);
+    } else if (dynamic_cast<SpotLight*>(thing)) {
+        ge.lights.remove_spot_light(id);
+    }
+
     deleted_geRef_ids.push_back(id);
 
     things.erase(id);

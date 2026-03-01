@@ -130,6 +130,13 @@ public:
     /// @note Engine does this automatically, no need to do so for the user
     /// @param ge_ref_id geRef ID of the SpotLight entity
     void remove_spot_light(unsigned int ge_ref_id);
+
+    /// Returns the amount of point lights currently instanced
+    [[nodiscard]] size_t get_point_light_count() const;
+    /// Returns the amount of directional lights currently instanced
+    [[nodiscard]] size_t get_directional_light_count() const;
+    /// Returns the amount of spot lights currently instanced
+    [[nodiscard]] size_t get_spot_light_count() const;
 };
 
 #endif //LIGHTS_H
