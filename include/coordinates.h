@@ -58,6 +58,7 @@ public:
 
     Vector2() = default;
     Vector2(float x, float y);
+    explicit Vector2(float);
     Vector2& operator+ (const Vector2& position);
     Vector2& operator- (const Vector2& position);
 };

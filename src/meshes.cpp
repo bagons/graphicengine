@@ -106,8 +106,8 @@ std::string normalize_path(std::string path) {
 struct TextureParseData {
     std::string texture_path;
     bool clamp = false;
-    Vector3 offset{0.0f};
-    Vector3 scale{1.0f};
+    Vector2 offset{0.0f};
+    Vector2 scale{1.0f};
     float bm = 1.0f;
 };
 
@@ -135,12 +135,12 @@ TextureParseData parse_mtl_texture_statement(const std::string& statement) {
             if (c_next == 'o' and *(c+2) == ' ') { // -o 1.00 1.00 1.00
                 data.offset.x = std::strtof(c + 2, &c);
                 data.offset.y = float_parse_with_default_value(c+1, c, 0.0f);
-                data.offset.z = float_parse_with_default_value(c+1, c, 0.0f);
+                float_parse_with_default_value(c+1, c, 0.0f);
                 continue;
             } else if (c_next == 's' and *(c+2) == ' ') { // -s 1.00 1.00 1.00
                 data.scale.x = std::strtof(c + 2, &c);
                 data.scale.y = float_parse_with_default_value(c+1, c, 1.0f);
-                data.scale.z = float_parse_with_default_value(c+1, c, 1.0f);
+                float_parse_with_default_value(c+1, c, 1.0f);
                 continue;
             } else if (c_next == 'b' and *(c+2) == 'm' and *(c+3)==' ') { // -bm 1.00
                 data.bm = std::strtof(c + 3, &c);
@@ -211,15 +211,29 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
 
             if (has_normals) {
                 mat->set_uniform("material.albedo_color", Color::WHITE.no_alpha());
+                mat->set_uniform("material.shininess", 1.0f);
             }
 
             if (has_uvs) {
                 mat->set_uniform("material.albedo_texture", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::WHITE));
+                mat->set_uniform("material.albedo_texture_offset", Vector2{0.0});
+                mat->set_uniform("material.albedo_texture_scale", Vector2{1.0});
+
+                mat->set_uniform("material.specular_map", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::BLACK));
+                mat->set_uniform("material.specular_map_offset", Vector2{0.0});
+                mat->set_uniform("material.specular_map_scale", Vector2{1.0});
             }
 
             if (tangent_maps_action == Model::FORCE_GENERATE_ALL) {
                 mat->set_uniform("material.normal_map", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::NORMAL_MAP));
+                mat->set_uniform("material.normal_map_offset", Vector2{0.0});
+                mat->set_uniform("material.normal_map_scale", Vector2{1.0});
+                mat->set_uniform("material.normal_map_strength", 1.0f);
+
                 mat->set_uniform("material.bump_map", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::WHITE));
+                mat->set_uniform("material.bump_map_offset", Vector2{0.0});
+                mat->set_uniform("material.bump_map_scale", Vector2{1.0});
+                mat->set_uniform("material.bump_map_strength", 0.0f);
             }
 
             materials[material_name] = mat;
@@ -265,6 +279,14 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
                     // assume sRGB for diffuse textures
                     auto texture = std::make_shared<Texture>(data.texture_path.c_str(), ge.gamma_correction_enabled(), true, data.clamp);
                     mat->set_uniform("material.albedo_texture", texture);
+                    mat->set_uniform("material.albedo_texture_scale", data.scale);
+                    mat->set_uniform("material.albedo_texture_offset", data.offset);
+                } else if (line[char_offset + 5] == 's') {
+                    // assume sRGB for diffuse textures
+                    auto texture = std::make_shared<Texture>(data.texture_path.c_str(), false, true, data.clamp);
+                    mat->set_uniform("material.specular_map", texture);
+                    mat->set_uniform("material.specular_map_scale", data.scale);
+                    mat->set_uniform("material.specular_map_offset", data.offset);
                 }
                 // MAPS unsing tangents
                 else if (tangent_maps_action != Model::FORCE_NO_GENERATION) {
@@ -273,21 +295,31 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
                         if (mat->get_shader_program_id() != vtx_uv_n_t_sp_id) {
                             mat->shader_program_switch(ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program());
                             mat->set_uniform("material.bump_map", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::WHITE));
+                            mat->set_uniform("material.bump_map_offset", Vector2{0.0});
+                            mat->set_uniform("material.bump_map_scale", Vector2{1.0});
                             mat->set_uniform("material.bump_map_strength", 0.0f);
                         }
                         auto texture = std::make_shared<Texture>(data.texture_path.c_str(), false, true, data.clamp);
                         mat->set_uniform("material.normal_map", texture);
+                        mat->set_uniform("material.normal_map_scale", data.scale);
+                        mat->set_uniform("material.normal_map_offset", data.offset);
+                        mat->set_uniform("material.normal_map_strength", data.bm);
                     }
                     // small b = bump map
                     else if (line[char_offset + 4] == 'b') {
                         if (mat->get_shader_program_id() != vtx_uv_n_t_sp_id) {
                             mat->shader_program_switch(ge.shaders.get_base_material(Shaders::VERTEX_UV_NORMAL_TANGENT)->get_shader_program());
                             mat->set_uniform("material.normal_map", ge.shaders.get_placeholder_texture(Shaders::PlaceholderTextures::NORMAL_MAP));
+                            mat->set_uniform("material.normal_map_offset", Vector2{0.0});
+                            mat->set_uniform("material.normal_map_scale", Vector2{1.0});
+                            mat->set_uniform("material.normal_map_strength", 1.0f);
                         }
 
                         auto texture = std::make_shared<Texture>(data.texture_path.c_str(), false, true, data.clamp);
                         mat->set_uniform("material.bump_map", texture);
                         mat->set_uniform("material.bump_map_strength", data.bm);
+                        mat->set_uniform("material.bump_map_scale", data.scale);
+                        mat->set_uniform("material.bump_map_offset", data.offset);
                     }
                 }
 

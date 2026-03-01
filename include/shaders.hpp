@@ -9,7 +9,7 @@
 #include "textures.hpp"
 #include "coordinates.h"
 
-typedef std::variant<float, int, bool, Vector3, Color, std::shared_ptr<Texture>>  uniform_variant;
+typedef std::variant<float, int, bool, Vector3, Vector2, Color, std::shared_ptr<Texture>>  uniform_variant;
 typedef std::map<int, uniform_variant> uniform_map;
 
 /// Shader creator tool. Loads and compiles a shader, either from a file or from code directly. After compilation holds OpenGL id. Is used to create a ShaderProgram.
@@ -174,7 +174,7 @@ class Shaders {
     /// central shader program use counter
     std::map<unsigned int, unsigned int> shader_programs_id_used = {};
 
-    std::array<std::shared_ptr<Texture>, 2> texture_placeholders{};
+    std::array<std::shared_ptr<Texture>, 3> texture_placeholders{};
 
     /// BASE SHADER PROGRAMS
     /// a set of shader programs useful for loading MTL materials,
@@ -192,7 +192,8 @@ class Shaders {
 public:
     enum PlaceholderTextures{
         WHITE,
-        NORMAL_MAP
+        NORMAL_MAP,
+        BLACK
     };
     /// Generates a few placeholder textures, that can be supplied to shader uniforms
     void setup_placeholder_textures();

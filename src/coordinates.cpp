@@ -88,6 +88,11 @@ Vector2::Vector2(const float x, const float y) : x(x), y(y)  {
 
 }
 
+Vector2::Vector2(const float f) : x(f), y(f) {
+
+}
+
+
 Vector2 &Vector2::operator+(const Vector2 &position) {
     x += position.x;
     y += position.y;

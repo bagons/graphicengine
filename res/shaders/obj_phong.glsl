@@ -15,17 +15,35 @@ in mat3 TBN;
 #endif
 
 /* <GRAPHIC ENGINE DEFAULT MATERIAL> */
+
 struct Material {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
     float shininess;
     vec3 albedo_color;
+
+// albedo texture
     sampler2D albedo_texture;
+    vec2 albedo_texture_offset;
+    vec2 albedo_texture_scale;
+
+// albedo texture
+    sampler2D specular_texture;
+    vec2 specular_texture_offset;
+    vec2 specular_texture_scale;
 
 #ifdef HAS_TANGENTS
+//
     sampler2D normal_map;
+    vec2 normal_map_offset;
+    vec2 normal_map_scale;
+    float normal_map_strength;
+
+// bump map
     sampler2D bump_map;
+    vec2 bump_map_offset;
+    vec2 bump_map_scale;
     float bump_map_strength;
 #endif
 };
@@ -71,13 +89,15 @@ mat3 blinn_phong_lighting(){
     vec3(0.0f, 0.0f, 0.0f)
     );
 
+
     #ifdef HAS_TANGENTS
-    vec3 norm_detail = texture(material.normal_map, UV).rgb * 2.0 - 1.0;
+    vec3 norm_detail = material.normal_map_strength * (texture(material.normal_map, (UV * material.normal_map_scale) + material.normal_map_offset).rgb * 2.0 - 1.0);
 
     volatile vec2 texel_size = 1.0 / vec2(textureSize(material.bump_map, 0));
-    volatile float height = texture(material.bump_map, UV).r;
-    volatile float height_dx = texture(material.bump_map, UV + vec2(texel_size.x, 0)).r - height;
-    volatile float height_dy = texture(material.bump_map, UV + vec2(0, texel_size.y)).r - height;
+    volatile vec2 bump_map_uvs = (UV * material.bump_map_scale) + material.bump_map_offset;
+    volatile float height = texture(material.bump_map, bump_map_uvs).r;
+    volatile float height_dx = texture(material.bump_map, bump_map_uvs + vec2(texel_size.x, 0)).r - height;
+    volatile float height_dy = texture(material.bump_map, bump_map_uvs + vec2(0, texel_size.y)).r - height;
 
     norm_detail += vec3(height_dx * material.bump_map_strength * 2, height_dy * material.bump_map_strength * 2, 0.0);
     //norm_detail += vec3(, 0.0, 0.0);
@@ -90,6 +110,12 @@ mat3 blinn_phong_lighting(){
     #endif
 
     vec3 view_dir = normalize(CAMERA_GLOBAL_POS - FRAG_GLOBAL_POS);
+
+    float shininess = 0.6f;
+
+    #ifdef HAS_UVS
+    shininess = texture(material.specular_texture, (UV * material.specular_texture_scale) + material.specular_texture_offset).r * material.shininess;
+    #endif
 
     for(int i = 0; i < NR_POINT_LIGHTS; i++){
         volatile vec4 light_data = point_lights[i].light_data;
@@ -104,7 +130,7 @@ mat3 blinn_phong_lighting(){
 
         volatile vec3 halfway_dir = normalize(dir + view_dir);
         volatile float spec = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + material.shininess);
-        volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + 0.6f);
+        volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + shininess);
         //out_light[2] += spec * light_data.rgb * attenuation;
         out_light[2] += spec2 * light_data.rgb * attenuation;
     }
@@ -119,7 +145,7 @@ mat3 blinn_phong_lighting(){
         // Blinn-Phong specular
         volatile vec3 halfway_dir = normalize(dir + view_dir);
         volatile float spec = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + material.shininess);
-        volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + 0.6f);
+        volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + shininess);
         //out_light[2] += light_data.rgb * spec;
         out_light[2] += light_data.rgb * spec2;
     }
@@ -136,7 +162,7 @@ mat3 blinn_phong_lighting(){
 
         // Blinn-Phong specular
         volatile vec3 halfway_dir = normalize(dir_to_light + view_dir);
-        volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + 0.6f);
+        volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + shininess);
         out_light[2] += light_data.rgb * spec2 * attenuation;
     }
 
@@ -152,7 +178,7 @@ void main() {
     result.xyz *= material.albedo_color;
 
     #ifdef HAS_UV
-    result *= texture(material.albedo_texture, UV);
+    result *= texture(material.albedo_texture, (UV * material.albedo_texture_scale) + material.albedo_texture_offset);
 
     if (result.a < 0.1){
         discard;

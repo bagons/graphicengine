@@ -184,10 +184,9 @@ void Material::apply_uniform_values() const {
     int bind_texture_slot = 0;
 
     for (it = uniforms.begin(); it != uniforms.end(); it++) {
-        int uniform_loc = it->first;
-        uniform_variant value = it->second;
+        const int uniform_loc = it->first;
 
-        if (std::holds_alternative<float>(value)) {
+        if (uniform_variant value = it->second; std::holds_alternative<float>(value)) {
             glUniform1f(uniform_loc, std::get<float>(value));
         }
         else if (std::holds_alternative<Vector3>(value)) {
@@ -210,6 +209,9 @@ void Material::apply_uniform_values() const {
         } else if (std::holds_alternative<Color>(value)) {
             const auto color = std::get<Color>(value);
             glUniform4f(uniform_loc, color.r, color.g, color.b, color.a);
+        } else if (std::holds_alternative<Vector2>(value)) {
+            const auto vec = std::get<Vector2>(value);
+            glUniform2f(uniform_loc, vec.x, vec.y);
         }
     }
 }
@@ -334,6 +336,7 @@ void Shaders::debug_show_shader_program_use() {
 void Shaders::setup_placeholder_textures() {
     texture_placeholders[WHITE] = std::make_shared<Texture>(Color{1.0f, 1.0f, 1.0f, 1.0f, false});
     texture_placeholders[NORMAL_MAP] = std::make_shared<Texture>(Color{0.5f, 0.5f, 1.0f, 1.0f, false});
+    texture_placeholders[BLACK] = std::make_shared<Texture>(Color{0.0f, 0.0f, 0.0f, 1.0f, false});
 }
 
 std::shared_ptr<Texture> Shaders::get_placeholder_texture(const PlaceholderTextures identifier) const {
@@ -342,37 +345,57 @@ std::shared_ptr<Texture> Shaders::get_placeholder_texture(const PlaceholderTextu
 
 
 void Shaders::setup_base_materials() {
-    base_materials[0] = std::make_shared<Material>(phong_shader_program_gen(true, false));
-    base_materials[0]->set_uniform("material.ambient", Vector3(0.5f));
-    base_materials[0]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
-    base_materials[0]->set_uniform("material.specular", Color::WHITE.no_alpha());
-    base_materials[0]->set_uniform("material.shininess", 32.0f);
-    base_materials[0]->set_uniform("material.albedo_color", Color::WHITE.no_alpha());
-    base_materials[0]->set_uniform("material.albedo_texture", get_placeholder_texture(WHITE));
+    auto mat = std::make_shared<Material>(phong_shader_program_gen(true, false));
+    // MAT 1
+    mat->set_uniform("material.ambient", Vector3(0.2f));
+    mat->set_uniform("material.diffuse", Color::WHITE.no_alpha());
+    mat->set_uniform("material.specular", Color::WHITE.no_alpha());
+    mat->set_uniform("material.shininess", 32.0f);
+    mat->set_uniform("material.albedo_color", Color::WHITE.no_alpha());
 
-    base_materials[1] = std::make_shared<Material>(phong_shader_program_gen(true, true));
-    base_materials[1]->set_uniform("material.ambient", Vector3(0.5f));
-    base_materials[1]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
-    base_materials[1]->set_uniform("material.specular", Color::WHITE.no_alpha());
-    base_materials[1]->set_uniform("material.shininess", 32.0f);
-    base_materials[0]->set_uniform("material.albedo_color", Color::WHITE.no_alpha());
-    base_materials[0]->set_uniform("material.albedo_texture", get_placeholder_texture(WHITE));
+    mat->set_uniform("material.albedo_texture", get_placeholder_texture(WHITE));
+    mat->set_uniform("material.albedo_texture_offset", Vector2(0.0f));
+    mat->set_uniform("material.albedo_texture_scale", Vector2(1.0f));
 
-    base_materials[2] = std::make_shared<Material>(phong_shader_program_gen(false, false));
-    base_materials[2]->set_uniform("material.ambient", Vector3(0.5f));
-    base_materials[2]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
-    base_materials[2]->set_uniform("material.specular", Color::WHITE.no_alpha());
-    base_materials[0]->set_uniform("material.albedo_color", Color::WHITE.no_alpha());
-    base_materials[2]->set_uniform("material.shininess", 32.0f);
+    mat->set_uniform("material.specular_map", get_placeholder_texture(BLACK));
+    mat->set_uniform("material.specular_map_offset", Vector2(0.0f));
+    mat->set_uniform("material.specular_map_scale", Vector2(1.0f));
+    base_materials[0] = mat;
 
-    base_materials[3] = std::make_shared<Material>(no_normal_program_gen(true));
-    base_materials[3]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
-    base_materials[3]->set_uniform("material.albedo_texture", get_placeholder_texture(WHITE));
+    // MAT 2
+    mat = base_materials[0]->copy();
+    mat->shader_program_switch(phong_shader_program_gen(true, true));
 
-    base_materials[4] = std::make_shared<Material>(no_normal_program_gen(false));
-    base_materials[4]->set_uniform("material.diffuse", Color::WHITE.no_alpha());
+    mat->set_uniform("material.normal_map", get_placeholder_texture(NORMAL_MAP));
+    mat->set_uniform("material.normal_map_offset", Vector2(0.0f));
+    mat->set_uniform("material.normal_map_scale", Vector2(1.0f));
+    mat->set_uniform("material.normal_map_strength", 1.0f);
 
+    mat->set_uniform("material.bump_map", get_placeholder_texture(WHITE));
+    mat->set_uniform("material.bump_map_offset", Vector2(0.0f));
+    mat->set_uniform("material.bump_map_scale", Vector2(1.0f));
+    mat->set_uniform("material.bump_map_strength", 0.0f);
+    base_materials[1] = mat;
 
+    // MAT 3
+    mat = std::make_shared<Material>(phong_shader_program_gen(false, false));
+    mat->set_uniform("material.ambient", Vector3(0.2f));
+    mat->set_uniform("material.diffuse", Color::WHITE.no_alpha());
+    mat->set_uniform("material.specular", Color::WHITE.no_alpha());
+    mat->set_uniform("material.shininess", 32.0f);
+    mat->set_uniform("material.albedo_color", Color::WHITE.no_alpha());
+    base_materials[2] = mat;
+
+    // MAT 4
+    mat = std::make_shared<Material>(no_normal_program_gen(true));
+    mat->set_uniform("material.diffuse", Color::WHITE.no_alpha());
+    mat->set_uniform("material.albedo_texture", get_placeholder_texture(WHITE));
+    base_materials[3] = mat;
+
+    // MAT 5
+    mat = std::make_shared<Material>(no_normal_program_gen(false));
+    mat->set_uniform("material.diffuse", Color::WHITE.no_alpha());
+    base_materials[4] = mat;
 }
 
 std::shared_ptr<Material> Shaders::get_base_material(const bool with_uvs, const bool with_normals, const bool with_tangents) {
