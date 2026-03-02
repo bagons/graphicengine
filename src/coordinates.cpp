@@ -89,7 +89,6 @@ void Vector3::normalize() {
     if (scale == 0) {
         return;
     }
-    std::cout << scale << std::endl;
     x /= scale;
     y /= scale;
     z /= scale;
