@@ -84,3 +84,7 @@ https://bagons.github.io/graphicengine/
 **Dema najdete zde:**
 
 https://github.com/bagons/ge-demos
+
+## Požadavky
+
+Může se stát, že nebudete mít všechny požadavky na vytvoření okna, jsou to [požadavky knihovny GLFW](https://www.glfw.org/docs/latest/compat.html), kterou engine používá. Naštěstí vás na to upozorní a po případné instalaci nedostatků vše funguje.
