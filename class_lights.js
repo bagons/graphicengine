@@ -1,0 +1,26 @@
+var class_lights =
+[
+    [ "LightOverflowAction", "class_lights.html#a29677b6439efa29dd72de90c681a58d1", null ],
+    [ "Lights", "class_lights.html#a0ab0a64bb3608079629b4afc61b96ae2", null ],
+    [ "~Lights", "class_lights.html#aed5713f8069b09349e0f86e27a474d59", null ],
+    [ "add_directional_light", "class_lights.html#a9c783db8f43b075b6ccaabfa0731d4ef", null ],
+    [ "add_point_light", "class_lights.html#af2771999b3ff58b4380a0b9ca08d75c1", null ],
+    [ "add_spot_light", "class_lights.html#a4c7abfda5880c516b58a98567d754577", null ],
+    [ "get_directional_light_count", "class_lights.html#ac1fa16d927a4537fe18708a945ab2c49", null ],
+    [ "get_point_light_count", "class_lights.html#a29595b34d32509aa0d9e12aacdbe8cc0", null ],
+    [ "get_spot_light_count", "class_lights.html#a7e51a7ad8719f32683ff45a5d6a4612f", null ],
+    [ "init_central_light_system", "class_lights.html#a5ab95e35c40d2e8986fda16f3b8755f5", null ],
+    [ "remove_directional_light", "class_lights.html#a3a8156da6c0b3576d01b88582fb9c1eb", null ],
+    [ "remove_point_light", "class_lights.html#ae6a48068104a619fc0ee04381cc4356e", null ],
+    [ "remove_spot_light", "class_lights.html#afc773ad2bbfcf0283ca1c3877f8a1058", null ],
+    [ "update", "class_lights.html#ab5f3e5e3e75e138b2fbb47a6e2dc9264", null ],
+    [ "ambient_light", "class_lights.html#a4a39ac142c1995177c9f42f01c0e96b8", null ],
+    [ "directional_lights", "class_lights.html#ae69a3fb79b716bffa73ee69c603c9ffd", null ],
+    [ "light_overflow_action", "class_lights.html#a76c0ea1d36d564fbf7b8cff96f77a1a3", null ],
+    [ "lights_ubo", "class_lights.html#a4c8400009ebbfd96f36ced76965b5fef", null ],
+    [ "MAX_NR_DIRECTIONAL_LIGHTS", "class_lights.html#a88facb7476f3153efee14b0ca5e2c143", null ],
+    [ "MAX_NR_POINT_LIGHTS", "class_lights.html#a90fd2f3ccba1642f8cb350819eb2fb95", null ],
+    [ "MAX_NR_SPOT_LIGHTS", "class_lights.html#a256ce564996699e493672b4d35206d18", null ],
+    [ "point_lights", "class_lights.html#aeec6b146cb61ac964a13bb7be3a1c674", null ],
+    [ "spot_lights", "class_lights.html#ac77fbd18bbca7f3e7952dcadbb5a0fd9", null ]
+];
