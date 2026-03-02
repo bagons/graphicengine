@@ -1,4 +1,8 @@
 #include "coordinates.h"
+
+#include <iostream>
+#include <__msvc_ostream.hpp>
+
 #include "graphicengine.hpp"
 
 
@@ -79,6 +83,31 @@ float Vector3::distance_to(Vector3& other) const {
     const Vector3 diff = other - *this;
     return sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
 }
+
+void Vector3::normalize() {
+    const float scale = sqrt(x * x + y * y + z * z);
+    if (scale == 0) {
+        return;
+    }
+    std::cout << scale << std::endl;
+    x /= scale;
+    y /= scale;
+    z /= scale;
+}
+
+Vector3 Vector3::normalized() const {
+    float scale = sqrt(x * x + y * y + z * z);
+    Vector3 v {x, y, z};
+
+    if (scale == 0) {
+        return v;
+    }
+    v.x /= scale;
+    v.y /= scale;
+    v.z /= scale;
+    return v;
+}
+
 
 glm::vec3 Vector3::glm_vector() const {
     return {x, y, z};

@@ -34,6 +34,11 @@ public:
     /// @return The distance as a float
     [[nodiscard]] float distance_to(Vector3& other) const;
 
+    /// Normalizes this Vector3
+    void normalize();
+    /// Create a normalized Vector3 from this Vector3, doesn't change itself
+    Vector3 normalized() const;
+
     /// Converts the internal data to a GLM compatible vec3
     [[nodiscard]] glm::vec3 glm_vector() const;
 };
