@@ -1,6 +1,12 @@
 #version 330 core
 #ifdef USE_BINDLESS
-#extension GL_ARB_bindless_texture : require
+#extension GL_ARB_bindless_texture : enable
+#endif
+
+#ifdef USE_BINDLESS
+#define SAMPLER_UNIFORM layout(bindless_sampler) uniform sampler2D
+#else
+#define SAMPLER_UNIFORM uniform sampler2D
 #endif
 
 #ifdef HAS_UV
@@ -22,33 +28,24 @@ struct Material {
     vec3 specular;
     float shininess;
     vec3 albedo_color;
-
-// albedo texture
-    sampler2D albedo_texture;
-    vec2 albedo_texture_offset;
+    // albedo texture
     vec2 albedo_texture_scale;
-
-// albedo texture
-    sampler2D specular_texture;
-    vec2 specular_texture_offset;
-    vec2 specular_texture_scale;
-
+/*sampler2D specular_texture;
+vec2 specular_texture_offset;
+vec2 specular_texture_scale;*/
 #ifdef HAS_TANGENTS
-//
-    sampler2D normal_map;
-    vec2 normal_map_offset;
     vec2 normal_map_scale;
-    float normal_map_strength;
-
-// bump map
-    sampler2D bump_map;
-    vec2 bump_map_offset;
     vec2 bump_map_scale;
     float bump_map_strength;
 #endif
 };
 
 uniform Material material;
+SAMPLER_UNIFORM albedo_texture;
+#ifdef HAS_TANGENTS
+SAMPLER_UNIFORM normal_map;
+SAMPLER_UNIFORM bump_map;
+#endif
 /* </GRAPHIC ENGINE DEFAULT MATERIAL> */
 
 /* <GRAPHIC ENGINE TEMPLATE CODE> */
@@ -91,18 +88,18 @@ mat3 blinn_phong_lighting(){
 
 
     #ifdef HAS_TANGENTS
-    vec3 norm_detail = material.normal_map_strength * (texture(material.normal_map, (UV * material.normal_map_scale) + material.normal_map_offset).rgb * 2.0 - 1.0);
+    vec3 norm_detail = texture(normal_map, (UV * material.normal_map_scale)).rgb * 2.0 - 1.0;
 
-    volatile vec2 texel_size = 1.0 / vec2(textureSize(material.bump_map, 0));
-    volatile vec2 bump_map_uvs = (UV * material.bump_map_scale) + material.bump_map_offset;
-    volatile float height = texture(material.bump_map, bump_map_uvs).r;
-    volatile float height_dx = texture(material.bump_map, bump_map_uvs + vec2(texel_size.x, 0)).r - height;
-    volatile float height_dy = texture(material.bump_map, bump_map_uvs + vec2(0, texel_size.y)).r - height;
+    vec2 texel_size = 1.0 / vec2(textureSize(bump_map, 0));
+    vec2 bump_map_uvs = UV * material.bump_map_scale;
+    float height = texture(bump_map, bump_map_uvs).r;
+    float height_dx = texture(bump_map, bump_map_uvs + vec2(texel_size.x, 0)).r - height;
+    float height_dy = texture(bump_map, bump_map_uvs + vec2(0, texel_size.y)).r - height;
 
-    norm_detail += vec3(height_dx * material.bump_map_strength * 2, height_dy * material.bump_map_strength * 2, 0.0);
+    //norm_detail += vec3(height_dx, height_dy, 0.0);
     //norm_detail += vec3(, 0.0, 0.0);
 
-    volatile vec3 norm = normalize(TBN * norm_detail);
+    vec3 norm = normalize(TBN * norm_detail);
     #endif
 
     #ifndef HAS_TANGENTS
@@ -114,55 +111,55 @@ mat3 blinn_phong_lighting(){
     float shininess = 0.6f;
 
     #ifdef HAS_UVS
-    shininess = texture(material.specular_texture, (UV * material.specular_texture_scale) + material.specular_texture_offset).r * material.shininess;
+    //shininess = texture(material.specular_texture, (UV * material.specular_texture_scale) + material.specular_texture_offset).r * material.shininess;
     #endif
 
     for(int i = 0; i < NR_POINT_LIGHTS; i++){
-        volatile vec4 light_data = point_lights[i].light_data;
-        volatile vec3 dir_to_light = point_lights[i].position - FRAG_GLOBAL_POS;
+        vec4 light_data = point_lights[i].light_data;
+        vec3 dir_to_light = point_lights[i].position - FRAG_GLOBAL_POS;
 
-        volatile float dist_to_light = dir_to_light.length();
-        volatile float attenuation = light_data.w / (1 + pow(dist_to_light, 2));
+        float dist_to_light = dir_to_light.length();
+        float attenuation = light_data.w / (1 + pow(dist_to_light, 2));
 
-        volatile vec3 dir = normalize(dir_to_light);
-        volatile float diff = max(dot(norm, dir), 0.0);
+        vec3 dir = normalize(dir_to_light);
+        float diff = max(dot(norm, dir), 0.0);
         out_light[1] += light_data.rgb * diff * attenuation;
 
-        volatile vec3 halfway_dir = normalize(dir + view_dir);
-        volatile float spec = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + material.shininess);
-        volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + shininess);
+        vec3 halfway_dir = normalize(dir + view_dir);
+        //float spec = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + material.shininess);
+        float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + shininess);
         //out_light[2] += spec * light_data.rgb * attenuation;
         out_light[2] += spec2 * light_data.rgb * attenuation;
     }
 
     for(int i = 0; i < NR_DIRECTIONAL_LIGHTS; i++){
-        volatile vec4 light_data = directional_lights[i].light_data;
+        vec4 light_data = directional_lights[i].light_data;
         /// diffuse
-        volatile vec3 dir = -normalize(directional_lights[i].direction);
-        volatile float diff = max(dot(norm, dir), 0.0);
+        vec3 dir = -normalize(directional_lights[i].direction);
+        float diff = max(dot(norm, dir), 0.0);
         out_light[1] += light_data.rgb * diff;
 
         // Blinn-Phong specular
-        volatile vec3 halfway_dir = normalize(dir + view_dir);
-        volatile float spec = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + material.shininess);
-        volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + shininess);
+        vec3 halfway_dir = normalize(dir + view_dir);
+        //float spec = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + material.shininess);
+        float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + shininess);
         //out_light[2] += light_data.rgb * spec;
         out_light[2] += light_data.rgb * spec2;
     }
 
     for (int i = 0; i < NR_SPOT_LIGHTS; i++){
-        volatile vec4 light_data = spot_lights[i].light_data;
-        volatile vec3 dir_to_light = normalize(spot_lights[i].position - FRAG_GLOBAL_POS);
+        vec4 light_data = spot_lights[i].light_data;
+        vec3 dir_to_light = normalize(spot_lights[i].position - FRAG_GLOBAL_POS);
         float theta = dot(dir_to_light, normalize(-spot_lights[i].direction));
 
-        volatile float attenuation = min(max(theta - spot_lights[i].cut_off, 0.0) * 50, 1.0);
-        volatile float diff = max(dot(norm, dir_to_light), 0.0);
+        float attenuation = min(max(theta - spot_lights[i].cut_off, 0.0) * 50, 1.0);
+        float diff = max(dot(norm, dir_to_light), 0.0);
 
         out_light[1] += light_data.rgb * diff * attenuation;
 
         // Blinn-Phong specular
-        volatile vec3 halfway_dir = normalize(dir_to_light + view_dir);
-        volatile float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + shininess);
+        vec3 halfway_dir = normalize(dir_to_light + view_dir);
+        float spec2 = pow(max(dot(norm, halfway_dir), 0.0), 1.0f + shininess);
         out_light[2] += light_data.rgb * spec2 * attenuation;
     }
 
@@ -178,7 +175,7 @@ void main() {
     result.xyz *= material.albedo_color;
 
     #ifdef HAS_UV
-    result *= texture(material.albedo_texture, (UV * material.albedo_texture_scale) + material.albedo_texture_offset);
+    result *= texture(albedo_texture, (UV * material.albedo_texture_scale));
 
     if (result.a < 0.1){
         discard;

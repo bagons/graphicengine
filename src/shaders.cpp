@@ -195,7 +195,10 @@ void Material::apply_uniform_values() const {
         }
         else if (std::holds_alternative<std::shared_ptr<Texture>>(value)) {
             if (ge.are_bindless_textures_supported()) {
-                glProgramUniformHandleui64ARB(shader_program.get_id(), uniform_loc, std::get<std::shared_ptr<Texture>>(value)->handle);
+                glProgramUniformHandleui64ARB(
+                    shader_program.get_id(),
+                    uniform_loc,
+                    std::get<std::shared_ptr<Texture>>(value)->handle);
             } else {
                 glActiveTexture(GL_TEXTURE0 + bind_texture_slot);
                 glBindTexture(GL_TEXTURE_2D, std::get<std::shared_ptr<Texture>>(value)->id);
@@ -353,26 +356,24 @@ void Shaders::setup_base_materials() {
     mat->set_uniform("material.shininess", 32.0f);
     mat->set_uniform("material.albedo_color", Color::WHITE.no_alpha());
 
-    mat->set_uniform("material.albedo_texture", get_placeholder_texture(WHITE));
-    mat->set_uniform("material.albedo_texture_offset", Vector2(0.0f));
+    mat->set_uniform("albedo_texture", get_placeholder_texture(WHITE));
     mat->set_uniform("material.albedo_texture_scale", Vector2(1.0f));
 
-    mat->set_uniform("material.specular_map", get_placeholder_texture(BLACK));
-    mat->set_uniform("material.specular_map_offset", Vector2(0.0f));
-    mat->set_uniform("material.specular_map_scale", Vector2(1.0f));
+    //mat->set_uniform("material.specular_map", get_placeholder_texture(BLACK));
+    //mat->set_uniform("material.specular_map_offset", Vector2(0.0f));
+    //mat->set_uniform("material.specular_map_scale", Vector2(1.0f));
     base_materials[0] = mat;
 
     // MAT 2
     mat = base_materials[0]->copy();
     mat->shader_program_switch(phong_shader_program_gen(true, true));
 
-    mat->set_uniform("material.normal_map", get_placeholder_texture(NORMAL_MAP));
-    mat->set_uniform("material.normal_map_offset", Vector2(0.0f));
+    mat->set_uniform("normal_map", get_placeholder_texture(NORMAL_MAP));
     mat->set_uniform("material.normal_map_scale", Vector2(1.0f));
-    mat->set_uniform("material.normal_map_strength", 1.0f);
+    //mat->set_uniform("material.normal_map_strength", 1.0f);
 
-    mat->set_uniform("material.bump_map", get_placeholder_texture(WHITE));
-    mat->set_uniform("material.bump_map_offset", Vector2(0.0f));
+    mat->set_uniform("bump_map", get_placeholder_texture(WHITE));
+    //mat->set_uniform("material.bump_map_offset", Vector2(0.0f));
     mat->set_uniform("material.bump_map_scale", Vector2(1.0f));
     mat->set_uniform("material.bump_map_strength", 0.0f);
     base_materials[1] = mat;
@@ -389,7 +390,7 @@ void Shaders::setup_base_materials() {
     // MAT 4
     mat = std::make_shared<Material>(no_normal_program_gen(true));
     mat->set_uniform("material.diffuse", Color::WHITE.no_alpha());
-    mat->set_uniform("material.albedo_texture", get_placeholder_texture(WHITE));
+    mat->set_uniform("albedo_texture", get_placeholder_texture(WHITE));
     base_materials[3] = mat;
 
     // MAT 5
