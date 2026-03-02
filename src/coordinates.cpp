@@ -1,8 +1,5 @@
 #include "coordinates.h"
 
-#include <iostream>
-#include <__msvc_ostream.hpp>
-
 #include "graphicengine.hpp"
 
 
