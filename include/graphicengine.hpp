@@ -53,8 +53,9 @@ public:
 /// @param auto_clear_window If TRUE window framebuffers will be cleared automatically at the start of each frame or if FALSE you have to clear them manually
 struct EngineSettings {
     bool fullscreen = false;
-    unsigned int MAX_NR_POINT_LIGHTS = 16;
+    unsigned int MAX_NR_POINT_LIGHTS = 8;
     unsigned int MAX_NR_DIRECTIONAL_LIGHTS = 3;
+    unsigned int MAX_NR_SPOT_LIGHTS = 4;
     Lights::LightOverflowAction light_overflow_action = Lights::SORT_BY_PROXIMITY;
     bool gamma_correction = true;
     bool auto_clear_window = true;

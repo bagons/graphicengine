@@ -242,7 +242,7 @@ Engine::Engine(
     const EngineSettings options
     ) :
     window(display_name, screen_width, screen_height, options.fullscreen),
-    lights(options.MAX_NR_POINT_LIGHTS, options.MAX_NR_DIRECTIONAL_LIGHTS),
+    lights(options.MAX_NR_POINT_LIGHTS, options.MAX_NR_DIRECTIONAL_LIGHTS, options.MAX_NR_SPOT_LIGHTS),
     auto_clear_screen(options.auto_clear_window) {
 
     // handles window initialization
