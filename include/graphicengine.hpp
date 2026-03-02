@@ -26,6 +26,9 @@ class Window {
     int pos_x = 50, pos_y = 50;
     /// if window is fullscreen
     bool fullscreen = false;
+
+    /// if vsync is on
+    bool vsync = true;
 public:
     /// pointer to a glfwwindow;
     GLFWwindow *glfwwindow;
@@ -35,7 +38,7 @@ public:
     /// Makes this window context the one which is render on.
     void select() const;
     /// Sets VSync on this window
-    void set_vsync(bool _vsync) const;
+    void set_vsync(bool _vsync);
     /// Sets the window fullscreen
     /// @param value if true = fullscreen, if false windowed
     void set_fullscreen(bool value);

@@ -59,9 +59,10 @@ void Window::select() const {
     glfwMakeContextCurrent(glfwwindow);
 }
 
-void Window::set_vsync(const bool _vsync) const {
+void Window::set_vsync(const bool _vsync) {
     glfwMakeContextCurrent(glfwwindow);
     glfwSwapInterval(_vsync ? 1 : 0);
+    vsync = _vsync;
 }
 
 void Window::set_fullscreen(const bool value) {
@@ -75,6 +76,8 @@ void Window::set_fullscreen(const bool value) {
     } else {
         glfwSetWindowMonitor(glfwwindow, nullptr,pos_x, pos_y, width, height,0);
     }
+
+    set_vsync(vsync);
 }
 
 
