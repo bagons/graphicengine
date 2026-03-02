@@ -16,6 +16,15 @@ public:
         JUST_PRESSED,
         JUST_RELEASED,
     };
+    /// Mouse mode
+    /// Normal - Normal mouse cursor
+    /// Hidden - Cursor invisible in window, can move freely
+    /// Disabled - Hides cursor, provides unlimited cursor movement, for FP controllers
+    enum MouseMode {
+        NORMAL = GLFW_CURSOR_NORMAL,
+        HIDDEN = GLFW_CURSOR_HIDDEN,
+        DISABLED = GLFW_CURSOR_DISABLED
+    };
 private:
     /// a list of KeyCodes, that map to "Actions", so one can say is_pressed(0) except for is pressed Space
     std::vector<unsigned int> actions;
@@ -29,19 +38,10 @@ private:
     Vector2 last_mouse_position;
     /// Performs in engine mouse tracking
     void update_mouse_positions();
+
+    /// Current mouse mode
+    MouseMode mouse_mode = NORMAL;
 public:
-    /// Mouse mode
-    /// Normal - Normal mouse cursor
-    /// Hidden - Cursor invisible in window, can move freely
-    /// Disabled - Hides cursor, provides unlimited cursor movement, for FP controllers
-    enum MouseMode {
-        NORMAL = GLFW_CURSOR_NORMAL,
-        HIDDEN = GLFW_CURSOR_HIDDEN,
-        DISABLED = GLFW_CURSOR_DISABLED
-    };
-
-
-
     /// Last mouse position
     Vector2 mouse_position;
     /// How the mouse moved in between frames
@@ -71,6 +71,9 @@ public:
 
     /// Sets a mouse mode (Default mode NORMAL)
     void set_mouse_mode(MouseMode);
+
+    /// Gets current mouse mode
+    MouseMode get_mouse_mode();
 
     /// Makes Input manager tick. Ment to be called every frame and is called by Engine.update() function.
     /// @note This function is not ment for the user.

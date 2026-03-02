@@ -125,4 +125,9 @@ void Input::set_mouse_mode(const MouseMode mode) {
     glfwSetInputMode(ge.window.glfwwindow, GLFW_CURSOR, mode);
     update_mouse_positions();
     mouse_move_delta = Vector2();
+    mouse_mode = mode;
+}
+
+Input::MouseMode Input::get_mouse_mode() {
+    return mouse_mode;
 }
