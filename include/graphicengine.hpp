@@ -211,7 +211,7 @@ public:
         if (!in_update_loop) {
             things[ref.id] = std::move(thing);
         } else {
-            temp_things.push_back(std::pair<unsigned int, std::unique_ptr<Thing>>{ref.id, std::move(thing)}>);
+            temp_things.push_back(std::pair<unsigned int, std::unique_ptr<Thing>>{ref.id, std::move(thing)});
         }
 
         return ref;
