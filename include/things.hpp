@@ -13,9 +13,9 @@
 class Thing {
 public:
     /// Whether entity is going to be updated. If paused, entity doesn't update. If not entity continues
-    bool paused;
+    bool paused = false;
     /// Whether entity is visible right now.
-    bool visible;
+    bool visible = true;
     /// RenderLayer a bit map showing which ForwardOpaque3DPass will render the object based their render_layer values
     unsigned int render_layer;
 

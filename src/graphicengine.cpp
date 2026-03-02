@@ -120,7 +120,7 @@ void Engine::update() {
     things_container::const_iterator it;
 
     for (it = things.begin(); it != things.end(); it++) {
-        if (it->second->paused) {
+        if (!it->second->paused) {
             it->second->update();
         }
     }
