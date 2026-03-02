@@ -119,7 +119,7 @@ mat3 blinn_phong_lighting(){
         vec4 light_data = point_lights[i].light_data;
         vec3 dir_to_light = point_lights[i].position - FRAG_GLOBAL_POS;
 
-        float dist_to_light = dir_to_light.length();
+        float dist_to_light = length(dir_to_light);
         float attenuation = light_data.w / (1 + pow(dist_to_light, 2));
 
         vec3 dir = normalize(dir_to_light);
