@@ -89,18 +89,19 @@ mat3 blinn_phong_lighting(){
 
 
     #ifdef HAS_TANGENTS
-    vec3 norm_detail = mix(vec3(0.0, 0.0, 1.0), texture(normal_map, (UV * material.normal_map_scale)).rgb * 2.0 - 1.0, material.normal_map_strength);
+    /*vec3 norm_detail = mix(vec3(0.0, 0.0, 1.0), texture(normal_map, (UV * material.normal_map_scale)).rgb * 2.0 - 1.0, material.normal_map_strength);
 
     vec2 texel_size = 1.0 / vec2(textureSize(bump_map, 0));
     vec2 bump_map_uvs = UV * material.bump_map_scale;
     float height = texture(bump_map, bump_map_uvs).r;
     float height_dx = texture(bump_map, bump_map_uvs + vec2(texel_size.x, 0)).r - height;
-    float height_dy = texture(bump_map, bump_map_uvs + vec2(0, texel_size.y)).r - height;
+    float height_dy = texture(bump_map, bump_map_uvs + vec2(0, texel_size.y)).r - height;*/
 
     //norm_detail += vec3(height_dx, height_dy, 0.0);
     //norm_detail += vec3(, 0.0, 0.0);
 
-    vec3 norm = normalize(TBN * norm_detail);
+    //vec3 norm = normalize(TBN * norm_detail);
+    vec3 norm = normalize(NORMAL);
     #endif
 
     #ifndef HAS_TANGENTS
