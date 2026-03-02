@@ -278,15 +278,15 @@ Color::Color(float _r, float _g, float _b, float _a, bool auto_sRGB) {
 }
 
 void Color::gamma_encode() {
-    r = std::powf(r, 1.0f/2.2f);
-    g = std::powf(g, 1.0f/2.2f);
-    b = std::powf(b, 1.0f/2.2f);
+    r = std::pow(r, 1.0f/2.2f);
+    g = std::pow(g, 1.0f/2.2f);
+    b = std::pow(b, 1.0f/2.2f);
 }
 
 void Color::gamma_decode() {
-    r = std::powf(r, 2.2f);
-    g = std::powf(g, 2.2f);
-    b = std::powf(b, 2.2f);
+    r = std::pow(r, 2.2f);
+    g = std::pow(g, 2.2f);
+    b = std::pow(b, 2.2f);
 }
 
 
