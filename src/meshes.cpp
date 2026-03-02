@@ -270,7 +270,7 @@ std::unordered_map<std::string, std::shared_ptr<Material>> parse_mtl_file(const 
             // TEXTURES
             else if (line[char_offset] == 'm') {
                 auto data = parse_mtl_texture_statement(after_char(line, ' '));
-                data.texture_path = (std::filesystem::path(file_path).parent_path() / data.texture_path).string();
+                data.texture_path = (std::filesystem::path(file_path).parent_path() / normalize_path(data.texture_path)).string();
 
                 if (line[char_offset + 5] == 'd') {
                     // assume sRGB for diffuse textures
