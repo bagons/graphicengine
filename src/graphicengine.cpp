@@ -119,11 +119,19 @@ void Engine::update() {
     // update entities
     things_container::const_iterator it;
 
+    in_update_loop = true;
     for (it = things.begin(); it != things.end(); it++) {
         if (!it->second->paused) {
             it->second->update();
         }
     }
+    in_update_loop = false;
+
+    // add queue entities
+    for (auto& pair : temp_things) {
+        things[pair.first] = std::move(pair.second);
+    }
+    temp_things.clear();
 
     // remove queued entities
     for (auto id : queued_things_to_be_removed) {

@@ -26,7 +26,6 @@ class Window {
     int pos_x = 50, pos_y = 50;
     /// if window is fullscreen
     bool fullscreen = false;
-
     /// if vsync is on
     bool vsync = true;
 public:
@@ -90,6 +89,8 @@ class Engine {
     /// If framebuffers were cleared this frame (for auto screen clearing)
     bool color_buffer_cleared_this_frame;
     bool depth_buffer_cleared_this_frame;
+
+    bool in_update_loop = false;
 public:
     /// The main window in which the engine draws images (the only window)
     Window window;
@@ -113,6 +114,8 @@ public:
     float frame_delta = 0.0f;
     /// Container that hold all the std::unique_ptr of all spawned entities. You can receive a pointer through the entity ID.
     things_container things{};
+    /// temporary container if you create entities in update method of entity
+    std::vector<std::pair<unsigned int, std::unique_ptr<Thing>>> temp_things{};
     /// Data structure that holds entity ids sorted by Materials, so that entities can be rendered in an optimized order.
     std::multimap<std::shared_ptr<Material>, unsigned int, MaterialSorter> thing_ids_by_shader_program;
     /// Container holding all the render layers, at this point in time usually only one, but serves as a scalable infrastructure
@@ -205,7 +208,11 @@ public:
             }
         }
 
-        things[ref.id] = std::move(thing);
+        if (!in_update_loop) {
+            things[ref.id] = std::move(thing);
+        } else {
+            temp_things.push_back(std::pair<unsigned int, std::unique_ptr<Thing>>{ref.id, std::move(thing)}>);
+        }
 
         return ref;
     };
