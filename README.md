@@ -4,7 +4,7 @@ Jednoduchý Grafický Engine ve formě C++ knihovny na základě OpenGL a GLFW.
 
 Maturitní projekt GJK - školní rok 2025/26
 
-[teoretická práce](https://github.com/bagons/graphicengine)
+[teoretická práce](https://github.com/bagons/graphicengine/blob/main/docs/dokumentace.pdf)
 
 ****
 
