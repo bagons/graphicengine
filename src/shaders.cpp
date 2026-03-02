@@ -370,7 +370,7 @@ void Shaders::setup_base_materials() {
 
     mat->set_uniform("normal_map", get_placeholder_texture(NORMAL_MAP));
     mat->set_uniform("material.normal_map_scale", Vector2(1.0f));
-    //mat->set_uniform("material.normal_map_strength", 1.0f);
+    mat->set_uniform("material.normal_map_strength", 1.0f);
 
     mat->set_uniform("bump_map", get_placeholder_texture(WHITE));
     //mat->set_uniform("material.bump_map_offset", Vector2(0.0f));

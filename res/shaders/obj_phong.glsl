@@ -28,13 +28,14 @@ struct Material {
     vec3 specular;
     float shininess;
     vec3 albedo_color;
-    // albedo texture
+// albedo texture
     vec2 albedo_texture_scale;
 /*sampler2D specular_texture;
 vec2 specular_texture_offset;
 vec2 specular_texture_scale;*/
 #ifdef HAS_TANGENTS
     vec2 normal_map_scale;
+    float normal_map_strength;
     vec2 bump_map_scale;
     float bump_map_strength;
 #endif
@@ -88,7 +89,7 @@ mat3 blinn_phong_lighting(){
 
 
     #ifdef HAS_TANGENTS
-    vec3 norm_detail = texture(normal_map, (UV * material.normal_map_scale)).rgb * 2.0 - 1.0;
+    vec3 norm_detail = mix(vec3(0.0, 0.0, 1.0), texture(normal_map, (UV * material.normal_map_scale)).rgb * 2.0 - 1.0, material.normal_map_strength);
 
     vec2 texel_size = 1.0 / vec2(textureSize(bump_map, 0));
     vec2 bump_map_uvs = UV * material.bump_map_scale;
