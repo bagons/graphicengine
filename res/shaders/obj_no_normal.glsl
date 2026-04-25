@@ -1,6 +1,12 @@
 #version 330 core
 #ifdef USE_BINDLESS
-#extension GL_ARB_bindless_texture : require
+#extension GL_ARB_bindless_texture : enable
+#endif
+
+#ifdef USE_BINDLESS
+#define SAMPLER_UNIFORM layout(bindless_sampler) uniform sampler2D
+#else
+#define SAMPLER_UNIFORM uniform sampler2D
 #endif
 
 #ifdef HAS_UV
@@ -13,10 +19,13 @@ in vec3 CAMERA_GLOBAL_POS;
 struct Material {
     vec3 diffuse;
 #ifdef HAS_UV
-    sampler2D albedo_texture;
+    vec2 albedo_texture_scale;
 #endif
 };
 
+#ifdef HAS_UV
+SAMPLER_UNIFORM albedo_texture;
+#endif
 /* <GRAPHIC ENGINE TEMPLATE CODE> */
 struct PointLight{
     vec4 light_data;
@@ -52,9 +61,9 @@ out vec4 FragColor;
 void main() {
     vec3 diffuse = material.diffuse * BASE_AMBINET_LIGHT;
 
-#ifdef HAS_UV
-    diffuse *= texture(material.albedo_texture, UV).xyz;
-#endif
+    #ifdef HAS_UV
+    diffuse *= texture(albedo_texture, UV).xyz;
+    #endif
 
     FragColor = vec4(diffuse, 1.0);
 }
