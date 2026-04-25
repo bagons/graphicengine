@@ -90,6 +90,7 @@ Texture::Texture(Color color, const bool alpha) {
     }
 
     glTexImage2D(GL_TEXTURE_2D, 0, format, 1, 1, 0, format, GL_UNSIGNED_BYTE, data);
+    delete data;
     generate_bindless_handle();
 }
 
