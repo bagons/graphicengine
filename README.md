@@ -38,7 +38,7 @@ std::cout << "Project started" << std::endl;
 
     while (ge.is_running()){
         ge.update();
-        ge.send_it_to_window();
+        ge.send_to_window();
     }
 
     std::cout << "Project ended" << std::endl;
