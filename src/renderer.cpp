@@ -8,6 +8,10 @@ ColorPass::ColorPass(Color color) : color(color) {
 };
 
 void ColorPass::render() {
+    if (ge.auto_clear_screen and (!ge.was_color_buffer_cleared() or !ge.was_depth_buffer_cleared())) {
+        ge.clear_framebuffers();
+    }
+
     glClearColor(color.r, color.g, color.b, color.a);
 }
 
